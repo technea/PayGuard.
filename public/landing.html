@@ -3040,7 +3040,7 @@
           },
           2: {
             title: "SSRF Airgap: Zero Network Outbound",
-            body: "PayGuard statically decomposes the URL in-memory using URL grammar parsers. It guarantees zero HTTP requests to the target URL, preventing Server-Side Request Forgery (SSRF) against internal cloud infrastructure.",
+            body: "PayGuard parses the submitted URL locally and does not fetch the target as part of this check. This reduces SSRF exposure for URL analysis; it is not a guarantee about every component or deployment.",
             callout: "Malicious URLs often target AWS metadata (169.254.169.254). PayGuard never fetches target URLs, rendering SSRF impossible.",
             chips: ["Demo: local parsing", "No target fetch in this check", "Live telemetry: unavailable"],
             time: "8.40 ms",
@@ -3069,7 +3069,7 @@
             title: "Advisory Verdict: Policy Match (PASS)",
             body: "PayGuard returns an advisory PASS when the supplied fields match the configured sample policy. This demo does not authorize a wallet to sign, and the displayed sequence is not a live benchmark.",
             callout: "Non-custodial guarantee fulfilled: PayGuard never executes payments directly. The host runtime retains sole signing power.",
-            chips: ["Verdict: PASS", "Risk Level: NONE", "Total Latency: 34.2 ms"],
+            chips: ["Verdict: PASS", "Policy: matched", "Live latency: not measured"],
             time: "34.20 ms",
             mem: "5.4 KB",
             status: "pass"
@@ -3351,7 +3351,7 @@
           color: "var(--emerald)",
           text: "PASS · POLICY MATCH",
           risk: "Risk score: not established",
-          plain: "The requested checkout domain exactly matches verified PayBox infrastructure. Amount (0.001 USDC) is well within the user's $1.00 safety ceiling. No Cyrillic or lookalike character spoofing detected.",
+          plain: "Demo only: the sample hostname and payment fields match the sample policy. This does not verify PayBox ownership or prove a real payment is safe.",
           guidance: {
             bg: "rgba(16, 185, 129, 0.1)",
             border: "rgba(16, 185, 129, 0.25)",
@@ -3406,7 +3406,7 @@
           icon: "fa-triangle-exclamation",
           color: "var(--rose)",
           text: "BLOCK · CEILING EXCEEDED",
-          risk: "Risk Level: CRITICAL (100/100)",
+          risk: "High-risk indicators detected",
           plain: "The merchant requested 500.00 USDC, which drastically exceeds the agent operator's hard policy ceiling of $1.00 USDC. Prevents rogue balance draining.",
           guidance: {
             bg: "rgba(244, 63, 94, 0.1)",
