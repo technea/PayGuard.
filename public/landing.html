@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PayGuard — Autonomous AI Agent Security Gateway & x402 Policy Guard</title>
-  <meta name="description" content="Next-gen zero-custody, SSRF-proof security firewall for AI agents. Visual hierarchy, live packet inspection simulator, and real-time x402 payment policy enforcement.">
+  <meta name="description" content="Security checks for AI agents: local URL analysis, phishing indicators, and x402 payment-policy comparisons. Interactive visuals are demonstrations; verdicts are advisory and do not execute or block payments.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -2032,28 +2032,25 @@
       <div class="container">
         <div class="pill-badge">
           <span class="pill-dot"></span>
-          <span>Next-Gen AI Agent Security Gateway · Zero-Custody x402 Firewall</span>
+          <span>AI Agent Security · URL Analysis & x402 Policy Checks</span>
         </div>
 
         <h1 class="hero-title">
-          <span class="gradient-text">Autonomous AI Payments.</span><br>
-          <span style="display:inline-block; margin-top: 0.2em;">Never Trust Links</span>
-          <span id="dynamicRotator" class="dynamic-rotator state-phish">
-            <i class="fa-solid fa-shield-virus" style="margin-right: 6px;"></i><span id="rotatorText">Without Phishing</span>
-          </span>
-          <br><span class="gradient-text">Protected by PayGuard.</span>
+          <span class="gradient-text">Secure AI Agent Payments.</span><br>
+          <span style="display:inline-block; margin-top: 0.2em;">Check Links Before You Trust Them</span>
+          <br><span class="gradient-text">Inspect. Compare. Decide.</span>
         </h1>
 
         <p class="hero-desc">
-          When AI agents autonomously browse, hire compute, and pay with crypto, what stops them from clicking a spoofed checkout or falling for a wallet-draining trap? PayGuard intercepts every link and payment intent, running <strong>pure in-memory verification</strong> before a single satoshi moves.
+          When AI agents encounter links and x402 payment requests, PayGuard checks for suspicious URL signals and compares proposed payment fields against a separate user-defined policy. It returns explainable findings for the calling agent or wallet to evaluate. <strong>PayGuard is advisory: it does not sign, execute, or independently block payments.</strong>
         </p>
 
         <div class="hero-cta-group">
           <a href="#visual-simulation" class="btn btn-glow">
-            <i class="fa-solid fa-play"></i> Watch Live Visualization
+            <i class="fa-solid fa-play"></i> Explore the Demo
           </a>
           <a href="#system-hierarchy" class="btn btn-secondary">
-            <i class="fa-solid fa-sitemap"></i> Explore 4-Layer Hierarchy
+            <i class="fa-solid fa-sitemap"></i> How It Works
           </a>
           <a href="/dashboard" class="btn btn-secondary">
             <i class="fa-solid fa-sliders"></i> Full Operator Dashboard
@@ -2062,7 +2059,7 @@
 
         <div class="trust-strip">
           <div class="trust-item"><i class="fa-solid fa-circle-check"></i> Zero Private Key Custody</div>
-          <div class="trust-item"><i class="fa-solid fa-circle-check"></i> SSRF-Proof Local URL Parsing</div>
+          <div class="trust-item"><i class="fa-solid fa-circle-check"></i> Local URL Parsing · No Target Fetch</div>
           <div class="trust-item"><i class="fa-solid fa-circle-check"></i> Unicode Homoglyph Scanner</div>
           <div class="trust-item"><i class="fa-solid fa-circle-check"></i> Base Sepolia Testnet Ready</div>
           <div class="trust-item"><i class="fa-solid fa-circle-check"></i> Google Web Risk Privacy Redaction</div>
@@ -2204,9 +2201,9 @@
             </div>
 
             <div class="sim-footer-metrics">
-              <span>Zero SSRF: <strong id="metricSsrf">VERIFIED (0 OUTBOUND)</strong></span>
-              <span>Memory Footprint: <strong id="metricMem">3.8 KB</strong></span>
-              <span>Execution Time: <strong id="metricTime">0.00 ms</strong></span>
+              <span>URL handling: <strong id="metricSsrf">LOCAL PARSE DEMO</strong></span>
+              <span>Memory: <strong id="metricMem">Not measured</strong></span>
+              <span>Latency: <strong id="metricTime">Not measured</strong></span>
             </div>
           </div>
         </div>
@@ -2371,8 +2368,8 @@
                     <i class="fa-solid fa-circle-check"></i>
                   </div>
                   <div class="verdict-main-text">
-                    <h4 id="scenarioVerdictText" style="color:var(--emerald)">PASS · SAFE TO SIGN</h4>
-                    <p id="scenarioRiskText">Risk Level: NONE (0/100)</p>
+                    <h4 id="scenarioVerdictText" style="color:var(--emerald)">PASS · POLICY MATCH</h4>
+                    <p id="scenarioRiskText">Risk score: not established</p>
                   </div>
                 </div>
 
@@ -2390,13 +2387,13 @@
                 <div class="plain-english-box">
                   <strong>What this means for the user:</strong>
                   <span id="scenarioPlainDesc">
-                    The requested checkout domain exactly matches verified PayBox infrastructure. Amount (0.001 USDC) is well within the user's $1.00 safety ceiling. No Cyrillic or lookalike character spoofing detected.
+                    Demo scenario: the example hostname and payment fields match the sample policy. This is not an independent verification of PayBox infrastructure or proof that a real payment is safe.
                   </span>
                 </div>
 
                 <div class="guidance-box" id="scenarioGuidance" style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.25); color:#6ee7b7;">
                   <i class="fa-solid fa-lightbulb"></i>
-                  <span id="scenarioGuidanceText">Action for Agent: Safe to proceed. Agent wallet may sign the x402 payment proof.</span>
+                  <span id="scenarioGuidanceText">Action for Agent: Review the checks independently. A PASS is not a safety guarantee and does not authorize signing.</span>
                 </div>
               </div>
             </div>
@@ -2548,15 +2545,15 @@
               <div class="tier-submodules">
                 <div class="submodule-pill">
                   <span class="submodule-title"><i class="fa-solid fa-circle-check" style="color:var(--emerald)"></i> PASS Verdict</span>
-                  <span class="submodule-detail" style="color:var(--emerald)">Merchant meets all policies · Safe to sign</span>
+                  <span class="submodule-detail" style="color:var(--emerald)">Supplied fields match policy · Advisory only</span>
                 </div>
                 <div class="submodule-pill">
                   <span class="submodule-title"><i class="fa-solid fa-circle-xmark" style="color:var(--rose)"></i> BLOCK Verdict</span>
-                  <span class="submodule-detail" style="color:var(--rose)">Violation detected · Transaction aborted</span>
+                  <span class="submodule-detail" style="color:var(--rose)">Policy violation detected · Caller must enforce</span>
                 </div>
                 <div class="submodule-pill">
-                  <span class="submodule-title"><i class="fa-solid fa-shield"></i> 100% Non-Custodial</span>
-                  <span class="submodule-detail">Zero key exposure · Zero liability</span>
+                  <span class="submodule-title"><i class="fa-solid fa-shield"></i> Non-Custodial Design</span>
+                  <span class="submodule-detail">No wallet signing · No payment execution</span>
                 </div>
               </div>
             </div>
@@ -2672,7 +2669,7 @@
         <span class="section-eyebrow">Enterprise Guarantees</span>
         <h2 class="section-title">Engineered for Autonomous Trust</h2>
         <p class="section-subtitle">
-          Six foundational architectural pillars that make PayGuard the ideal security gateway for autonomous AI fleets.
+          Core design choices for advisory security checks in AI-agent payment workflows.
         </p>
       </div>
 
@@ -2681,13 +2678,13 @@
           <div class="feature-icon-box"><i class="fa-solid fa-ban"></i></div>
           <h4>Zero-Custody Boundary</h4>
           <p>
-            PayGuard never requests, stores, or logs wallet seed phrases, private keys, or passwords. Total non-custodial design means zero liability for your infrastructure.
+            PayGuard never requests, stores, or logs wallet seed phrases, private keys, or passwords. This design avoids taking custody of wallet secrets; it does not remove all operational, security, or legal risk.
           </p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon-box"><i class="fa-solid fa-laptop-code"></i></div>
-          <h4>SSRF-Proof Parsing</h4>
+          <h4>Local URL Parsing</h4>
           <p>
             Evaluated purely in-memory via static lexical parsing. PayGuard will never open, fetch, or ping target URLs, preventing malicious internal network probing.
           </p>
@@ -2758,7 +2755,7 @@
               <td>SSRF Protection (Zero outbound fetch)</td>
               <td><span class="badge-x"><i class="fa-solid fa-xmark"></i> Fetches target page</span></td>
               <td><span class="badge-x"><i class="fa-solid fa-xmark"></i> Not applicable</span></td>
-              <td class="highlight-col"><span class="badge-check"><i class="fa-solid fa-check"></i> 100% In-Memory Parsing</span></td>
+              <td class="highlight-col"><span class="badge-check"><i class="fa-solid fa-check"></i> Parses URL Without Target Fetch</span></td>
             </tr>
             <tr>
               <td>Homoglyph & Punycode Deobfuscation</td>
@@ -2806,7 +2803,7 @@
             <i class="fa-solid fa-chevron-down"></i>
           </button>
           <div class="faq-answer">
-            <strong>No, absolutely not.</strong> PayGuard is 100% non-custodial. It never asks for, accepts, or stores your private keys or seed phrases. PayGuard simply acts as an advisory pre-flight check — it answers with a PASS or BLOCK verdict, but your agent's own local wallet runtime retains sole signing authority.
+            PayGuard is designed not to request or store private keys or seed phrases. It provides an advisory pre-flight result; your agent or wallet must independently decide whether to proceed and enforce any policy. Do not enter wallet secrets into the site.
           </div>
         </div>
 
@@ -2916,7 +2913,7 @@
           <li><span style="color:var(--text-muted);"><i class="fa-solid fa-lock"></i> Zero Private Key Custody</span></li>
           <li><span style="color:var(--text-muted);"><i class="fa-solid fa-network-wired"></i> Base Sepolia (84532)</span></li>
           <li><span style="color:var(--text-muted);"><i class="fa-solid fa-microchip"></i> Model Context Protocol</span></li>
-          <li><span style="color:var(--emerald);"><i class="fa-solid fa-circle-check"></i> 49/49 Tests Passed</span></li>
+          <li><span style="color:var(--text-muted);"><i class="fa-solid fa-vial"></i> Automated tests in repository</span></li>
         </ul>
       </div>
     </div>
@@ -3043,16 +3040,16 @@
           },
           2: {
             title: "SSRF Airgap: Zero Network Outbound",
-            body: "PayGuard statically decomposes the URL in-memory using URL grammar parsers. It guarantees zero HTTP requests to the target URL, preventing Server-Side Request Forgery (SSRF) against internal cloud infrastructure.",
+            body: "PayGuard parses the submitted URL locally and does not fetch the target as part of this check. This reduces SSRF exposure for URL analysis; it is not a guarantee about every component or deployment.",
             callout: "Malicious URLs often target AWS metadata (169.254.169.254). PayGuard never fetches target URLs, rendering SSRF impossible.",
-            chips: ["Remote Ping: BLOCKED", "Airgap: 100%", "Target Fetch: 0 bytes"],
+            chips: ["Demo: local parsing", "No target fetch in this check", "Live telemetry: unavailable"],
             time: "8.40 ms",
             mem: "4.2 KB",
             status: "pass"
           },
           3: {
             title: "Homoglyph & Punycode Deobfuscation",
-            body: "The domain 'paybox.sh' is parsed into unicode code points. All characters are ASCII Latin [U+0061..U+007A]. No Cyrillic, Greek, or Arabic lookalike spoofing detected. Domain matches verified PayBox infrastructure.",
+            body: "Demo-only example: the hostname uses ASCII characters. This does not establish that the domain is owned by or officially associated with PayBox.",
             callout: "Lookalike characters that trick LLM visual embeddings or human eyes are dissected at the binary code point level.",
             chips: ["Punycode: None", "Script: Latin ASCII", "Spoof Risk: 0.0%"],
             time: "18.20 ms",
@@ -3069,10 +3066,10 @@
             status: "pass"
           },
           5: {
-            title: "Advisory Verdict: Safe to Sign (PASS)",
-            body: "PayGuard returns an advisory verdict: PASS. The host agent wallet is cleared to sign the x402 payment proof. All security gates verified in under 38 milliseconds.",
+            title: "Advisory Verdict: Policy Match (PASS)",
+            body: "PayGuard returns an advisory PASS when the supplied fields match the configured sample policy. This demo does not authorize a wallet to sign, and the displayed sequence is not a live benchmark.",
             callout: "Non-custodial guarantee fulfilled: PayGuard never executes payments directly. The host runtime retains sole signing power.",
-            chips: ["Verdict: PASS", "Risk Level: NONE", "Total Latency: 34.2 ms"],
+            chips: ["Verdict: PASS", "Policy: matched", "Live latency: not measured"],
             time: "34.20 ms",
             mem: "5.4 KB",
             status: "pass"
@@ -3352,14 +3349,14 @@
           cls: "hero-pass",
           icon: "fa-circle-check",
           color: "var(--emerald)",
-          text: "PASS · SAFE TO SIGN",
-          risk: "Risk Level: NONE (0/100)",
-          plain: "The requested checkout domain exactly matches verified PayBox infrastructure. Amount (0.001 USDC) is well within the user's $1.00 safety ceiling. No Cyrillic or lookalike character spoofing detected.",
+          text: "PASS · POLICY MATCH",
+          risk: "Risk score: not established",
+          plain: "Demo only: the sample hostname and payment fields match the sample policy. This does not verify PayBox ownership or prove a real payment is safe.",
           guidance: {
             bg: "rgba(16, 185, 129, 0.1)",
             border: "rgba(16, 185, 129, 0.25)",
             color: "#6ee7b7",
-            text: "Action for Agent: Safe to proceed. Agent wallet may sign the x402 payment proof."
+            text: "Action for Agent: Review checks independently. A PASS is not a safety guarantee or signing authorization."
           }
         }
       },
@@ -3409,7 +3406,7 @@
           icon: "fa-triangle-exclamation",
           color: "var(--rose)",
           text: "BLOCK · CEILING EXCEEDED",
-          risk: "Risk Level: CRITICAL (100/100)",
+          risk: "High-risk indicators detected",
           plain: "The merchant requested 500.00 USDC, which drastically exceeds the agent operator's hard policy ceiling of $1.00 USDC. Prevents rogue balance draining.",
           guidance: {
             bg: "rgba(244, 63, 94, 0.1)",
@@ -3609,7 +3606,7 @@
           </div>
           <div class="plain-english-box">
             <strong>Static Local Result:</strong>
-            ${isBad ? 'Do not execute or sign payments for this link. Flagged for brand impersonation.' : 'Safe to proceed under standard x402 payment policy limits.'}
+            ${isBad ? 'Do not execute or sign payments for this link. Flagged for brand impersonation.' : 'No configured heuristic triggered in this demo. This does not establish that the URL is safe.'}
           </div>
         </div>
       `;
