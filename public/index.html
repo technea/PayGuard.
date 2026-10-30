@@ -751,6 +751,16 @@
       .header-pills { display: none; }
       .tab-btn { min-width: 120px; font-size: 0.8rem; }
     }
+
+    /* Base Sepolia wallet connection (read-only) */
+    .wallet-layout { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1rem; }
+    .wallet-stat { background:rgba(3,7,18,.55); border:1px solid var(--border-subtle); border-radius:12px; padding:1rem; min-width:0; }
+    .wallet-stat-label { color:var(--text-dim); font-size:.72rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; margin-bottom:.5rem; }
+    .wallet-stat-value { color:var(--text-main); font:600 .9rem var(--font-mono); overflow-wrap:anywhere; }
+    .wallet-status { margin-top:1rem; padding:.9rem 1rem; border-radius:10px; border:1px solid var(--border-subtle); color:var(--text-muted); background:rgba(255,255,255,.03); line-height:1.5; }
+    .wallet-status.success { border-color:rgba(16,185,129,.4); color:#6ee7b7; background:rgba(16,185,129,.08); }
+    .wallet-status.warning { border-color:rgba(245,158,11,.4); color:#fbbf24; background:rgba(245,158,11,.08); }
+    .wallet-actions { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:1.25rem; }
   </style>
 </head>
 <body>
@@ -792,6 +802,9 @@
       </button>
       <button class="tab-btn" onclick="switchTab('bazaar')">
         <i class="fa-solid fa-store"></i> x402 Bazaar Catalog
+      </button>
+      <button class="tab-btn" onclick="switchTab('base-wallet')">
+        <i class="fa-brands fa-ethereum"></i> Base Wallet
       </button>
     </nav>
 
@@ -1062,6 +1075,47 @@
           </div>
         </div>
       </div>
+
+    <!-- TAB: BASE SEPOLIA WALLET -->
+    <section id="tab-base-wallet" class="tab-content">
+      <div class="glass-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><i class="fa-brands fa-ethereum" style="color:var(--cyan)"></i> Base Sepolia Wallet</div>
+            <div class="card-subtitle">Connect an injected wallet and verify its active network. No transaction or signature is requested.</div>
+          </div>
+          <span class="brand-tag">Testnet</span>
+        </div>
+        <div class="wallet-layout">
+          <div class="wallet-stat">
+            <div class="wallet-stat-label">Connection</div>
+            <div class="wallet-stat-value" id="wallet-connection">Not connected</div>
+          </div>
+          <div class="wallet-stat">
+            <div class="wallet-stat-label">Network</div>
+            <div class="wallet-stat-value" id="wallet-network">Not checked</div>
+          </div>
+          <div class="wallet-stat">
+            <div class="wallet-stat-label">Connected address</div>
+            <div class="wallet-stat-value" id="wallet-address">—</div>
+          </div>
+        </div>
+        <div class="wallet-actions">
+          <button class="btn" id="wallet-connect-btn" onclick="connectBaseWallet()"><i class="fa-solid fa-wallet"></i> Connect Wallet</button>
+          <button class="btn btn-secondary" id="wallet-switch-btn" onclick="switchToBaseSepolia()" disabled><i class="fa-solid fa-arrows-rotate"></i> Switch to Base Sepolia</button>
+          <button class="btn btn-secondary" id="wallet-disconnect-btn" onclick="disconnectBaseWallet()" disabled><i class="fa-solid fa-link-slash"></i> Clear Connection</button>
+        </div>
+        <div class="wallet-status" id="wallet-message" role="status" aria-live="polite">Wallet is disconnected. Connect MetaMask or another EIP-1193 compatible wallet to continue.</div>
+        <div class="action-guidance-card">
+          <i class="fa-solid fa-shield-halved action-guidance-icon"></i>
+          <div>
+            <div class="action-guidance-title">Security boundary</div>
+            <div class="action-guidance-text">This MVP only reads the wallet address and chain ID after you approve the connection. It does not request a signature, send a transaction, access private keys, or enforce spending limits. A connected wallet alone does not protect funds.</div>
+          </div>
+        </div>
+        <p class="card-subtitle" style="margin-top:1rem">Base Sepolia chain ID: 84532 • RPC: sepolia.base.org • Explorer: <a href="https://sepolia.basescan.org" target="_blank" rel="noopener noreferrer" style="color:var(--cyan)">BaseScan</a></p>
+      </div>
+    </section>
     </section>
   </main>
 
@@ -1605,6 +1659,135 @@
         }
       };
       document.getElementById('bazaar-challenge-output').textContent = JSON.stringify(challenge, null, 2);
+    }
+
+
+    // Base Sepolia wallet connection. Read-only: no signatures or transactions.
+    const BASE_SEPOLIA_CHAIN_ID = '0x14a34';
+    let payGuardProvider = null;
+    let payGuardAccount = null;
+    let payGuardChainId = null;
+
+    function setWalletMessage(message, type = '') {
+      const el = document.getElementById('wallet-message');
+      if (!el) return;
+      el.textContent = message;
+      el.className = 'wallet-status' + (type ? ' ' + type : '');
+    }
+
+    function renderWalletState() {
+      const connected = Boolean(payGuardAccount);
+      const onBase = payGuardChainId?.toLowerCase() === BASE_SEPOLIA_CHAIN_ID;
+      document.getElementById('wallet-connection').textContent = connected ? 'Connected' : 'Not connected';
+      document.getElementById('wallet-network').textContent = payGuardChainId
+        ? (onBase ? 'Base Sepolia (84532) ✓' : 'Wrong network (' + parseInt(payGuardChainId, 16) + ')')
+        : 'Not checked';
+      document.getElementById('wallet-address').textContent = payGuardAccount || '—';
+      document.getElementById('wallet-connect-btn').disabled = connected;
+      document.getElementById('wallet-switch-btn').disabled = !connected || onBase;
+      document.getElementById('wallet-disconnect-btn').disabled = !connected;
+    }
+
+    async function refreshWalletState() {
+      if (!window.ethereum) return;
+      try {
+        const [accounts, chainId] = await Promise.all([
+          window.ethereum.request({ method: 'eth_accounts' }),
+          window.ethereum.request({ method: 'eth_chainId' })
+        ]);
+        payGuardAccount = Array.isArray(accounts) && accounts.length ? accounts[0] : null;
+        payGuardChainId = chainId || null;
+        renderWalletState();
+      } catch {
+        setWalletMessage('Could not read wallet state. Check your wallet extension.', 'warning');
+      }
+    }
+
+    async function connectBaseWallet() {
+      if (!window.ethereum || typeof window.ethereum.request !== 'function') {
+        setWalletMessage('No compatible browser wallet detected. Install or open MetaMask, then reload this page.', 'warning');
+        return;
+      }
+      payGuardProvider = window.ethereum;
+      const button = document.getElementById('wallet-connect-btn');
+      button.disabled = true;
+      try {
+        const accounts = await payGuardProvider.request({ method: 'eth_requestAccounts' });
+        if (!Array.isArray(accounts) || !accounts.length) throw new Error('Wallet did not return an account.');
+        payGuardAccount = accounts[0];
+        payGuardChainId = await payGuardProvider.request({ method: 'eth_chainId' });
+        renderWalletState();
+        if (payGuardChainId.toLowerCase() === BASE_SEPOLIA_CHAIN_ID) {
+          setWalletMessage('Wallet connected on Base Sepolia. This connection is read-only; no payment authority was granted.', 'success');
+        } else {
+          setWalletMessage('Wallet connected, but it is on the wrong network. Switch to Base Sepolia before using Base testnet features.', 'warning');
+        }
+      } catch (error) {
+        payGuardAccount = null;
+        renderWalletState();
+        const message = error?.code === 4001 ? 'Connection request was rejected in your wallet.' : (error?.message || 'Wallet connection failed.');
+        setWalletMessage(message, 'warning');
+      } finally {
+        renderWalletState();
+      }
+    }
+
+    async function switchToBaseSepolia() {
+      if (!payGuardProvider) return;
+      try {
+        await payGuardProvider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }]
+        });
+        payGuardChainId = await payGuardProvider.request({ method: 'eth_chainId' });
+        renderWalletState();
+        setWalletMessage('Network switched. Confirmed Base Sepolia (84532).', 'success');
+      } catch (error) {
+        if (error?.code === 4902) {
+          try {
+            await payGuardProvider.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: BASE_SEPOLIA_CHAIN_ID,
+                chainName: 'Base Sepolia',
+                nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+                rpcUrls: ['https://sepolia.base.org'],
+                blockExplorerUrls: ['https://sepolia.basescan.org']
+              }]
+            });
+            payGuardChainId = await payGuardProvider.request({ method: 'eth_chainId' });
+            renderWalletState();
+            setWalletMessage('Base Sepolia was added to your wallet. Check the selected network before continuing.', 'success');
+          } catch (addError) {
+            setWalletMessage(addError?.message || 'Could not add Base Sepolia to the wallet.', 'warning');
+          }
+        } else {
+          setWalletMessage(error?.code === 4001 ? 'Network switch was rejected.' : (error?.message || 'Could not switch network.'), 'warning');
+        }
+      }
+    }
+
+    function disconnectBaseWallet() {
+      // EIP-1193 providers do not expose a universal disconnect method.
+      // Clear only this page's selected account; do not pretend to revoke wallet access.
+      payGuardAccount = null;
+      payGuardChainId = null;
+      renderWalletState();
+      setWalletMessage('Connection cleared in this page. To revoke site permissions, use your wallet’s connected-sites settings.');
+    }
+
+    if (window.ethereum?.on) {
+      window.ethereum.on('accountsChanged', accounts => {
+        payGuardAccount = Array.isArray(accounts) && accounts.length ? accounts[0] : null;
+        renderWalletState();
+        setWalletMessage(payGuardAccount ? 'Wallet account changed.' : 'Wallet account access was removed.');
+      });
+      window.ethereum.on('chainChanged', chainId => {
+        payGuardChainId = chainId;
+        renderWalletState();
+        setWalletMessage(chainId.toLowerCase() === BASE_SEPOLIA_CHAIN_ID ? 'Base Sepolia network detected.' : 'Network changed. Switch back to Base Sepolia for testnet features.', chainId.toLowerCase() === BASE_SEPOLIA_CHAIN_ID ? 'success' : 'warning');
+      });
+      refreshWalletState();
     }
 
     // Initialize defaults
