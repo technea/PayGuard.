@@ -885,6 +885,36 @@
         </div>
 
         <!-- Presets bar -->
+        <div class="action-guidance-card" style="margin-bottom:1.25rem">
+          <i class="fa-solid fa-cubes action-guidance-icon"></i>
+          <div>
+            <div class="action-guidance-title">Base Sepolia policy builder</div>
+            <div class="action-guidance-text">Create a trusted policy template for Base Sepolia. Add the merchant recipient from an independent trusted source. The generated policy is advisory and does not lock funds.</div>
+          </div>
+        </div>
+        <div class="wallet-layout" style="margin-bottom:1.25rem">
+          <div class="form-group">
+            <label class="form-label" for="base-policy-resource">Expected HTTPS resource URL</label>
+            <input id="base-policy-resource" class="input-box" type="url" value="https://api.example.com/checkout" maxlength="2048">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="base-policy-recipient">Approved recipient address</label>
+            <input id="base-policy-recipient" class="input-box" type="text" placeholder="0x… (40 hexadecimal characters)" maxlength="42" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="base-policy-asset">Allowed token contract</label>
+            <input id="base-policy-asset" class="input-box" type="text" value="0x036CbD53842c5426634e7929541eC2318f3dCF7e" maxlength="42" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="base-policy-amount">Maximum amount (USDC atomic units)</label>
+            <input id="base-policy-amount" class="input-box" type="text" inputmode="numeric" value="1000000" pattern="[0-9]*" maxlength="78">
+            <span class="card-subtitle">USDC uses 6 decimals. Example: 1000000 = 1 USDC.</span>
+          </div>
+        </div>
+        <div class="wallet-actions" style="margin-bottom:1.5rem">
+          <button class="btn" type="button" onclick="applyBaseSepoliaPolicy()"><i class="fa-solid fa-shield-check"></i> Generate Base Sepolia Policy</button>
+        </div>
+        <div id="base-policy-builder-message" class="wallet-status" role="status" aria-live="polite">Policy is not generated yet. Verify the recipient and token contract independently.</div>
         <div class="preset-bar">
           <span class="preset-label"><i class="fa-solid fa-flask" style="color: var(--cyan); margin-right: 0.25rem;"></i> Test Scenarios:</span>
           <button class="preset-chip" onclick="setUrlPreset('https://paybox.sh/checkout', 'paybox.sh')"><i class="fa-solid fa-circle-check" style="color: var(--emerald);"></i> Official PayBox Domain</button>
@@ -1076,6 +1106,8 @@
         </div>
       </div>
 
+    </section>
+
     <!-- TAB: BASE SEPOLIA WALLET -->
     <section id="tab-base-wallet" class="tab-content">
       <div class="glass-card">
@@ -1115,7 +1147,6 @@
         </div>
         <p class="card-subtitle" style="margin-top:1rem">Base Sepolia chain ID: 84532 • RPC: sepolia.base.org • Explorer: <a href="https://sepolia.basescan.org" target="_blank" rel="noopener noreferrer" style="color:var(--cyan)">BaseScan</a></p>
       </div>
-    </section>
     </section>
   </main>
 
@@ -1463,6 +1494,51 @@
       } catch (err) {
         alert('Invalid JSON in policy or payment requirements: ' + err.message);
       }
+    }
+
+
+    function applyBaseSepoliaPolicy() {
+      const resource = document.getElementById('base-policy-resource').value.trim();
+      const recipient = document.getElementById('base-policy-recipient').value.trim();
+      const asset = document.getElementById('base-policy-asset').value.trim();
+      const maxAmountAtomic = document.getElementById('base-policy-amount').value.trim();
+      const message = document.getElementById('base-policy-builder-message');
+      const addressPattern = /^0x[0-9a-fA-F]{40}$/;
+      let parsedResource;
+      try { parsedResource = new URL(resource); } catch {}
+      if (!parsedResource || parsedResource.protocol !== 'https:' || parsedResource.username || parsedResource.password || parsedResource.hash) {
+        message.textContent = 'Enter a valid HTTPS resource URL without credentials or a fragment.';
+        message.className = 'wallet-status warning';
+        return;
+      }
+      if (!addressPattern.test(recipient)) {
+        message.textContent = 'Enter one valid 20-byte recipient address. Do not copy it from the payment request being checked.';
+        message.className = 'wallet-status warning';
+        return;
+      }
+      if (!addressPattern.test(asset)) {
+        message.textContent = 'Enter a valid 20-byte token contract address and verify it using an official source.';
+        message.className = 'wallet-status warning';
+        return;
+      }
+      if (!/^(0|[1-9][0-9]{0,77})$/.test(maxAmountAtomic)) {
+        message.textContent = 'Maximum amount must be a non-negative integer string in atomic units.';
+        message.className = 'wallet-status warning';
+        return;
+      }
+      const intent = {
+        expectedResourceUrl: parsedResource.toString(),
+        maxAmountAtomic,
+        allowedNetworks: ['eip155:84532'],
+        allowedAssets: [asset],
+        allowedPayTo: [recipient],
+        allowedSchemes: ['exact'],
+        maxTimeoutSeconds: 300
+      };
+      document.getElementById('policy-intent-input').value = JSON.stringify(intent, null, 2);
+      message.textContent = 'Base Sepolia policy template generated. Now paste the actual x402 payment requirements and compare them. This does not reserve or enforce funds.';
+      message.className = 'wallet-status success';
+      document.getElementById('policy-intent-input').focus();
     }
 
     // Human-friendly dictionary for Payment Policy checks
