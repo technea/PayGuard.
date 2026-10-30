@@ -13,6 +13,8 @@ This branch is an incremental upgrade of the existing PayGuard project. The orig
 - Offers a wallet-approved network switch and adds Base Sepolia if the wallet reports that the chain is unknown.
 - Handles account and chain changes while the page is open.
 - Provides a page-local clear action and explains that site permissions must be revoked in the wallet itself.
+- Added a Base Sepolia policy template builder for an HTTPS resource, trusted recipient, token contract, maximum atomic amount, Base Sepolia network, exact scheme, and timeout.
+- The builder validates the URL and EVM address/amount formats, then populates the existing Payment Guard policy editor. The user must still provide the real x402 requirements to evaluate.
 
 ### Explicit security boundaries
 
@@ -43,10 +45,17 @@ This branch is an incremental upgrade of the existing PayGuard project. The orig
 9. Use **Clear Connection** and confirm the page clears its selected account. Verify the UI does not claim that wallet site permission was revoked.
 10. Confirm no signature or transaction approval appears at any point.
 
+## Validation status
+
+- GitHub Actions CI passed on the V2 pull request: 55 tests passed, distributable syntax check passed, and plugin export check passed.
+- Dashboard inline JavaScript syntax was checked and passed.
+- Dashboard tab section counts were checked and balanced.
+- Browser wallet interaction still needs manual testing with MetaMask on Base Sepolia.
+
 ## Next implementation milestones
 
 1. Extract and test wallet/network helpers independently; add browser-level tests where a wallet provider can be mocked.
-2. Add explicit user-configured policy inputs (allowed chain, recipient allowlist, per-transaction cap) and validate them against x402 payment requirements.
+2. Add server-side and automated tests for the Base Sepolia policy template and validation UX.
 3. Add privacy-conscious local audit events for checks and user decisions; do not persist secrets or raw sensitive URLs.
 4. Design and test a restricted smart-contract spending path on Base Sepolia before describing any payment blocking as enforced.
 5. Add persistent policies and production-grade rate limiting only after choosing a suitable storage/runtime architecture.
