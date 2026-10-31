@@ -138,7 +138,9 @@ function renderMetrics() {
   }
   lines.push("# HELP payguard_in_flight_requests Current number of requests in progress.", "# TYPE payguard_in_flight_requests gauge", "payguard_in_flight_requests " + inFlight);
   lines.push("# HELP payguard_uptime_seconds Process uptime in seconds.", "# TYPE payguard_uptime_seconds gauge", "payguard_uptime_seconds " + ((Date.now() - startedAt) / 1000));
-  return lines.join("\n") + "\n";
+  return lines.join("
+") + "
+";
 }
 function sendJson(res, statusCode, data, extraHeaders = {}) {
   const body = JSON.stringify(data);
@@ -217,7 +219,14 @@ const routes = new Map([
     return result;
   }],
   ["/api/scan-website-snapshot", async input => analyzeWebsiteSnapshot(input)],
-  ["/api/scan-website", async input => {\n    if (process.env.PAYGUARD_ENABLE_PASSIVE_COLLECTION !== "true") {\n      const error = new Error("Passive website collection is disabled by server configuration.");\n      error.statusCode = 503;\n      throw error;\n    }\n    return collectWebsiteSnapshot(input?.targetUrl);\n  }]
+  ["/api/scan-website", async input => {
+    if (process.env.PAYGUARD_ENABLE_PASSIVE_COLLECTION !== "true") {
+      const error = new Error("Passive website collection is disabled by server configuration.");
+      error.statusCode = 503;
+      throw error;
+    }
+    return collectWebsiteSnapshot(input?.targetUrl);
+  }]
 ]);
 
 async function requestHandler(req, res) {
