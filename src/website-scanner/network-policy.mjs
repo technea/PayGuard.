@@ -1,7 +1,13 @@
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 
-function policyError(message, statusCode = 403) {\n  const error = new TypeError(message);\n  error.statusCode = statusCode;\n  return error;\n}\n\nfunction ipv4ToNumber(address) {
+function policyError(message, statusCode = 403) {
+  const error = new TypeError(message);
+  error.statusCode = statusCode;
+  return error;
+}
+
+function ipv4ToNumber(address) {
   const parts = address.split(".");
   if (parts.length !== 4 || parts.some(part => !/^\d{1,3}$/.test(part))) return null;
   const octets = parts.map(Number);
