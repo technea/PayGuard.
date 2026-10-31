@@ -63,7 +63,7 @@ Current constraints:
 ## Verification
 
 Latest GitHub Actions run for this branch passed:
-- 82 tests passed, 0 failed.
+- 90 tests passed, 0 failed.
 - API server syntax, distributable syntax and plugin export checks passed.
 - Vercel preview deployment status: Ready.
 
