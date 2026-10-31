@@ -67,6 +67,16 @@ Set `GOOGLE_WEB_RISK_API_KEY` in the **server-side environment only**. The tool 
 
 Google lists the Web Risk Lookup API's first 100,000 calls per month as free at the time of writing; confirm current pricing and terms before deployment: https://cloud.google.com/web-risk/pricing
 
+## Passive Website Snapshot Scanner
+
+PayGuard now includes a first, deliberately limited website-analysis module. It analyzes caller-supplied HTML, response headers and URL metadata without contacting the target website.
+
+The module is exposed through `POST /api/scan-website-snapshot`. It reports selected HTTP security-header gaps, password fields on HTTP pages, HTTPS forms targeting HTTP, cross-origin form destinations, mixed-content references, inline-script inventory and a supplied cross-origin final URL.
+
+**Important:** this endpoint does not fetch the submitted URL. It makes zero network requests and does not independently verify the supplied snapshot. A report with no findings is labelled `NO_OBVIOUS_ISSUES_IN_SUPPLIED_SNAPSHOT`, not `SAFE`. The caller must obtain any HTML and headers through an independently authorized and SSRF-safe collection process.
+
+See [docs/website-scanner.md](docs/website-scanner.md) for input limits, checks, report fields and limitations. Automated tests live in `test/website-scanner.test.mjs`.
+
 ## Threat reports
 
 `payguard_prepare_threat_report` creates a redacted JSON draft. It does not submit the report or notify PayBox because no verified official reporting endpoint is configured in this project. Review and submit it only through a route confirmed by PayBox. Reports are allegations for investigation, not proof of malicious intent. The draft does not include free-form user notes because automated secret redaction cannot reliably identify every seed phrase or credential format.
@@ -100,6 +110,7 @@ The local API defaults to `http://127.0.0.1:8080` and provides `GET /health`, `G
 - `/api/analyze-url`
 - `/api/check-payment`
 - `/api/threat-report`
+- `/api/scan-website-snapshot`
 
 The supplied URL is parsed but never visited. Reputation lookup is disabled unless a request explicitly sets `checkReputation: true` and the server-side `GOOGLE_WEB_RISK_API_KEY` is configured.
 
