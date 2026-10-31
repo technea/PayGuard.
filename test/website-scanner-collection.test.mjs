@@ -69,7 +69,7 @@ test("collector revalidates every redirect destination before requesting it", as
       },
       request: async () => {
         requestCount++;
-        return { statusCode: 302, headers: { location: "https://internal.example/" }, body: "" };
+        return { statusCode: 302, headers: { location: "https://private.example.com/" }, body: "" };
       }
     }),
     /non-public|blocked/
