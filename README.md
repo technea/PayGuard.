@@ -1,6 +1,6 @@
 # PayGuard
 
-**A read-only payment-intent security checker for AI agents.**
+**A policy-based x402 payment-intent security checker with an optional pre-payload client guard for AI agents.**
 
 PayGuard evaluates an x402-style payment request against a separate, explicit policy describing what the user intended to pay for. It returns **PASS**, **REVIEW**, or **BLOCK** with check-by-check explanations.
 
