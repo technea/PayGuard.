@@ -217,7 +217,7 @@ const routes = new Map([
     return result;
   }],
   ["/api/scan-website-snapshot", async input => analyzeWebsiteSnapshot(input)],
-  ["/api/scan-website", async input => collectWebsiteSnapshot(input?.targetUrl)]
+  ["/api/scan-website", async input => {\n    if (process.env.PAYGUARD_ENABLE_PASSIVE_COLLECTION !== "true") {\n      const error = new Error("Passive website collection is disabled by server configuration.");\n      error.statusCode = 503;\n      throw error;\n    }\n    return collectWebsiteSnapshot(input?.targetUrl);\n  }]
 ]);
 
 async function requestHandler(req, res) {
