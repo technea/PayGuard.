@@ -457,3 +457,34 @@ test('registerPayGuardX402 attaches the hook to an x402 client and returns the c
   assert.equal(await registered(x402Context()), undefined);
   assert.throws(() => registerPayGuardX402({}, { intent: structuredClone(policy) }), /onBeforePaymentCreation/);
 });
+
+
+test('x402 audit callback cannot mutate the SDK requirement or change the policy verdict', async () => {
+  const hook = createPayGuardX402Hook({
+    intent: structuredClone(policy),
+    onDecision(result, snapshot) {
+      result.status = 'PASS';
+      snapshot.selectedRequirements.amount = '1';
+    }
+  });
+  const result = await hook(x402Context({ ...safeCandidate, amount: '2001' }));
+  assert.equal(result.abort, true);
+  assert.match(result.reason, /^PayGuard BLOCK:/);
+});
+
+test('x402 hook snapshots policy so later external mutations cannot loosen it', async () => {
+  const mutablePolicy = structuredClone(policy);
+  const hook = createPayGuardX402Hook({ intent: mutablePolicy });
+  mutablePolicy.maxAmountAtomic = '999999';
+  const result = await hook(x402Context({ ...safeCandidate, amount: '2001' }));
+  assert.equal(result.abort, true);
+  assert.match(result.reason, /^PayGuard BLOCK:/);
+});
+
+test('x402 audit callback errors fail closed', async () => {
+  const hook = createPayGuardX402Hook({
+    intent: structuredClone(policy),
+    onDecision() { throw new Error('audit unavailable'); }
+  });
+  await assert.rejects(hook(x402Context()), /audit unavailable/);
+});
