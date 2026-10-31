@@ -67,6 +67,34 @@ Set `GOOGLE_WEB_RISK_API_KEY` in the **server-side environment only**. The tool 
 
 Google lists the Web Risk Lookup API's first 100,000 calls per month as free at the time of writing; confirm current pricing and terms before deployment: https://cloud.google.com/web-risk/pricing
 
+## Passive Website Snapshot Scanner
+
+PayGuard now includes a first, deliberately limited website-analysis module. It analyzes caller-supplied HTML, response headers and URL metadata without contacting the target website.
+
+The module is exposed through `POST /api/scan-website-snapshot`. It reports selected HTTP security-header gaps, password fields on HTTP pages, HTTPS forms targeting HTTP, cross-origin form destinations, mixed-content references, inline-script inventory and a supplied cross-origin final URL.
+
+**Important:** this endpoint does not fetch the submitted URL. It makes zero network requests and does not independently verify the supplied snapshot. A report with no findings is labelled `NO_OBVIOUS_ISSUES_IN_SUPPLIED_SNAPSHOT`, not `SAFE`. The caller must obtain any HTML and headers through an independently authorized and SSRF-safe collection process.
+
+See [docs/website-scanner.md](docs/website-scanner.md) for input limits, checks, report fields and limitations. Automated tests live in `test/website-scanner.test.mjs`.
+
+## Threat Intelligence Feed Foundation
+
+PayGuard includes bounded parsers and exact-URL matching for OpenPhish URL lists and URLhaus CSV, plus provider freshness/provenance snapshots. This foundation does not download feeds or automatically classify URLs; production refresh workers, storage and provider terms review are still required. See [docs/threat-intelligence.md](docs/threat-intelligence.md).
+
+## TLS and Certificate Intelligence
+
+For HTTPS collection, PayGuard records the negotiated TLS protocol, cipher name and a limited peer-certificate summary from Node's TLS socket, including available diagnostics when certificate verification fails. Deterministic analysis flags deprecated TLS versions and certificates approaching expiry. Certificate validation remains enabled; PayGuard does not disable TLS verification. See [docs/tls-intelligence.md](docs/tls-intelligence.md) for exact coverage and limitations. HTTP scans correctly report TLS as not observed.
+
+## Safe Passive Website Collection
+
+The `POST /api/scan-website` endpoint performs a bounded GET of one public HTML document and analyzes the returned snapshot. It is separate from the no-network `POST /api/scan-website-snapshot` endpoint.
+
+Network collection is disabled by default. Set `PAYGUARD_ENABLE_PASSIVE_COLLECTION=true` only behind authentication or a trusted API gateway, with quotas and outbound egress restrictions. Do not expose it as an unauthenticated public fetch proxy.
+
+The initial collector accepts only HTTP(S) on standard ports, public IPv4 addresses, HTML responses, and a small response-size limit. DNS is checked before every request, the selected IPv4 address is pinned for that request, redirects are manual and bounded, and HTTPS-to-HTTP downgrade redirects are rejected. It does not execute JavaScript, crawl links, submit forms, send cookies or credentials, or run active vulnerability tests.
+
+IPv6 is intentionally unsupported in this first collector. Production deployments should additionally enforce outbound network egress rules blocking private, link-local, metadata-service and internal destinations. See [docs/website-scanner.md](docs/website-scanner.md) for the full security boundary and [docs/tls-intelligence.md](docs/tls-intelligence.md) for TLS evidence semantics. The implementation handoff and remaining engineering tasks are in [docs/cloud-handoff.md](docs/cloud-handoff.md).
+
 ## Threat reports
 
 `payguard_prepare_threat_report` creates a redacted JSON draft. It does not submit the report or notify PayBox because no verified official reporting endpoint is configured in this project. Review and submit it only through a route confirmed by PayBox. Reports are allegations for investigation, not proof of malicious intent. The draft does not include free-form user notes because automated secret redaction cannot reliably identify every seed phrase or credential format.
@@ -100,8 +128,10 @@ The local API defaults to `http://127.0.0.1:8080` and provides `GET /health`, `G
 - `/api/analyze-url`
 - `/api/check-payment`
 - `/api/threat-report`
+- `/api/scan-website-snapshot`
+- `/api/scan-website`
 
-The supplied URL is parsed but never visited. Reputation lookup is disabled unless a request explicitly sets `checkReputation: true` and the server-side `GOOGLE_WEB_RISK_API_KEY` is configured.
+For `/api/analyze-url`, the submitted URL is parsed but never visited. The separate `/api/scan-website` endpoint performs the restricted passive GET described above. Reputation lookup in URL Sentinel is disabled unless a request explicitly sets `checkReputation: true` and the server-side `GOOGLE_WEB_RISK_API_KEY` is configured.
 
 ### Interactive Web Dashboard
 
