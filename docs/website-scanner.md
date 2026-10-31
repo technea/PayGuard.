@@ -21,7 +21,11 @@ The network collection endpoint is disabled by default. Set `PAYGUARD_ENABLE_PAS
 - GET only. No cookies, authorization headers, form submissions, JavaScript execution, crawling, or active vulnerability tests.
 - HTML-only responses, identity content encoding, bounded response size, bounded headers, and request timeout.
 
-### Limitations
+### TLS observations
+
+For successful HTTPS responses, the collector also attaches the TLS protocol, cipher and a limited peer-certificate summary. See [tls-intelligence.md](tls-intelligence.md). These observations do not include protocol enumeration, cipher-suite testing, certificate revocation checks or certificate-transparency lookups. HTTP targets have no TLS observation.
+
+## Limitations
 
 This is a best-effort SSRF-resistant public-web collector, not a substitute for network-level egress controls. Production deployment should additionally enforce outbound firewall rules that deny private, link-local, metadata-service and internal network ranges. The first version does not fetch linked resources, inspect APIs, authenticate, or perform active testing.
 
