@@ -5,7 +5,6 @@ import { routes } from "../server.mjs";
 test("HTTP route registry exposes passive website snapshot analysis", async () => {
   const handler = routes.get("/api/scan-website-snapshot");
   assert.equal(typeof handler, "function");
-
   const report = await handler({
     targetUrl: "https://example.com",
     responseHeaders: {
@@ -16,7 +15,6 @@ test("HTTP route registry exposes passive website snapshot analysis", async () =
       "permissions-policy": "camera=(), microphone=()"
     }
   });
-
   assert.equal(report.scanner, "payguard-passive-website-snapshot");
   assert.equal(report.networkRequestsMade, 0);
   assert.equal(report.assessment, "NO_OBVIOUS_ISSUES_IN_SUPPLIED_SNAPSHOT");
@@ -25,4 +23,15 @@ test("HTTP route registry exposes passive website snapshot analysis", async () =
 test("HTTP route rejects malformed website snapshot input", async () => {
   const handler = routes.get("/api/scan-website-snapshot");
   await assert.rejects(handler({ targetUrl: "javascript:alert(1)" }), /HTTP\(S\)/);
+});
+
+test("network collection endpoint blocks loopback targets before connecting", async () => {
+  const handler = routes.get("/api/scan-website");
+  assert.equal(typeof handler, "function");
+  await assert.rejects(handler({ targetUrl: "http://127.0.0.1/" }), /non-public/);
+});
+
+test("network collection endpoint rejects unsupported ports", async () => {
+  const handler = routes.get("/api/scan-website");
+  await assert.rejects(handler({ targetUrl: "https://example.com:8443/" }), /standard HTTP and HTTPS ports/);
 });
