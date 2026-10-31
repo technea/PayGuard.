@@ -1,6 +1,6 @@
 # PayGuard
 
-**A read-only payment-intent security checker for AI agents.**
+**A policy-based x402 payment-intent security checker with an optional pre-payload client guard for AI agents.**
 
 PayGuard evaluates an x402-style payment request against a separate, explicit policy describing what the user intended to pay for. It returns **PASS**, **REVIEW**, or **BLOCK** with check-by-check explanations.
 
@@ -144,6 +144,33 @@ PayGuard implements the x402 HTTP 402 Payment Required flow and provides standar
 - Unpaid requests can receive an HTTP 402 challenge with payment requirement fields and Bazaar discovery catalog information.
 - Supports Base Sepolia testnet (`eip155:84532`) and test USDC asset configuration.
 - Verifies payment proofs (`Payment-Signature` / CDP transaction proof) to settle security report requests.
+
+## x402 client pre-signing protection
+
+PayGuard can be attached to the x402 TypeScript client before payment payload creation. The adapter evaluates the **selected** requirement together with the challenge resource URL and returns the SDK's abort result for both `BLOCK` and `REVIEW`. Only a complete `PASS` allows the SDK to continue to its scheme-specific payment-payload creation step.
+
+The adapter has no runtime dependency on x402. It uses the public `onBeforePaymentCreation` hook shape verified against `@x402/core` 2.29.0; keep the SDK version pinned and re-check this contract when upgrading.
+
+```js
+import { x402Client } from "@x402/core";
+import { registerPayGuardX402 } from "payguard-paybox-plugin";
+
+const client = new x402Client();
+
+registerPayGuardX402(client, {
+  intent: {
+    expectedResourceUrl: "https://api.example.com/report",
+    maxAmountAtomic: "2000",
+    allowedNetworks: ["eip155:8453"],
+    allowedAssets: ["0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
+    allowedPayTo: ["0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+    allowedSchemes: ["exact"],
+    maxTimeoutSeconds: 300
+  }
+});
+```
+
+This is a client-side pre-payload guard, not a global wallet restriction. It protects only payment creation performed through the x402 client instance where the hook is registered. It does not control other wallets, other clients, direct signing calls, or unrelated payment paths. A `PASS` is a policy match, not proof that the merchant or token is legitimate. Supply policy values from a trusted user/configuration source, never from the 402 response itself.
 
 ## PayBox Marketplace Integration
 

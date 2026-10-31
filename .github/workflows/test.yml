@@ -20,10 +20,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Build distributable artifacts
+        run: npm run build
       - name: Run tests
         run: npm test
       - name: Check distributable syntax
         run: node --check dist/plugin.mjs
+      - name: Check CommonJS distributable syntax
+        run: node --check dist/index.cjs
+      - name: Verify CommonJS adapter exports
+        run: node -e "const p = require('./dist/index.cjs'); if (typeof p.createPayGuardX402Hook !== 'function' || typeof p.registerPayGuardX402 !== 'function') process.exit(1); console.log('CommonJS x402 adapter exports verified.');"
       - name: Verify plugin exports
         run: >-
           node --input-type=module -e "import('./dist/plugin.mjs').then(({default: p}) => { if (!p || p.tools.length !== 3) process.exit(1); console.log(p.tools.map(t => t.name).join(', ')); })"
