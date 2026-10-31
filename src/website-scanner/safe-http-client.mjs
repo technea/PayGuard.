@@ -40,10 +40,10 @@ export function requestPublicHtml(url, pinnedAddress, {
         else if (Array.isArray(value)) headers[name] = value.slice(0, 10).map(item => String(item).slice(0, 8192));
       }
 
-      const statusCode = response.statusCode || 0;
+      let tls;\n      if (url.protocol === "https:") {\n        const socket = response.socket;\n        let certificate = null;\n        try { certificate = socket?.getPeerCertificate?.(); } catch {}\n        tls = {\n          authorized: socket?.authorized === true ? true : socket?.authorized === false ? false : null,\n          authorizationError: typeof socket?.authorizationError === "string" ? socket.authorizationError : null,\n          protocol: typeof socket?.getProtocol === "function" ? socket.getProtocol() : null,\n          cipher: typeof socket?.getCipher === "function" ? socket.getCipher() : null,\n          certificate: certificate && Object.keys(certificate).length ? certificate : null\n        };\n      }\n\n      const statusCode = response.statusCode || 0;
       if ([301, 302, 303, 307, 308].includes(statusCode)) {
         response.resume();
-        return finish(null, { statusCode, headers, body: "" });
+        return finish(null, { statusCode, headers, body: "", tls });
       }
 
       const contentType = String(headers["content-type"] || "").split(";")[0].trim().toLowerCase();
@@ -90,7 +90,7 @@ export function requestPublicHtml(url, pinnedAddress, {
       response.on("end", () => finish(null, {
         statusCode,
         headers,
-        body: Buffer.concat(chunks).toString("utf8")
+        body: Buffer.concat(chunks).toString("utf8"),\n        tls
       }));
       response.on("error", error => finish(error));
     });
