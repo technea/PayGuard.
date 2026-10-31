@@ -28,7 +28,7 @@ A result describes only the supplied snapshot. It is not a certificate that a we
 - `targetUrl` is required.
 - `finalUrl`, `redirects`, `responseHeaders`, and `html` are optional.
 - Only HTTP and HTTPS URLs are accepted; embedded URL credentials are rejected.
-- HTML is limited to 256 KiB, redirects to 10, and response headers to 100.
+- HTML is limited to 48 KiB (the API request body is capped at 64 KiB), redirects to 10, and response headers to 100.
 
 ## Output
 
