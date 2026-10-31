@@ -23,7 +23,7 @@ The network collection endpoint is disabled by default. Set `PAYGUARD_ENABLE_PAS
 
 ### TLS observations
 
-For successful HTTPS responses, the collector also attaches the TLS protocol, cipher and a limited peer-certificate summary. See [tls-intelligence.md](tls-intelligence.md). These observations do not include protocol enumeration, cipher-suite testing, certificate revocation checks or certificate-transparency lookups. HTTP targets have no TLS observation.
+For HTTPS requests, the collector records the TLS protocol, cipher and a limited peer-certificate summary when available, including diagnostics from failed certificate handshakes. See [tls-intelligence.md](tls-intelligence.md). These observations do not include protocol enumeration, cipher-suite testing, certificate revocation checks or certificate-transparency lookups. HTTP targets have no TLS observation.
 
 ## Limitations
 
