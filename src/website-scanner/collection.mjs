@@ -5,18 +5,18 @@ import { requestPublicHtml } from "./safe-http-client.mjs";
 
 const MAX_REDIRECTS = 3;
 
-function parseTarget(value) {
+function inputError(message, statusCode = 400) {\n  const error = new TypeError(message);\n  error.statusCode = statusCode;\n  return error;\n}\n\nfunction parseTarget(value) {
   if (typeof value !== "string" || value.length > 4096 || value.trim() !== value) {
-    throw new TypeError("targetUrl must be a trimmed URL no longer than 4096 characters.");
+    throw inputError("targetUrl must be a trimmed URL no longer than 4096 characters.");
   }
   let url;
   try { url = new URL(value); }
-  catch { throw new TypeError("targetUrl must be a valid HTTP(S) URL."); }
+  catch { throw inputError("targetUrl must be a valid HTTP(S) URL."); }
   if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) {
-    throw new TypeError("Only HTTP(S) URLs without embedded credentials are allowed.");
+    throw inputError("Only HTTP(S) URLs without embedded credentials are allowed.");
   }
   if (url.port && !["80", "443"].includes(url.port)) {
-    throw new TypeError("Only standard HTTP and HTTPS ports are allowed.");
+    throw inputError("Only standard HTTP and HTTPS ports are allowed.");
   }
   validatePublicHostname(url.hostname);
   url.hash = "";
