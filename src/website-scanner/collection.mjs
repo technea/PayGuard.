@@ -1,5 +1,5 @@
 import { analyzeWebsiteSnapshot } from "./index.mjs";
-import { resolvePublicIPv4, validatePublicHostname } from "./network-policy.mjs";
+import { isPublicIPv4, resolvePublicIPv4, validatePublicHostname } from "./network-policy.mjs";
 import { requestPublicHtml } from "./safe-http-client.mjs";
 
 const MAX_REDIRECTS = 3;
@@ -51,10 +51,10 @@ export async function collectWebsiteSnapshot(targetUrl, {
 
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
     const records = await resolve(current.hostname, resolver);
-    const selected = records[0];
-    if (!selected || selected.family !== 4) {
-      throw createError("Target has no validated public IPv4 address.", 403);
+    if (!Array.isArray(records) || records.length === 0 || records.some(record => record?.family !== 4 || !isPublicIPv4(record.address))) {
+      throw createError("Target resolved to a non-public or unsupported address; request blocked.", 403);
     }
+    const selected = records[0];
 
     response = await request(current, selected.address);
     requests++;
