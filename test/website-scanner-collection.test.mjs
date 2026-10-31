@@ -147,3 +147,29 @@ test("collector includes observed TLS protocol and certificate evidence in its r
   assert.ok(report.findings.some(finding => finding.id === "tls_certificate_expiring_soon"));
   assert.equal(report.assessment, "FINDINGS_OBSERVED");
 });
+
+test("collector preserves TLS verification failures instead of hiding them as generic fetch errors", async () => {
+  const report = await collectWebsiteSnapshot("https://example.com/", {
+    resolve: async () => [{ address: "93.184.216.34", family: 4 }],
+    request: async () => {
+      const error = new Error("TLS certificate rejected");
+      error.code = "CERT_HAS_EXPIRED";
+      error.tls = {
+        authorized: false,
+        authorizationError: "CERT_HAS_EXPIRED",
+        protocol: "TLSv1.2",
+        certificate: {
+          subject: { CN: "example.com" },
+          valid_to: "Oct 01 00:00:00 2026 GMT"
+        }
+      };
+      throw error;
+    }
+  });
+
+  assert.equal(report.collection.connectionStatus, "tls_handshake_failed");
+  assert.equal(report.networkRequestsMade, 1);
+  assert.equal(report.tls.status, "verification_failed");
+  assert.equal(report.assessment, "FINDINGS_OBSERVED");
+  assert.ok(report.findings.some(finding => finding.id === "tls_certificate_validation_failed"));
+});
