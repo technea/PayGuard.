@@ -25,10 +25,20 @@ test("HTTP route rejects malformed website snapshot input", async () => {
   await assert.rejects(handler({ targetUrl: "javascript:alert(1)" }), /HTTP\(S\)/);
 });
 
-test("network collection endpoint blocks loopback targets before connecting", async () => {
+test("network collection endpoint is disabled unless explicitly enabled by the server", async () => {
   const handler = routes.get("/api/scan-website");
   assert.equal(typeof handler, "function");
-  await assert.rejects(handler({ targetUrl: "http://127.0.0.1/" }), /non-public/);
+  const previous = process.env.PAYGUARD_ENABLE_PASSIVE_COLLECTION;
+  delete process.env.PAYGUARD_ENABLE_PASSIVE_COLLECTION;
+  try {
+    await assert.rejects(
+      handler({ targetUrl: "https://example.com/" }),
+      error => error.statusCode === 503 && /disabled/.test(error.message)
+    );
+  } finally {
+    if (previous === undefined) delete process.env.PAYGUARD_ENABLE_PASSIVE_COLLECTION;
+    else process.env.PAYGUARD_ENABLE_PASSIVE_COLLECTION = previous;
+  }
 });
 
 test("network collection endpoint rejects unsupported ports", async () => {
