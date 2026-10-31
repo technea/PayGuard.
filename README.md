@@ -77,6 +77,10 @@ The module is exposed through `POST /api/scan-website-snapshot`. It reports sele
 
 See [docs/website-scanner.md](docs/website-scanner.md) for input limits, checks, report fields and limitations. Automated tests live in `test/website-scanner.test.mjs`.
 
+## TLS and Certificate Intelligence
+
+For successful HTTPS collection, PayGuard records the negotiated TLS protocol, cipher name and a limited peer-certificate summary from Node's verified TLS socket. Deterministic analysis flags deprecated TLS versions and certificates approaching expiry. Certificate validation remains enabled; PayGuard does not disable TLS verification. See [docs/tls-intelligence.md](docs/tls-intelligence.md) for exact coverage and limitations. HTTP scans correctly report TLS as not observed.
+
 ## Safe Passive Website Collection
 
 The `POST /api/scan-website` endpoint performs a bounded GET of one public HTML document and analyzes the returned snapshot. It is separate from the no-network `POST /api/scan-website-snapshot` endpoint.
