@@ -2,7 +2,6 @@
 /**
  * PayGuard PayBox Plugin - Standalone CJS Bundle
  */
-#!/usr/bin/env node
 /**
  * PayGuard: policy-based x402 payment-intent checker.
  *
