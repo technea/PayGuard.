@@ -83,7 +83,7 @@ test("rejects unsupported protocols and embedded URL credentials", () => {
 test("rejects oversized HTML and malformed headers", () => {
   assert.throws(() => analyzeWebsiteSnapshot({
     targetUrl: "https://example.com",
-    html: "x".repeat(256 * 1024 + 1)
+    html: "x".repeat(48 * 1024 + 1)
   }), /analysis limit/);
 
   assert.throws(() => analyzeWebsiteSnapshot({
