@@ -121,7 +121,7 @@ The local API defaults to `http://127.0.0.1:8080` and provides `GET /health`, `G
 - `/api/scan-website-snapshot`
 - `/api/scan-website`
 
-The supplied URL is parsed but never visited. Reputation lookup is disabled unless a request explicitly sets `checkReputation: true` and the server-side `GOOGLE_WEB_RISK_API_KEY` is configured.
+For `/api/analyze-url`, the submitted URL is parsed but never visited. The separate `/api/scan-website` endpoint performs the restricted passive GET described above. Reputation lookup in URL Sentinel is disabled unless a request explicitly sets `checkReputation: true` and the server-side `GOOGLE_WEB_RISK_API_KEY` is configured.
 
 ### Interactive Web Dashboard
 
