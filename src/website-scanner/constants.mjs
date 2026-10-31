@@ -1,4 +1,5 @@
-export const MAX_HTML_BYTES = 256 * 1024;
+// Keep HTML below the HTTP API's 64 KiB JSON body limit.
+export const MAX_HTML_BYTES = 48 * 1024;
 export const MAX_REDIRECTS = 10;
 export const MAX_HEADER_COUNT = 100;
 export const MAX_HEADER_VALUE_LENGTH = 8_192;
