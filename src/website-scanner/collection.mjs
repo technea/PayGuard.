@@ -48,6 +48,7 @@ export async function collectWebsiteSnapshot(targetUrl, {
   let current = parseTarget(targetUrl);
   const redirects = [];
   let response;
+  let connectionError = null;
   let requests = 0;
 
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
@@ -57,8 +58,15 @@ export async function collectWebsiteSnapshot(targetUrl, {
     }
     const selected = records[0];
 
-    response = await request(current, selected.address);
     requests++;
+    try {
+      response = await request(current, selected.address);
+    } catch (error) {
+      if (!error?.tls) throw error;
+      connectionError = error;
+      response = { statusCode: 0, headers: {}, body: "", tls: error.tls };
+      break;
+    }
 
     if (![301, 302, 303, 307, 308].includes(response.statusCode)) break;
     if (hop === MAX_REDIRECTS) throw createError("Target exceeded the redirect limit.", 422);
@@ -98,7 +106,7 @@ export async function collectWebsiteSnapshot(targetUrl, {
     ...report,
     findings,
     findingCount: findings.length,
-    assessment: findings.length > 0 ? "FINDINGS_OBSERVED" : "NO_OBVIOUS_ISSUES_IN_SUPPLIED_SNAPSHOT",
+    assessment: findings.length > 0 ? "FINDINGS_OBSERVED" : connectionError ? "COLLECTION_FAILED" : "NO_OBVIOUS_ISSUES_IN_SUPPLIED_SNAPSHOT",
     highestSeverity,
     tls: {
       status: tls.status,
@@ -111,6 +119,8 @@ export async function collectWebsiteSnapshot(targetUrl, {
     networkRequestsMade: requests,
     collection: {
       method: "GET",
+      connectionStatus: connectionError ? "tls_handshake_failed" : "completed",
+      connectionError: connectionError ? String(connectionError.code || connectionError.message || "TLS connection failed").slice(0, 200) : null,
       addressFamily: "IPv4",
       redirectCount: redirects.length,
       maxRedirects: MAX_REDIRECTS,
