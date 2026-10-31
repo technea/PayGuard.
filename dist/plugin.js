@@ -357,22 +357,42 @@ export function createPayGuardX402Hook({ intent, onDecision } = {}) {
     throw new TypeError("onDecision must be a function when provided.");
   }
 
+  let trustedIntent;
+  try {
+    // Snapshot policy at registration so later caller mutations cannot relax it.
+    trustedIntent = JSON.parse(JSON.stringify(intent));
+  } catch {
+    throw new TypeError("PayGuard x402 adapter policy must be JSON-serializable.");
+  }
+
   return async function payGuardBeforePaymentCreation(context) {
     const resourceUrl = context?.paymentRequired?.resource?.url;
     const selected = context?.selectedRequirements;
 
     const result = evaluatePaymentIntent({
-      intent,
+      intent: trustedIntent,
       paymentRequirements: {
         resource: resourceUrl,
         accepts: [selected]
       }
     });
+    const approved = result.status === "PASS";
 
-    if (onDecision) await onDecision(result, context);
+    // Audit callbacks receive detached snapshots, never mutable SDK objects or
+    // the decision object used below. A callback failure also fails closed.
+    if (onDecision) {
+      let selectedSnapshot = null;
+      try {
+        selectedSnapshot = JSON.parse(JSON.stringify(selected));
+      } catch {}
+      await onDecision(JSON.parse(JSON.stringify(result)), {
+        resourceUrl,
+        selectedRequirements: selectedSnapshot
+      });
+    }
 
     // REVIEW is not consent. Only a complete PASS may continue to payload creation.
-    if (result.status !== "PASS") {
+    if (!approved) {
       const reason = `PayGuard ${result.status}: ${result.summary || "Payment did not pass policy checks."}`;
       return { abort: true, reason: reason.slice(0, 1000) };
     }
