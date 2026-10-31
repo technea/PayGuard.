@@ -341,6 +341,58 @@ export function evaluatePaymentIntent(input) {
 }
 
 
+/**
+ * Create a fail-closed adapter for the x402 TypeScript client's
+ * onBeforePaymentCreation hook.
+ *
+ * Compatible with the x402 v2 hook context: { paymentRequired, selectedRequirements }.
+ * No x402 package import is required; the caller supplies an x402Client instance.
+ */
+export function createPayGuardX402Hook({ intent, onDecision } = {}) {
+  if (!isRecord(intent)) {
+    throw new TypeError("PayGuard x402 adapter requires an explicit intent policy object.");
+  }
+  if (onDecision !== undefined && typeof onDecision !== "function") {
+    throw new TypeError("onDecision must be a function when provided.");
+  }
+
+  return async function payGuardBeforePaymentCreation(context) {
+    const resourceUrl = context?.paymentRequired?.resource?.url;
+    const selected = context?.selectedRequirements;
+
+    const result = evaluatePaymentIntent({
+      intent,
+      paymentRequirements: {
+        resource: resourceUrl,
+        accepts: [selected]
+      }
+    });
+
+    if (onDecision) await onDecision(result, context);
+
+    // REVIEW is not consent. Only a complete PASS may continue to payload creation.
+    if (result.status !== "PASS") {
+      const reason = `PayGuard ${result.status}: ${result.summary || "Payment did not pass policy checks."}`;
+      return { abort: true, reason: reason.slice(0, 1000) };
+    }
+
+    return undefined;
+  };
+}
+
+/**
+ * Register PayGuard directly on an x402 TypeScript x402Client.
+ * The hook runs before the SDK asks the scheme client to create a payment payload.
+ */
+export function registerPayGuardX402(client, options) {
+  if (!client || typeof client.onBeforePaymentCreation !== "function") {
+    throw new TypeError("Expected an x402 client with onBeforePaymentCreation().");
+  }
+  client.onBeforePaymentCreation(createPayGuardX402Hook(options));
+  return client;
+}
+
+
 const URL_SENTINEL_NAME = "payguard_analyze_url";
 const THREAT_REPORT_NAME = "payguard_prepare_threat_report";
 const MAX_URL_INPUT = 4096;
