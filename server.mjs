@@ -1,6 +1,7 @@
 import http from "node:http";
 import { readFileSync, existsSync } from "node:fs";
 import { analyzeUrlSecurity, evaluatePaymentIntent, prepareThreatReport } from "./src/plugin.mjs";
+import { analyzeWebsiteSnapshot } from "./src/website-scanner/index.mjs";
 import { BAZAAR_DISCOVERY_METADATA, build402Challenge, verifyPaymentProof } from "./paybox.mjs";
 
 import path from "node:path";
@@ -95,6 +96,7 @@ function routeLabel(path) {
   if (path === "/api/analyze-url") return "analyze_url";
   if (path === "/api/check-payment") return "check_payment";
   if (path === "/api/threat-report") return "threat_report";
+  if (path === "/api/scan-website-snapshot") return "website_snapshot";
   if (path === "/health") return "health";
   if (path === "/.well-known/x402-bazaar.json" || path === "/api/bazaar") return "bazaar";
   return "other";
@@ -211,7 +213,8 @@ const routes = new Map([
     const result = await prepareThreatReport(input);
     recordVerdict("threat_report", result.verdict);
     return result;
-  }]
+  }],
+  ["/api/scan-website-snapshot", async input => analyzeWebsiteSnapshot(input)]
 ]);
 
 async function requestHandler(req, res) {
