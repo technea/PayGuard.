@@ -206,20 +206,6 @@
       box-shadow: 0 6px 24px rgba(0, 240, 255, 0.35);
     }
 
-    /* Mobile header: keep brand + action button inside the viewport (no sideways scroll) */
-    @media (max-width: 640px) {
-      .nav-container { padding: 0.7rem 1rem; gap: 0.75rem; }
-      .brand { gap: 0.5rem; min-width: 0; }
-      .brand-icon-box { width: 34px; height: 34px; flex-shrink: 0; }
-      .brand-title { font-size: 1.1rem; }
-      .nav-actions { flex-shrink: 0; }
-      .nav-actions .btn { padding: 0.5rem 0.9rem; font-size: 0.8rem; }
-    }
-    @media (max-width: 400px) {
-      .brand-pill { display: none; }
-      .nav-actions .btn { padding: 0.5rem 0.75rem; font-size: 0.75rem; gap: 0.35rem; }
-    }
-
     .btn-glow {
       background: linear-gradient(135deg, #00f0ff 0%, #3b82f6 100%);
       color: #060911;
@@ -997,8 +983,7 @@
       background: rgba(255, 255, 255, 0.05);
     }
 
-    .scenario-tab.active {
-      background: rgba(0, 240, 255, 0.15);
+    .scenario-tab.active {      background: rgba(0, 240, 255, 0.15);
       color: var(--cyan);
       box-shadow: 0 2px 10px rgba(0, 240, 255, 0.2);
       border: 1px solid rgba(0, 240, 255, 0.35);
@@ -1997,55 +1982,12 @@
     /* Keyframes */
     @keyframes pulseBorder {
       0% { border-color: rgba(0, 240, 255, 0.25); box-shadow: 0 0 10px rgba(0, 240, 255, 0.1); }
-      100% { border-color: rgba(0, 240, 255, 0.6); box-shadow: 0 0 25px rgba(0, 240, 255, 0.3); }
-    }
+      100% { border-color: rgba(0, 240, 255, 0.6); box-shadow: 0 0 25px rgba(0, 240, 255, 0.3); }    }
     @keyframes liveBlink {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.35; transform: scale(0.85); }
     }
 
-    /* ===== Phone responsiveness: keep wide desktop components inside the viewport ===== */
-    @media (max-width: 640px) {
-      /* Pipeline simulator: fit the 5 stations inside the card */
-      .simulator-wrapper { padding: 1.1rem 0.75rem; border-radius: 18px; }
-      .track-line { top: 24px; left: 10%; right: 10%; }
-      .sim-station { width: 20%; min-width: 0; }
-      .station-node { width: 48px; height: 48px; font-size: 1.05rem; }
-      .station-title { font-size: 0.62rem; margin-top: 10px; line-height: 1.25; overflow-wrap: anywhere; }
-      .station-step-num { font-size: 0.58rem; }
-
-      /* Sentinel Studio window top bar */
-      .studio-topbar { height: auto; flex-wrap: wrap; padding: 10px 14px; row-gap: 8px; }
-      .studio-title-pill { min-width: 0; max-width: 100%; font-size: 0.68rem; padding: 4px 10px; }
-      .studio-stats { flex-wrap: wrap; gap: 8px; }
-
-      /* Security hierarchy tiers */
-      .hierarchy-container { padding: 1.25rem 0.85rem 1.25rem 1rem; border-radius: 18px; }
-      .hierarchy-tiers { gap: 1.5rem; }
-      .hierarchy-tier-card { padding: 1.1rem 0.9rem 1.1rem 3.5rem; }
-      .hierarchy-tier-card:hover { transform: none; }
-      .tier-node-indicator { left: 10px; top: 16px; width: 34px; height: 34px; font-size: 0.85rem; }
-      .tier-content-grid { gap: 1rem; }
-      .tier-content-grid > * { min-width: 0; }
-      .tier-header-info h3 { font-size: 1.1rem; flex-wrap: wrap; }
-      .submodule-pill { flex-wrap: wrap; gap: 4px 10px; padding: 9px 12px; }
-      .submodule-detail { overflow-wrap: anywhere; }
-
-      /* Simulator detail panels and Sentinel Studio stage */
-      .sim-detail-grid { grid-template-columns: minmax(0, 1fr); }
-      .sim-detail-grid > * { min-width: 0; }
-      .packet-xray-view { padding: 14px; }
-      .scenario-tabs { flex-wrap: wrap; justify-content: center; max-width: 100%; }
-      .scenario-tab { padding: 6px 10px; font-size: 0.74rem; }
-      .studio-stage { padding: 14px; gap: 14px; }
-      .studio-stage > * { min-width: 0; }
-      .studio-card { padding: 14px; }
-      .gate-status-pill { font-size: 0.62rem; padding: 2px 7px; }
-      .sim-footer-metrics { flex-wrap: wrap; justify-content: center; gap: 6px 14px; }
-    }
-    @media (max-width: 400px) {
-      .btn { white-space: normal; max-width: 100%; text-align: center; }
-    }
 
     /* Mobile-first layout refinements: preserve content and desktop styling. */
     .mobile-menu-toggle,
@@ -2166,6 +2108,103 @@
       .sim-detail-grid { padding: 0.65rem; }
       .hierarchy-tier-card { padding-left: 3.3rem; }
       .scenario-tab { font-size: 0.72rem; padding: 0.55rem 0.4rem; }
+    }
+
+  
+    /* Final responsive overrides: one source of truth for tablet and phone layouts. */
+    @media (max-width: 960px) {
+      .nav-container {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: center;
+        gap: 0.65rem;
+        width: 100%;
+      }
+      .brand, .nav-actions { min-width: 0; }
+      .mobile-menu-toggle { grid-column: 3; grid-row: 1; }
+      .nav-actions { grid-column: 2; grid-row: 1; }
+      .mobile-nav-panel { width: 100%; }
+    }
+
+    @media (max-width: 640px) {
+      html { scroll-padding-top: 76px; }
+      .nav-container { padding: 0.65rem 0.85rem; gap: 0.5rem; }
+      .brand { grid-column: 1; grid-row: 1; gap: 0.5rem; }
+      .brand-icon-box { width: 34px; height: 34px; flex: 0 0 34px; }
+      .brand-title { font-size: 1.02rem; }
+      .nav-actions { margin: 0; }
+      .nav-actions .btn { padding: 0.5rem 0.65rem; font-size: 0.72rem; }
+      .nav-actions .btn i { display: none; }
+      .mobile-menu-toggle { width: 40px; height: 40px; flex-basis: 40px; }
+      .mobile-nav-panel:not([hidden]) {
+        grid-template-columns: 1fr;
+        max-height: min(72vh, 560px);
+        overflow-y: auto;
+      }
+      .container { padding-left: 1rem; padding-right: 1rem; }
+      .hero-section { padding: 2.7rem 0 2rem; }
+      .pill-badge { max-width: 100%; font-size: 0.68rem; line-height: 1.45; }
+      .hero-title { font-size: clamp(2rem, 9vw, 3rem); line-height: 1.12; overflow-wrap: anywhere; }
+      .hero-desc { font-size: 0.98rem; line-height: 1.65; }
+      .hero-cta-group { flex-direction: column; align-items: stretch; gap: 0.7rem; }
+      .hero-cta-group .btn { width: 100%; white-space: normal; text-align: center; }
+      .trust-strip { justify-content: flex-start; align-items: flex-start; gap: 0.8rem 1rem; }
+      .trust-item { width: 100%; font-size: 0.76rem; }
+
+      /* Five simulator stations now fit the phone viewport without horizontal page overflow. */
+      .simulator-wrapper { padding: 0.85rem; border-radius: 16px; }
+      .sim-stage-track { margin: 1.35rem 0 1.8rem; padding: 0; overflow: visible; }
+      .track-stations {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        align-items: start;
+        gap: 3px;
+        min-width: 0;
+      }
+      .track-line { top: 21px; left: 9%; right: 9%; height: 4px; }
+      .sim-station { width: auto; min-width: 0; }
+      .station-node { width: clamp(36px, 11vw, 46px); height: clamp(36px, 11vw, 46px); font-size: 1rem; }
+      .station-title { margin-top: 9px; font-size: clamp(0.52rem, 2.1vw, 0.66rem); line-height: 1.2; overflow-wrap: anywhere; }
+      .station-step-num { font-size: 0.55rem; }
+      .sim-control-bar { align-items: stretch; gap: 0.75rem; }
+      .sim-playback-controls { flex-wrap: wrap; }
+      .sim-btn { flex: 1 1 auto; justify-content: center; }
+      .sim-mode-pills { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .sim-mode-btn { justify-content: center; min-width: 0; padding: 0.55rem 0.2rem; font-size: 0.68rem; }
+      .sim-detail-grid { grid-template-columns: minmax(0, 1fr); gap: 0.9rem; padding: 0.85rem; }
+      .packet-xray-view { min-width: 0; padding: 0.85rem; }
+      .xray-header { flex-wrap: wrap; gap: 0.5rem; }
+      .xray-title { font-size: 0.72rem; }
+      .xray-chamber { padding: 0.75rem; }
+      .token-char, .meta-chip { overflow-wrap: anywhere; }
+
+      .studio-topbar { height: auto; min-height: 52px; padding: 0.75rem; flex-wrap: wrap; }
+      .studio-topbar > * { min-width: 0; max-width: 100%; }
+      .scenario-tabs { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+      .scenario-tab { flex: 1 1 calc(50% - 0.45rem); min-width: 0; padding: 0.55rem 0.45rem; white-space: normal; }
+      .studio-stage { grid-template-columns: minmax(0, 1fr) !important; gap: 0.85rem; padding: 14px; }
+      .studio-stage > *, .studio-card, .hierarchy-tier-card, .tier-content-grid > *, .faq-item, .plain-english-box { min-width: 0; }
+      .hierarchy-container { padding: 1.25rem 0.85rem; }
+      .hierarchy-tier-card { padding: 1.1rem 0.9rem 1.1rem 3.5rem; }
+      .tier-content-grid { grid-template-columns: minmax(0, 1fr); gap: 0.75rem; }
+      .hierarchy-tier-card * { overflow-wrap: anywhere; }
+      .simulator-wrapper, .packet-xray-view, .studio-stage, .hierarchy-container { max-width: 100%; }
+      pre, code { max-width: 100%; overflow-x: auto; }
+      input, select, textarea { max-width: 100%; }
+      .btn { white-space: normal; }
+      #visual-simulation, #sentinel-studio, #system-hierarchy, #how-it-works, #live-lab, #pillars, #faq { scroll-margin-top: 78px; }
+    }
+
+    @media (max-width: 400px) {
+      .brand-pill { display: none; }
+      .brand-title { font-size: 0.96rem; }
+      .nav-actions .btn { font-size: 0.66rem; padding: 0.48rem 0.5rem; }
+      .mobile-menu-toggle { width: 38px; height: 38px; flex-basis: 38px; }
+      .mobile-nav-panel:not([hidden]) { padding: 0.7rem 0.8rem; }
+      .simulator-wrapper { padding: 0.7rem; }
+      .sim-detail-grid { padding: 0.65rem; }
+      .hierarchy-tier-card { padding-left: 3.25rem; }
+      .scenario-tab { font-size: 0.7rem; padding: 0.5rem 0.35rem; }
     }
 
   </style>
@@ -2997,8 +3036,7 @@
           <button class="faq-question" onclick="toggleFaq(this)">
             <span>Can PayGuard access, spend, or steal my cryptocurrency?</span>
             <i class="fa-solid fa-chevron-down"></i>
-          </button>
-          <div class="faq-answer">
+          </button>          <div class="faq-answer">
             <strong>No, absolutely not.</strong> PayGuard is 100% non-custodial. It never asks for, accepts, or stores your private keys or seed phrases. PayGuard simply acts as an advisory pre-flight check — it answers with a PASS or BLOCK verdict, but your agent's own local wallet runtime retains sole signing authority.
           </div>
         </div>
