@@ -3,7 +3,8 @@ const DEFAULT_FEED_STALE_MS = 6 * 60 * 60 * 1000;
 
 export function buildThreatIntelSnapshot(feedResults, {
   now = Date.now(),
-  staleAfterMs = DEFAULT_FEED_STALE_MS
+  staleAfterMs = DEFAULT_FEED_STALE_MS,
+  providerStaleAfterMs = {}
 } = {}) {
   if (!Array.isArray(feedResults)) throw new TypeError("feedResults must be an array.");
   if (!Number.isFinite(now) || !Number.isFinite(staleAfterMs) || staleAfterMs < 0) {
@@ -18,7 +19,10 @@ export function buildThreatIntelSnapshot(feedResults, {
     const fetchedAtMs = typeof feed.fetchedAt === "string" ? Date.parse(feed.fetchedAt) : NaN;
     const fetchedAt = Number.isFinite(fetchedAtMs) ? new Date(fetchedAtMs).toISOString() : null;
     const ageMs = Number.isFinite(fetchedAtMs) ? Math.max(0, now - fetchedAtMs) : null;
-    const freshness = ageMs === null ? "unknown" : ageMs > staleAfterMs ? "stale" : "current";
+    const providerLimit = Number.isFinite(providerStaleAfterMs?.[feed.provider]) && providerStaleAfterMs[feed.provider] >= 0
+      ? providerStaleAfterMs[feed.provider]
+      : staleAfterMs;
+    const freshness = ageMs === null ? "unknown" : ageMs > providerLimit ? "stale" : "current";
 
     providers.push({
       provider: feed.provider,

@@ -32,11 +32,22 @@ Never accept user-submitted feed contents as trusted threat intelligence. Do not
 
 Before production use, independently review each provider's current terms, attribution requirements, redistribution restrictions, rate limits and feed freshness guarantees. Implement a server-side scheduled refresh worker, authenticated administrative controls, durable storage, last-successful-fetch monitoring, cache expiry and rollback to the last known-good snapshot. A failed or empty refresh must not silently replace a healthy snapshot.
 
+## Feed refresh and storage (implemented, unit-tested, not yet verified live)
+
+- `feed-refresh.mjs`: `refreshThreatFeeds(providerConfig, kv, options)` performs one refresh cycle. Provider endpoints come only from operator configuration (`providerConfigFromEnv`: `PAYGUARD_OPENPHISH_FEED_URL`, `PAYGUARD_URLHAUS_FEED_URL`, optional `PAYGUARD_URLHAUS_AUTH_KEY`). They must be HTTPS without embedded credentials, and requests never follow redirects. No request input can select a feed URL.
+- Downloads are bounded (5 MiB, streamed and aborted on overrun, 15 s timeout). A failed, empty, below-minimum or sharply shrunken (<50% of previous) download keeps that provider's previous indicators with their original fetch time, so freshness stays truthful. A cycle in which no provider is accepted writes nothing.
+- `kv-store.mjs`: key-value contract with an in-memory adapter and a Redis-REST adapter (`KV_REST_API_URL` / `KV_REST_API_TOKEN`, or `UPSTASH_REDIS_REST_*`). HTTPS is required and the token is never included in error messages.
+- `snapshot-store.mjs`: each snapshot is written as an immutable generation (chunked indicators plus a manifest signed with HMAC-SHA256 using `PAYGUARD_FEED_HMAC_KEY`, 32+ characters). The active pointer moves only after all writes succeed. Loading verifies the manifest signature and every chunk hash; a failed generation falls back to the previous one and reports `rolledBack`. This detects tampering with stored data by anyone without the HMAC key. It does not prove that the provider's data was genuine, and an attacker with KV write access could still point to an older valid generation, which freshness labels will show.
+- Per-provider staleness (`providerStaleAfterMs`): the OpenPhish community feed is documented as updated every 12 hours, so the global 6-hour default would mark a healthy feed stale.
+
+**What is verified:** unit tests with a fake `fetch`, an in-memory store and a local fake Redis-REST server, including tamper, rollback and mutation checks. **What is not verified:** behaviour against the real OpenPhish/URLhaus endpoints, a real Upstash/Vercel KV instance, and serverless cold-start cost of loading a multi-MB snapshot. The REST adapter follows the Upstash-style command protocol; confirm it against your actual KV before relying on it. The `auth-key` header name for URLhaus is an assumption to confirm in abuse.ch documentation.
+
+**Licensing flag:** the OpenPhish public feed page lists it as non-commercial use only. Confirm that matches how PayGuard will be used before enabling it.
+
 ## Not implemented yet
 
-- No live feed download or scheduled refresh.
-- No persistence/database.
+- No scheduler or trigger that calls `refreshThreatFeeds` (it needs a cron or worker deployment).
 - No automatic reputation verdict in URL Sentinel.
 - No wildcard/domain-level or fuzzy matching.
-- No feed signing or cryptographic provenance verification.
+- No cryptographic verification of provider-side provenance (the HMAC covers PayGuard's own storage only).
 - No Base/NEAR contract threat feeds.
