@@ -138,9 +138,7 @@ function renderMetrics() {
   }
   lines.push("# HELP payguard_in_flight_requests Current number of requests in progress.", "# TYPE payguard_in_flight_requests gauge", "payguard_in_flight_requests " + inFlight);
   lines.push("# HELP payguard_uptime_seconds Process uptime in seconds.", "# TYPE payguard_uptime_seconds gauge", "payguard_uptime_seconds " + ((Date.now() - startedAt) / 1000));
-  return lines.join("
-") + "
-";
+  return lines.join("\n") + "\n";
 }
 function sendJson(res, statusCode, data, extraHeaders = {}) {
   const body = JSON.stringify(data);
