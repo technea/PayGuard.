@@ -2,6 +2,7 @@ import http from "node:http";
 import { readFileSync, existsSync } from "node:fs";
 import { analyzeUrlSecurity, evaluatePaymentIntent, prepareThreatReport } from "./src/plugin.mjs";
 import { analyzeWebsiteSnapshot } from "./src/website-scanner/index.mjs";
+import { collectWebsiteSnapshot } from "./src/website-scanner/collection.mjs";
 import { BAZAAR_DISCOVERY_METADATA, build402Challenge, verifyPaymentProof } from "./paybox.mjs";
 
 import path from "node:path";
@@ -97,6 +98,7 @@ function routeLabel(path) {
   if (path === "/api/check-payment") return "check_payment";
   if (path === "/api/threat-report") return "threat_report";
   if (path === "/api/scan-website-snapshot") return "website_snapshot";
+  if (path === "/api/scan-website") return "website_collection";
   if (path === "/health") return "health";
   if (path === "/.well-known/x402-bazaar.json" || path === "/api/bazaar") return "bazaar";
   return "other";
@@ -214,7 +216,8 @@ const routes = new Map([
     recordVerdict("threat_report", result.verdict);
     return result;
   }],
-  ["/api/scan-website-snapshot", async input => analyzeWebsiteSnapshot(input)]
+  ["/api/scan-website-snapshot", async input => analyzeWebsiteSnapshot(input)],
+  ["/api/scan-website", async input => collectWebsiteSnapshot(input?.targetUrl)]
 ]);
 
 async function requestHandler(req, res) {
@@ -284,6 +287,8 @@ async function requestHandler(req, res) {
           analyzeUrl: "/api/analyze-url",
           checkPayment: "/api/check-payment",
           threatReport: "/api/threat-report",
+          scanWebsiteSnapshot: "/api/scan-website-snapshot",
+          scanWebsite: "/api/scan-website",
           bazaar: "/.well-known/x402-bazaar.json",
           metrics: "/metrics"
         }
