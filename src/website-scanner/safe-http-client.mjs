@@ -115,7 +115,21 @@ export function requestPublicHtml(url, pinnedAddress, {
       error.statusCode = 504;
       request.destroy(error);
     });
-    request.on("error", error => finish(error));
+    request.on("error", error => {
+      if (url.protocol === "https:") {
+        const socket = request.socket;
+        let certificate = null;
+        try { certificate = socket?.getPeerCertificate?.(); } catch {}
+        error.tls = {
+          authorized: socket?.authorized === true ? true : socket?.authorized === false ? false : null,
+          authorizationError: typeof socket?.authorizationError === "string" ? socket.authorizationError : error.code || null,
+          protocol: typeof socket?.getProtocol === "function" ? socket.getProtocol() : null,
+          cipher: typeof socket?.getCipher === "function" ? socket.getCipher() : null,
+          certificate: certificate && Object.keys(certificate).length ? certificate : null
+        };
+      }
+      finish(error);
+    });
     request.end();
   });
 }
