@@ -1,6 +1,6 @@
 # TLS and Certificate Intelligence
 
-The passive website collector records TLS metadata only for HTTPS connections it actually establishes. Node's standard TLS verification remains enabled; PayGuard does not disable certificate verification or silently accept invalid certificates.
+The passive website collector records TLS metadata for HTTPS connections, including available diagnostics when a certificate handshake fails. Node's standard TLS verification remains enabled; PayGuard does not disable certificate verification or silently accept invalid certificates.
 
 The TLS analyzer reports:
 - Certificate verification failures returned by the TLS client.
