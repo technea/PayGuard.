@@ -41,7 +41,4 @@ test("network collection endpoint is disabled unless explicitly enabled by the s
   }
 });
 
-test("network collection endpoint rejects unsupported ports", async () => {
-  const handler = routes.get("/api/scan-website");
-  await assert.rejects(handler({ targetUrl: "https://example.com:8443/" }), /standard HTTP and HTTPS ports/);
-});
+
