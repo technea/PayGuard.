@@ -317,6 +317,11 @@ test('Bundled distribution artifacts export valid PayBox plugin contract and too
   const pluginEsm = await import('../dist/plugin.mjs');
   const indexEsm = await import('../dist/index.js');
 
+  assert.equal(typeof pluginEsm.createPayGuardX402Hook, 'function');
+  assert.equal(typeof pluginEsm.registerPayGuardX402, 'function');
+  assert.equal(typeof indexEsm.createPayGuardX402Hook, 'function');
+  assert.equal(typeof indexEsm.registerPayGuardX402, 'function');
+
   for (const mod of [pluginEsm, indexEsm]) {
     assert.equal(mod.default.id, 'payguard');
     assert.equal(mod.default.name, 'PayGuard');
