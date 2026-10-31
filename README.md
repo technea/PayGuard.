@@ -77,6 +77,14 @@ The module is exposed through `POST /api/scan-website-snapshot`. It reports sele
 
 See [docs/website-scanner.md](docs/website-scanner.md) for input limits, checks, report fields and limitations. Automated tests live in `test/website-scanner.test.mjs`.
 
+## Safe Passive Website Collection
+
+The `POST /api/scan-website` endpoint performs a bounded GET of one public HTML document and analyzes the returned snapshot. It is separate from the no-network `POST /api/scan-website-snapshot` endpoint.
+
+The initial collector accepts only HTTP(S) on standard ports, public IPv4 addresses, HTML responses, and a small response-size limit. DNS is checked before every request, the selected IPv4 address is pinned for that request, redirects are manual and bounded, and HTTPS-to-HTTP downgrade redirects are rejected. It does not execute JavaScript, crawl links, submit forms, send cookies or credentials, or run active vulnerability tests.
+
+IPv6 is intentionally unsupported in this first collector. Production deployments should additionally enforce outbound network egress rules blocking private, link-local, metadata-service and internal destinations. See [docs/website-scanner.md](docs/website-scanner.md) for the full security boundary and limitations.
+
 ## Threat reports
 
 `payguard_prepare_threat_report` creates a redacted JSON draft. It does not submit the report or notify PayBox because no verified official reporting endpoint is configured in this project. Review and submit it only through a route confirmed by PayBox. Reports are allegations for investigation, not proof of malicious intent. The draft does not include free-form user notes because automated secret redaction cannot reliably identify every seed phrase or credential format.
@@ -110,7 +118,7 @@ The local API defaults to `http://127.0.0.1:8080` and provides `GET /health`, `G
 - `/api/analyze-url`
 - `/api/check-payment`
 - `/api/threat-report`
-- `/api/scan-website-snapshot`
+- `/api/scan-website-snapshot`\n- `/api/scan-website`
 
 The supplied URL is parsed but never visited. Reputation lookup is disabled unless a request explicitly sets `checkReputation: true` and the server-side `GOOGLE_WEB_RISK_API_KEY` is configured.
 
