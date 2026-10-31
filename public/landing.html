@@ -206,6 +206,20 @@
       box-shadow: 0 6px 24px rgba(0, 240, 255, 0.35);
     }
 
+    /* Mobile header: keep brand + action button inside the viewport (no sideways scroll) */
+    @media (max-width: 640px) {
+      .nav-container { padding: 0.7rem 1rem; gap: 0.75rem; }
+      .brand { gap: 0.5rem; min-width: 0; }
+      .brand-icon-box { width: 34px; height: 34px; flex-shrink: 0; }
+      .brand-title { font-size: 1.1rem; }
+      .nav-actions { flex-shrink: 0; }
+      .nav-actions .btn { padding: 0.5rem 0.9rem; font-size: 0.8rem; }
+    }
+    @media (max-width: 400px) {
+      .brand-pill { display: none; }
+      .nav-actions .btn { padding: 0.5rem 0.75rem; font-size: 0.75rem; gap: 0.35rem; }
+    }
+
     .btn-glow {
       background: linear-gradient(135deg, #00f0ff 0%, #3b82f6 100%);
       color: #060911;
@@ -1988,6 +2002,49 @@
     @keyframes liveBlink {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.35; transform: scale(0.85); }
+    }
+
+    /* ===== Phone responsiveness: keep wide desktop components inside the viewport ===== */
+    @media (max-width: 640px) {
+      /* Pipeline simulator: fit the 5 stations inside the card */
+      .simulator-wrapper { padding: 1.1rem 0.75rem; border-radius: 18px; }
+      .track-line { top: 24px; left: 10%; right: 10%; }
+      .sim-station { width: 20%; min-width: 0; }
+      .station-node { width: 48px; height: 48px; font-size: 1.05rem; }
+      .station-title { font-size: 0.62rem; margin-top: 10px; line-height: 1.25; overflow-wrap: anywhere; }
+      .station-step-num { font-size: 0.58rem; }
+
+      /* Sentinel Studio window top bar */
+      .studio-topbar { height: auto; flex-wrap: wrap; padding: 10px 14px; row-gap: 8px; }
+      .studio-title-pill { min-width: 0; max-width: 100%; font-size: 0.68rem; padding: 4px 10px; }
+      .studio-stats { flex-wrap: wrap; gap: 8px; }
+
+      /* Security hierarchy tiers */
+      .hierarchy-container { padding: 1.25rem 0.85rem 1.25rem 1rem; border-radius: 18px; }
+      .hierarchy-tiers { gap: 1.5rem; }
+      .hierarchy-tier-card { padding: 1.1rem 0.9rem 1.1rem 3.5rem; }
+      .hierarchy-tier-card:hover { transform: none; }
+      .tier-node-indicator { left: 10px; top: 16px; width: 34px; height: 34px; font-size: 0.85rem; }
+      .tier-content-grid { gap: 1rem; }
+      .tier-content-grid > * { min-width: 0; }
+      .tier-header-info h3 { font-size: 1.1rem; flex-wrap: wrap; }
+      .submodule-pill { flex-wrap: wrap; gap: 4px 10px; padding: 9px 12px; }
+      .submodule-detail { overflow-wrap: anywhere; }
+
+      /* Simulator detail panels and Sentinel Studio stage */
+      .sim-detail-grid { grid-template-columns: minmax(0, 1fr); }
+      .sim-detail-grid > * { min-width: 0; }
+      .packet-xray-view { padding: 14px; }
+      .scenario-tabs { flex-wrap: wrap; justify-content: center; max-width: 100%; }
+      .scenario-tab { padding: 6px 10px; font-size: 0.74rem; }
+      .studio-stage { padding: 14px; gap: 14px; }
+      .studio-stage > * { min-width: 0; }
+      .studio-card { padding: 14px; }
+      .gate-status-pill { font-size: 0.62rem; padding: 2px 7px; }
+      .sim-footer-metrics { flex-wrap: wrap; justify-content: center; gap: 6px 14px; }
+    }
+    @media (max-width: 400px) {
+      .btn { white-space: normal; max-width: 100%; text-align: center; }
     }
   </style>
 </head>
