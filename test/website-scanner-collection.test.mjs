@@ -118,3 +118,32 @@ test("collector follows a bounded public redirect and reports the redirect count
   assert.equal(report.collection.redirectCount, 1);
   assert.equal(report.networkRequestsMade, 2);
 });
+
+test("collector includes observed TLS protocol and certificate evidence in its report", async () => {
+  const report = await collectWebsiteSnapshot("https://example.com/", {
+    resolve: async () => [{ address: "93.184.216.34", family: 4 }],
+    request: async () => ({
+      statusCode: 200,
+      headers: { "content-type": "text/html" },
+      body: "<html><body>Secure transport metadata</body></html>",
+      tls: {
+        authorized: true,
+        protocol: "TLSv1.1",
+        cipher: { name: "ECDHE-RSA-AES128-SHA" },
+        certificate: {
+          subject: { CN: "example.com" },
+          issuer: { CN: "Example CA" },
+          valid_from: "Oct 01 00:00:00 2026 GMT",
+          valid_to: "Nov 10 00:00:00 2026 GMT",
+          fingerprint256: "AA:BB:CC"
+        }
+      }
+    })
+  });
+
+  assert.equal(report.tls.status, "verified");
+  assert.equal(report.tls.protocol, "TLSv1.1");
+  assert.ok(report.findings.some(finding => finding.id === "deprecated_tls_protocol"));
+  assert.ok(report.findings.some(finding => finding.id === "tls_certificate_expiring_soon"));
+  assert.equal(report.assessment, "FINDINGS_OBSERVED");
+});
