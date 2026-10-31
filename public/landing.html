@@ -2046,6 +2046,128 @@
     @media (max-width: 400px) {
       .btn { white-space: normal; max-width: 100%; text-align: center; }
     }
+
+    /* Mobile-first layout refinements: preserve content and desktop styling. */
+    .mobile-menu-toggle,
+    .mobile-nav-panel { display: none; }
+
+    @media (max-width: 960px) {
+      .nav-container { flex-wrap: wrap; }
+      .mobile-menu-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        border: 1px solid var(--border-highlight);
+        border-radius: 12px;
+        color: var(--cyan);
+        background: rgba(0, 240, 255, 0.08);
+        font-size: 1.05rem;
+        cursor: pointer;
+      }
+      .mobile-menu-toggle:focus-visible,
+      .mobile-nav-link:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+      .mobile-nav-panel:not([hidden]) {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.35rem;
+        position: absolute;
+        top: calc(100% + 1px);
+        left: 0;
+        right: 0;
+        padding: 0.85rem 1rem 1rem;
+        background: rgba(6, 9, 17, 0.98);
+        border-bottom: 1px solid var(--border-highlight);
+        box-shadow: 0 18px 36px rgba(0,0,0,0.45);
+        backdrop-filter: blur(18px);
+        z-index: 110;
+      }
+      .mobile-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        min-width: 0;
+        padding: 0.8rem 0.75rem;
+        border: 1px solid var(--border-subtle);
+        border-radius: 10px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.84rem;
+        font-weight: 600;
+      }
+      .mobile-nav-link i { color: var(--cyan); width: 1rem; text-align: center; }
+      .mobile-nav-console { color: var(--cyan); border-color: var(--border-highlight); }
+    }
+
+    @media (max-width: 640px) {
+      html { scroll-padding-top: 76px; }
+      .nav-container { padding: 0.65rem 0.85rem; gap: 0.55rem; }
+      .brand { flex: 1 1 auto; min-width: 0; }
+      .brand-icon-box { width: 34px; height: 34px; flex: 0 0 34px; }
+      .brand-title { font-size: 1.05rem; }
+      .nav-actions { margin-left: auto; }
+      .nav-actions .btn { padding: 0.5rem 0.7rem; font-size: 0.74rem; }
+      .nav-actions .btn i { display: none; }
+      .mobile-menu-toggle { width: 40px; height: 40px; flex-basis: 40px; }
+      .mobile-nav-panel:not([hidden]) { grid-template-columns: 1fr; max-height: min(72vh, 560px); overflow-y: auto; }
+      .container { padding-left: 1rem; padding-right: 1rem; }
+      .hero-section { padding: 2.7rem 0 2rem; }
+      .pill-badge { max-width: 100%; font-size: 0.68rem; padding: 0.4rem 0.65rem; line-height: 1.45; }
+      .hero-title { font-size: clamp(2rem, 9vw, 3rem); line-height: 1.12; overflow-wrap: anywhere; }
+      .dynamic-rotator { margin-top: 0.35rem; }
+      .hero-desc { font-size: 0.98rem; line-height: 1.65; }
+      .hero-cta-group { flex-direction: column; align-items: stretch; gap: 0.7rem; }
+      .hero-cta-group .btn { width: 100%; white-space: normal; text-align: center; }
+      .trust-strip { justify-content: flex-start; align-items: flex-start; gap: 0.8rem 1rem; }
+      .trust-item { width: 100%; font-size: 0.76rem; }
+      #visual-simulation, #sentinel-studio, #system-hierarchy, #how-it-works, #live-lab, #pillars, #faq { scroll-margin-top: 78px; }
+      .simulator-wrapper { padding: 1rem; border-radius: 16px; }
+      .sim-control-bar { align-items: stretch; gap: 0.75rem; }
+      .sim-playback-controls { flex-wrap: wrap; }
+      .sim-btn { flex: 1 1 auto; justify-content: center; }
+      .sim-mode-pills { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); }
+      .sim-mode-btn { justify-content: center; padding: 0.55rem 0.25rem; font-size: 0.7rem; }
+      .sim-stage-track { margin: 1.5rem 0; padding: 0; overflow-x: auto; overscroll-behavior-x: contain; }
+      .track-stations { min-width: 620px; gap: 0.5rem; }
+      .track-line { left: 55px; right: 55px; }
+      .sim-station { width: 112px; flex: 0 0 112px; }
+      .station-node { width: 64px; height: 64px; font-size: 1.25rem; }
+      .station-title { font-size: 0.72rem; }
+      .sim-detail-grid { grid-template-columns: minmax(0,1fr); gap: 0.9rem; padding: 0.85rem; }
+      .packet-xray-view { min-width: 0; padding: 0.85rem; }
+      .xray-header { flex-wrap: wrap; gap: 0.5rem; }
+      .xray-title { font-size: 0.72rem; }
+      .xray-chamber { padding: 0.75rem; }
+      .token-char, .meta-chip { overflow-wrap: anywhere; }
+      .studio-topbar { height: auto; min-height: 52px; padding: 0.75rem; flex-wrap: wrap; }
+      .studio-topbar > * { min-width: 0; max-width: 100%; }
+      .scenario-tabs { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+      .scenario-tab { flex: 1 1 calc(50% - 0.45rem); min-width: 0; white-space: normal; }
+      .studio-stage { grid-template-columns: minmax(0,1fr) !important; gap: 0.85rem; }
+      .studio-stage > *, .studio-card, .hierarchy-tier-card, .tier-content-grid > *, .faq-item, .plain-english-box { min-width: 0; }
+      .hierarchy-container { padding: 1.5rem 0.85rem; }
+      .hierarchy-tier-card { padding: 1.1rem 1rem 1.1rem 3.8rem; }
+      .tier-content-grid { grid-template-columns: minmax(0,1fr); gap: 0.75rem; }
+      .hierarchy-tier-card * { overflow-wrap: anywhere; }
+      .simulator-wrapper, .packet-xray-view, .studio-stage, .hierarchy-container { max-width: 100%; }
+      pre, code { max-width: 100%; overflow-x: auto; }
+      input, select, textarea { max-width: 100%; }
+      .btn { white-space: normal; }
+    }
+
+    @media (max-width: 400px) {
+      .brand-pill { display: none; }
+      .nav-actions .btn { font-size: 0.68rem; padding: 0.48rem 0.55rem; }
+      .mobile-menu-toggle { width: 38px; height: 38px; flex-basis: 38px; }
+      .mobile-nav-panel:not([hidden]) { padding: 0.7rem 0.8rem; }
+      .simulator-wrapper { padding: 0.75rem; }
+      .sim-detail-grid { padding: 0.65rem; }
+      .hierarchy-tier-card { padding-left: 3.3rem; }
+      .scenario-tab { font-size: 0.72rem; padding: 0.55rem 0.4rem; }
+    }
+
   </style>
 </head>
 <body>
@@ -2080,6 +2202,20 @@
           <i class="fa-solid fa-terminal"></i> Security Console
         </a>
       </div>
+
+      <button class="mobile-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobileNavPanel">
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+      </button>
+      <nav class="mobile-nav-panel" id="mobileNavPanel" aria-label="Mobile navigation" hidden>
+        <a href="#visual-simulation" class="mobile-nav-link"><i class="fa-solid fa-play-circle"></i> Live Visualizer</a>
+        <a href="#sentinel-studio" class="mobile-nav-link"><i class="fa-solid fa-desktop"></i> Sentinel Studio</a>
+        <a href="#system-hierarchy" class="mobile-nav-link"><i class="fa-solid fa-sitemap"></i> Hierarchy</a>
+        <a href="#how-it-works" class="mobile-nav-link"><i class="fa-solid fa-route"></i> How It Works</a>
+        <a href="#live-lab" class="mobile-nav-link"><i class="fa-solid fa-flask"></i> Interactive Lab</a>
+        <a href="#pillars" class="mobile-nav-link"><i class="fa-solid fa-layer-group"></i> Architecture</a>
+        <a href="#faq" class="mobile-nav-link"><i class="fa-solid fa-circle-question"></i> FAQ</a>
+        <a href="/dashboard" class="mobile-nav-link mobile-nav-console"><i class="fa-solid fa-terminal"></i> Security Console</a>
+      </nav>
     </div>
   </header>
 
@@ -3677,6 +3813,46 @@
       const item = btn.closest('.faq-item');
       item.classList.toggle('open');
     }
+
+    // Accessible responsive navigation for tablet and mobile.
+    (function initMobileNavigation() {
+      const toggle = document.querySelector('.mobile-menu-toggle');
+      const panel = document.getElementById('mobileNavPanel');
+      if (!toggle || !panel) return;
+
+      function setMenuOpen(open) {
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+        toggle.innerHTML = open
+          ? '<i class="fa-solid fa-xmark" aria-hidden="true"></i>'
+          : '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
+        panel.hidden = !open;
+      }
+
+      toggle.addEventListener('click', () => {
+        setMenuOpen(toggle.getAttribute('aria-expanded') !== 'true');
+      });
+
+      panel.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => setMenuOpen(false));
+      });
+
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+          setMenuOpen(false);
+          toggle.focus();
+        }
+      });
+
+      document.addEventListener('click', event => {
+        if (toggle.getAttribute('aria-expanded') !== 'true') return;
+        if (!panel.contains(event.target) && !toggle.contains(event.target)) setMenuOpen(false);
+      });
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 960) setMenuOpen(false);
+      });
+    })();
   </script>
 </body>
 </html>
