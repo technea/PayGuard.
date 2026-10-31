@@ -1,7 +1,7 @@
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 
-function ipv4ToNumber(address) {
+function policyError(message, statusCode = 403) {\n  const error = new TypeError(message);\n  error.statusCode = statusCode;\n  return error;\n}\n\nfunction ipv4ToNumber(address) {
   const parts = address.split(".");
   if (parts.length !== 4 || parts.some(part => !/^\d{1,3}$/.test(part))) return null;
   const octets = parts.map(Number);
@@ -30,22 +30,22 @@ export function isPublicIPv4(address) {
 export function validatePublicHostname(hostname) {
   const host = String(hostname || "").toLowerCase().replace(/^\[|\]$/g, "").replace(/\.$/, "");
   if (!host || host.length > 253 || host.includes("%")) {
-    throw new TypeError("Target hostname is invalid.");
+    throw policyError("Target hostname is invalid.", 400);
   }
   if (isIP(host) === 6) {
-    throw new TypeError("IPv6 targets are not supported by this initial collector; request rejected safely.");
+    throw policyError("IPv6 targets are not supported by this initial collector; request rejected safely.", 422);
   }
   if (isIP(host) === 4) {
-    if (!isPublicIPv4(host)) throw new TypeError("Target resolves to a non-public IPv4 address; request blocked.");
+    if (!isPublicIPv4(host)) throw policyError("Target resolves to a non-public IPv4 address; request blocked.");
     return host;
   }
   if (!/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(host)) {
-    throw new TypeError("Target must use a fully qualified public DNS hostname.");
+    throw policyError("Target must use a fully qualified public DNS hostname.", 400);
   }
   if (["localhost", "local", "internal", "test", "invalid", "example"].some(suffix =>
     host === suffix || host.endsWith("." + suffix)
   )) {
-    throw new TypeError("Non-public or reserved hostname suffixes are not allowed.");
+    throw policyError("Non-public or reserved hostname suffixes are not allowed.");
   }
   return host;
 }
