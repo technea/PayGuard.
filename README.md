@@ -118,7 +118,8 @@ The local API defaults to `http://127.0.0.1:8080` and provides `GET /health`, `G
 - `/api/analyze-url`
 - `/api/check-payment`
 - `/api/threat-report`
-- `/api/scan-website-snapshot`\n- `/api/scan-website`
+- `/api/scan-website-snapshot`
+- `/api/scan-website`
 
 The supplied URL is parsed but never visited. Reputation lookup is disabled unless a request explicitly sets `checkReputation: true` and the server-side `GOOGLE_WEB_RISK_API_KEY` is configured.
 
