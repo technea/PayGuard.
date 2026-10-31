@@ -42,6 +42,16 @@ test("URLhaus CSV parser handles quoted fields and uses URL/date columns", () =>
   assert.equal(result.indicators[0].observedAt, "2026-10-31T09:00:00.000Z");
 });
 
+test("zone-less feed timestamps are parsed as UTC regardless of host timezone", async () => {
+  const { execFileSync } = await import("node:child_process");
+  const modulePath = new URL("../src/threat-intel/index.mjs", import.meta.url).href;
+  const script = 'import(process.argv[1]).then(m => { const i = m.normalizeThreatIndicator({ url: "https://a.example/x", source: "urlhaus", observedAt: "2026-10-31 09:00:00" }); const z = m.normalizeThreatIndicator({ url: "https://a.example/x", source: "urlhaus", observedAt: "2026-10-31T09:00:00+05:00" }); console.log(i.observedAt + "|" + z.observedAt); })';
+  for (const tz of ["UTC", "Asia/Karachi", "America/Los_Angeles", "Pacific/Auckland"]) {
+    const out = execFileSync(process.execPath, ["-e", script, modulePath], { env: { ...process.env, TZ: tz }, encoding: "utf8" }).trim();
+    assert.equal(out, "2026-10-31T09:00:00.000Z|2026-10-31T04:00:00.000Z", "TZ=" + tz);
+  }
+});
+
 test("feed parser enforces size and record-count limits", () => {
   assert.throws(() => parseOpenPhishFeed("x".repeat(5 * 1024 * 1024 + 1)), /5 MiB/);
   assert.throws(() => parseOpenPhishFeed(Array.from({ length: 50_001 }, () => "not-a-url").join("\n")), /50,000/);
