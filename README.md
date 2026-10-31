@@ -89,7 +89,7 @@ Network collection is disabled by default. Set `PAYGUARD_ENABLE_PASSIVE_COLLECTI
 
 The initial collector accepts only HTTP(S) on standard ports, public IPv4 addresses, HTML responses, and a small response-size limit. DNS is checked before every request, the selected IPv4 address is pinned for that request, redirects are manual and bounded, and HTTPS-to-HTTP downgrade redirects are rejected. It does not execute JavaScript, crawl links, submit forms, send cookies or credentials, or run active vulnerability tests.
 
-IPv6 is intentionally unsupported in this first collector. Production deployments should additionally enforce outbound network egress rules blocking private, link-local, metadata-service and internal destinations. See [docs/website-scanner.md](docs/website-scanner.md) for the full security boundary and limitations.
+IPv6 is intentionally unsupported in this first collector. Production deployments should additionally enforce outbound network egress rules blocking private, link-local, metadata-service and internal destinations. See [docs/website-scanner.md](docs/website-scanner.md) for the full security boundary and [docs/tls-intelligence.md](docs/tls-intelligence.md) for TLS evidence semantics. The implementation handoff and remaining engineering tasks are in [docs/cloud-handoff.md](docs/cloud-handoff.md).
 
 ## Threat reports
 
