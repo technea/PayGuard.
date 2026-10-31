@@ -1,11 +1,16 @@
-import { isIP } from "node:net";
 import { analyzeWebsiteSnapshot } from "./index.mjs";
 import { resolvePublicIPv4, validatePublicHostname } from "./network-policy.mjs";
 import { requestPublicHtml } from "./safe-http-client.mjs";
 
 const MAX_REDIRECTS = 3;
 
-function inputError(message, statusCode = 400) {\n  const error = new TypeError(message);\n  error.statusCode = statusCode;\n  return error;\n}\n\nfunction parseTarget(value) {
+function inputError(message, statusCode = 400) {
+  const error = new TypeError(message);
+  error.statusCode = statusCode;
+  return error;
+}
+
+function parseTarget(value) {
   if (typeof value !== "string" || value.length > 4096 || value.trim() !== value) {
     throw inputError("targetUrl must be a trimmed URL no longer than 4096 characters.");
   }
