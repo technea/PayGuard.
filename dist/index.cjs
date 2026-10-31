@@ -2,6 +2,7 @@
 /**
  * PayGuard PayBox Plugin - Standalone CJS Bundle
  */
+#!/usr/bin/env node
 /**
  * PayGuard: policy-based x402 payment-intent checker.
  *
@@ -342,6 +343,58 @@ function evaluatePaymentIntent(input) {
       "Use canonical, trusted token/recipient identifiers in the policy; do not trust display names or descriptions.",
     ]
   };
+}
+
+
+/**
+ * Create a fail-closed adapter for the x402 TypeScript client's
+ * onBeforePaymentCreation hook.
+ *
+ * Compatible with the x402 v2 hook context: { paymentRequired, selectedRequirements }.
+ * No x402 package import is required; the caller supplies an x402Client instance.
+ */
+function createPayGuardX402Hook({ intent, onDecision } = {}) {
+  if (!isRecord(intent)) {
+    throw new TypeError("PayGuard x402 adapter requires an explicit intent policy object.");
+  }
+  if (onDecision !== undefined && typeof onDecision !== "function") {
+    throw new TypeError("onDecision must be a function when provided.");
+  }
+
+  return async function payGuardBeforePaymentCreation(context) {
+    const resourceUrl = context?.paymentRequired?.resource?.url;
+    const selected = context?.selectedRequirements;
+
+    const result = evaluatePaymentIntent({
+      intent,
+      paymentRequirements: {
+        resource: resourceUrl,
+        accepts: [selected]
+      }
+    });
+
+    if (onDecision) await onDecision(result, context);
+
+    // REVIEW is not consent. Only a complete PASS may continue to payload creation.
+    if (result.status !== "PASS") {
+      const reason = `PayGuard ${result.status}: ${result.summary || "Payment did not pass policy checks."}`;
+      return { abort: true, reason: reason.slice(0, 1000) };
+    }
+
+    return undefined;
+  };
+}
+
+/**
+ * Register PayGuard directly on an x402 TypeScript x402Client.
+ * The hook runs before the SDK asks the scheme client to create a payment payload.
+ */
+function registerPayGuardX402(client, options) {
+  if (!client || typeof client.onBeforePaymentCreation !== "function") {
+    throw new TypeError("Expected an x402 client with onBeforePaymentCreation().");
+  }
+  client.onBeforePaymentCreation(createPayGuardX402Hook(options));
+  return client;
 }
 
 
@@ -989,6 +1042,8 @@ const cjsExport = Object.assign({}, plugin, {
   payGuardUrlSentinelTool: payGuardUrlSentinelTool,
   payGuardThreatReportTool: payGuardThreatReportTool,
   evaluatePaymentIntent: evaluatePaymentIntent,
+  createPayGuardX402Hook: createPayGuardX402Hook,
+  registerPayGuardX402: registerPayGuardX402,
   analyzeUrlSecurity: analyzeUrlSecurity,
   prepareThreatReport: prepareThreatReport,
   startMcpServer: startMcpServer
