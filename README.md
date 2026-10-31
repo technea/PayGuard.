@@ -81,6 +81,8 @@ See [docs/website-scanner.md](docs/website-scanner.md) for input limits, checks,
 
 The `POST /api/scan-website` endpoint performs a bounded GET of one public HTML document and analyzes the returned snapshot. It is separate from the no-network `POST /api/scan-website-snapshot` endpoint.
 
+Network collection is disabled by default. Set `PAYGUARD_ENABLE_PASSIVE_COLLECTION=true` only behind authentication or a trusted API gateway, with quotas and outbound egress restrictions. Do not expose it as an unauthenticated public fetch proxy.
+
 The initial collector accepts only HTTP(S) on standard ports, public IPv4 addresses, HTML responses, and a small response-size limit. DNS is checked before every request, the selected IPv4 address is pinned for that request, redirects are manual and bounded, and HTTPS-to-HTTP downgrade redirects are rejected. It does not execute JavaScript, crawl links, submit forms, send cookies or credentials, or run active vulnerability tests.
 
 IPv6 is intentionally unsupported in this first collector. Production deployments should additionally enforce outbound network egress rules blocking private, link-local, metadata-service and internal destinations. See [docs/website-scanner.md](docs/website-scanner.md) for the full security boundary and limitations.
