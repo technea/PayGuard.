@@ -77,3 +77,19 @@ test("undated indicators are never presented as current", () => {
   assert.equal(match.status, "MATCH");
   assert.equal(match.matches[0].freshness, "stale_or_undated");
 });
+
+test("snapshot builder tracks provider freshness and deduplicates source indicators", async () => {
+  const { buildThreatIntelSnapshot } = await import("../src/threat-intel/feed-snapshot.mjs");
+  const parsed = parseOpenPhishFeed("https://phish.example/login", {
+    observedAt: "2026-10-31T11:00:00.000Z"
+  });
+  const snapshot = buildThreatIntelSnapshot([
+    { ...parsed, fetchedAt: "2026-10-31T11:30:00.000Z" },
+    { ...parsed, fetchedAt: "2026-10-31T11:30:00.000Z" },
+    { provider: "urlhaus", indicators: [], fetchedAt: "2026-10-30T00:00:00.000Z" }
+  ], { now: Date.parse("2026-10-31T12:00:00.000Z"), staleAfterMs: 6 * 60 * 60 * 1000 });
+
+  assert.equal(snapshot.indicatorCount, 1);
+  assert.equal(snapshot.providers[0].status, "available");
+  assert.equal(snapshot.providers[2].status, "stale");
+});
