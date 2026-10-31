@@ -1,6 +1,7 @@
 import { analyzeWebsiteSnapshot } from "./index.mjs";
 import { isPublicIPv4, resolvePublicIPv4, validatePublicHostname } from "./network-policy.mjs";
 import { requestPublicHtml } from "./safe-http-client.mjs";
+import { analyzeTlsConnection } from "./tls-analysis.mjs";
 
 const MAX_REDIRECTS = 3;
 
@@ -88,8 +89,23 @@ export async function collectWebsiteSnapshot(targetUrl, {
     html: response.body
   });
 
+  const tls = analyzeTlsConnection(response.tls);
+  const findings = [...report.findings, ...tls.findings];
+  const severityOrder = ["critical", "high", "medium", "low", "info"];
+  const highestSeverity = severityOrder.find(severity => findings.some(finding => finding.severity === severity)) || "none";
+
   return {
     ...report,
+    findings,
+    findingCount: findings.length,
+    assessment: findings.length > 0 ? "FINDINGS_OBSERVED" : "NO_OBVIOUS_ISSUES_IN_SUPPLIED_SNAPSHOT",
+    highestSeverity,
+    tls: {
+      status: tls.status,
+      protocol: tls.protocol,
+      cipher: tls.cipher,
+      certificate: tls.certificate
+    },
     scanner: "payguard-safe-passive-website-collector",
     scanMode: "passive_network_snapshot",
     networkRequestsMade: requests,
