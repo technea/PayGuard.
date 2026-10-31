@@ -79,7 +79,7 @@ See [docs/website-scanner.md](docs/website-scanner.md) for input limits, checks,
 
 ## TLS and Certificate Intelligence
 
-For successful HTTPS collection, PayGuard records the negotiated TLS protocol, cipher name and a limited peer-certificate summary from Node's verified TLS socket. Deterministic analysis flags deprecated TLS versions and certificates approaching expiry. Certificate validation remains enabled; PayGuard does not disable TLS verification. See [docs/tls-intelligence.md](docs/tls-intelligence.md) for exact coverage and limitations. HTTP scans correctly report TLS as not observed.
+For HTTPS collection, PayGuard records the negotiated TLS protocol, cipher name and a limited peer-certificate summary from Node's TLS socket, including available diagnostics when certificate verification fails. Deterministic analysis flags deprecated TLS versions and certificates approaching expiry. Certificate validation remains enabled; PayGuard does not disable TLS verification. See [docs/tls-intelligence.md](docs/tls-intelligence.md) for exact coverage and limitations. HTTP scans correctly report TLS as not observed.
 
 ## Safe Passive Website Collection
 
