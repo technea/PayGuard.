@@ -77,6 +77,10 @@ The module is exposed through `POST /api/scan-website-snapshot`. It reports sele
 
 See [docs/website-scanner.md](docs/website-scanner.md) for input limits, checks, report fields and limitations. Automated tests live in `test/website-scanner.test.mjs`.
 
+## Threat Intelligence Feed Foundation
+
+PayGuard includes bounded parsers and exact-URL matching for OpenPhish URL lists and URLhaus CSV, plus provider freshness/provenance snapshots. This foundation does not download feeds or automatically classify URLs; production refresh workers, storage and provider terms review are still required. See [docs/threat-intelligence.md](docs/threat-intelligence.md).
+
 ## TLS and Certificate Intelligence
 
 For HTTPS collection, PayGuard records the negotiated TLS protocol, cipher name and a limited peer-certificate summary from Node's TLS socket, including available diagnostics when certificate verification fails. Deterministic analysis flags deprecated TLS versions and certificates approaching expiry. Certificate validation remains enabled; PayGuard does not disable TLS verification. See [docs/tls-intelligence.md](docs/tls-intelligence.md) for exact coverage and limitations. HTTP scans correctly report TLS as not observed.
