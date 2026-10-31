@@ -59,7 +59,7 @@ export function requestPublicHtml(url, pinnedAddress, {
         error.statusCode = 415;
         return finish(error);
       }
-      const declaredLength = Number(headers["content-length"]);
+      const encoding = String(headers["content-encoding"] || "identity").toLowerCase();\n      if (encoding !== "identity") {\n        response.destroy();\n        const error = new Error("Compressed target responses are not accepted by this collector.");\n        error.statusCode = 415;\n        return finish(error);\n      }\n      const declaredLength = Number(headers["content-length"]);
       if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
         response.destroy();
         const error = new Error("Target HTML response exceeds the collection size limit.");
