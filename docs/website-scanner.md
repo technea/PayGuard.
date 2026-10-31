@@ -1,58 +1,26 @@
-# Passive Website Snapshot Scanner
+# Passive Website Scanner
 
-## Purpose
+## Snapshot analysis
 
-The first PayGuard website-scanning component analyzes a response snapshot supplied by a trusted caller. It checks selected HTTP security headers, form destinations, mixed-content references, inline-script inventory, and a supplied final URL.
+`POST /api/scan-website-snapshot` analyzes caller-supplied HTML, headers and URL metadata. It makes zero network requests. See the source and tests for exact findings and limits.
 
-## Important boundary
+## Safe passive collection
 
-This module performs **zero network requests**. It does not fetch a URL, resolve DNS, perform a TLS handshake, crawl pages, execute JavaScript, or launch active vulnerability tests. The caller must obtain the HTML and response headers through an independently authorized and SSRF-safe collection process.
+`POST /api/scan-website` retrieves one public HTML document using a restricted GET request, then passes the collected snapshot to the analyzer.
 
-A result describes only the supplied snapshot. It is not a certificate that a website is safe, and it does not establish that a domain is malicious.
+### Network safety controls
 
-## Input
+- HTTP and HTTPS only; standard ports 80 and 443 only.
+- Public IPv4 targets only. IPv6 is intentionally unsupported in this first version.
+- Rejects loopback, private, link-local, carrier-grade NAT, documentation, benchmarking, multicast and reserved IPv4 ranges.
+- Rejects localhost and reserved hostname suffixes.
+- Resolves DNS immediately before each request, rejects a hostname if any returned IPv4 address is non-public, and pins the request's DNS lookup to the validated address.
+- Redirects are manual, limited to three, and revalidated independently. HTTPS-to-HTTP downgrade redirects are blocked.
+- GET only. No cookies, authorization headers, form submissions, JavaScript execution, crawling, or active vulnerability tests.
+- HTML-only responses, identity content encoding, bounded response size, bounded headers, and request timeout.
 
-```json
-{
-  "targetUrl": "https://example.com/login",
-  "finalUrl": "https://example.com/login",
-  "redirects": [],
-  "responseHeaders": {
-    "content-security-policy": "default-src 'self'; frame-ancestors 'none'",
-    "x-content-type-options": "nosniff"
-  },
-  "html": "<html><body>...</body></html>"
-}
-```
+### Limitations
 
-- `targetUrl` is required.
-- `finalUrl`, `redirects`, `responseHeaders`, and `html` are optional.
-- Only HTTP and HTTPS URLs are accepted; embedded URL credentials are rejected.
-- HTML is limited to 48 KiB (the API request body is capped at 64 KiB), redirects to 10, and response headers to 100.
+This is a best-effort SSRF-resistant public-web collector, not a substitute for network-level egress controls. Production deployment should additionally enforce outbound firewall rules that deny private, link-local, metadata-service and internal network ranges. The first version does not fetch linked resources, inspect APIs, authenticate, or perform active testing.
 
-## Output
-
-The report includes a scan mode, zero network-request count, observed findings, severity, confidence, evidence, remediation, and explicit limitations.
-
-A report with no findings uses `NO_OBVIOUS_ISSUES_IN_SUPPLIED_SNAPSHOT`, never `SAFE` or `TRUSTED`.
-
-## Current checks
-
-- Missing HSTS, CSP, X-Content-Type-Options, Referrer-Policy and Permissions-Policy.
-- Missing both CSP frame-ancestors and X-Frame-Options.
-- Password inputs on HTTP pages.
-- HTTPS forms targeting HTTP.
-- Cross-origin form destinations.
-- HTTP resource references on HTTPS pages.
-- Inline-script inventory.
-- Supplied final URL on a different origin.
-
-## Not included yet
-
-- Safe HTTP collection / SSRF-resistant fetcher.
-- DNS, TLS and certificate intelligence.
-- Reputation-feed ingestion.
-- Authenticated scanning or active DAST.
-- ZAP and Nuclei orchestration.
-
-These will be separate modules. Active testing must require verified ownership or explicit authorization, strict scope enforcement, isolated workers, and resource limits.
+A report is based on one retrieved HTML response and is not a certification that a site is safe. Active scanners such as ZAP and Nuclei must remain a separate, authorization-gated workflow.
