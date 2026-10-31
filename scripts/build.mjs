@@ -52,6 +52,8 @@ const cjsExport = Object.assign({}, plugin, {
   payGuardUrlSentinelTool: payGuardUrlSentinelTool,
   payGuardThreatReportTool: payGuardThreatReportTool,
   evaluatePaymentIntent: evaluatePaymentIntent,
+  createPayGuardX402Hook: createPayGuardX402Hook,
+  registerPayGuardX402: registerPayGuardX402,
   analyzeUrlSecurity: analyzeUrlSecurity,
   prepareThreatReport: prepareThreatReport,
   startMcpServer: startMcpServer
