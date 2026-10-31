@@ -6,6 +6,8 @@
 
 ## Safe passive collection
 
+The network collection endpoint is disabled by default. Set `PAYGUARD_ENABLE_PASSIVE_COLLECTION=true` only when the deployment is protected by authentication or a trusted API gateway, quotas and outbound egress controls. Do not expose this unauthenticated endpoint directly as a public fetch proxy.
+
 `POST /api/scan-website` retrieves one public HTML document using a restricted GET request, then passes the collected snapshot to the analyzer.
 
 ### Network safety controls
