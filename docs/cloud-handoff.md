@@ -74,6 +74,14 @@ node --check server.mjs
 node --check dist/plugin.mjs
 ```
 
+### Threat intelligence feed foundation (implemented on this branch)
+
+- Added bounded OpenPhish URL-list and URLhaus CSV parsers.
+- Added URL indicator normalization, exact URL matching, freshness labels and source provenance snapshots.
+- Added parser and snapshot tests.
+- See `docs/threat-intelligence.md`.
+- Live feed downloads, scheduled refresh, persistence and automatic URL Sentinel integration are intentionally not implemented yet.
+
 ## Remaining work for the next implementation phase
 
 1. Add authentication and per-account quotas before enabling network collection.
