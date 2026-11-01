@@ -488,3 +488,296 @@ test('x402 audit callback errors fail closed', async () => {
   });
   await assert.rejects(hook(x402Context()), /audit unavailable/);
 });
+import { x402Client } from '@x402/core/client';
+
+test('x402 SDK real integration: 1. Valid payment and valid policy: PASS; scheme executes once', async () => {
+  let schemeCalls = 0;
+  const scheme = {
+    scheme: 'exact',
+    async createPaymentPayload(version, requirements) {
+      schemeCalls++;
+      return { x402Version: version, payload: { signed: 'TEST_SIG' } };
+    }
+  };
+  const client = new x402Client().register('eip155:*', scheme).setSpendControls(false);
+  registerPayGuardX402(client, { intent: structuredClone(policy) });
+
+  const payload = await client.createPaymentPayload({
+    x402Version: 2,
+    resource: { url: resource },
+    accepts: [structuredClone(safeCandidate)]
+  });
+  assert.equal(schemeCalls, 1);
+  assert.equal(payload.accepted.payTo, safeCandidate.payTo);
+});
+
+test('x402 SDK real integration: 2. Amount exceeds policy: BLOCK; scheme executes zero times', async () => {
+  let schemeCalls = 0;
+  const scheme = {
+    scheme: 'exact',
+    async createPaymentPayload(version, requirements) {
+      schemeCalls++;
+      return { x402Version: version, payload: { signed: 'TEST_SIG' } };
+    }
+  };
+  const client = new x402Client().register('eip155:*', scheme).setSpendControls(false);
+  registerPayGuardX402(client, { intent: structuredClone(policy) });
+
+  await assert.rejects(
+    client.createPaymentPayload({
+      x402Version: 2,
+      resource: { url: resource },
+      accepts: [{ ...structuredClone(safeCandidate), amount: '2001' }]
+    }),
+    /Payment creation aborted: PayGuard BLOCK:/
+  );
+  assert.equal(schemeCalls, 0);
+});
+
+test('x402 SDK real integration: 3. Wrong recipient: BLOCK; scheme executes zero times', async () => {
+  let schemeCalls = 0;
+  const scheme = {
+    scheme: 'exact',
+    async createPaymentPayload(version, requirements) {
+      schemeCalls++;
+      return { x402Version: version, payload: { signed: 'TEST_SIG' } };
+    }
+  };
+  const client = new x402Client().register('eip155:*', scheme).setSpendControls(false);
+  registerPayGuardX402(client, { intent: structuredClone(policy) });
+
+  await assert.rejects(
+    client.createPaymentPayload({
+      x402Version: 2,
+      resource: { url: resource },
+      accepts: [{ ...structuredClone(safeCandidate), payTo: '0xcccccccccccccccccccccccccccccccccccccccc' }]
+    }),
+    /Payment creation aborted: PayGuard BLOCK:/
+  );
+  assert.equal(schemeCalls, 0);
+});
+
+test('x402 SDK real integration: 4. Wrong asset: BLOCK; scheme executes zero times', async () => {
+  let schemeCalls = 0;
+  const scheme = {
+    scheme: 'exact',
+    async createPaymentPayload(version, requirements) {
+      schemeCalls++;
+      return { x402Version: version, payload: { signed: 'TEST_SIG' } };
+    }
+  };
+  const client = new x402Client().register('eip155:*', scheme).setSpendControls(false);
+  registerPayGuardX402(client, { intent: structuredClone(policy) });
+
+  await assert.rejects(
+    client.createPaymentPayload({
+      x402Version: 2,
+      resource: { url: resource },
+      accepts: [{ ...structuredClone(safeCandidate), asset: '0xcccccccccccccccccccccccccccccccccccccccc' }]
+    }),
+    /Payment creation aborted: PayGuard BLOCK:/
+  );
+  assert.equal(schemeCalls, 0);
+});
+
+test('x402 SDK real integration: 5. Wrong network: BLOCK; scheme executes zero times', async () => {
+  let schemeCalls = 0;
+  const scheme = {
+    scheme: 'exact',
+    async createPaymentPayload(version, requirements) {
+      schemeCalls++;
+      return { x402Version: version, payload: { signed: 'TEST_SIG' } };
+    }
+  };
+  const client = new x402Client().register('eip155:*', scheme).setSpendControls(false);
+  registerPayGuardX402(client, { intent: structuredClone(policy) });
+
+  await assert.rejects(
+    client.createPaymentPayload({
+      x402Version: 2,
+      resource: { url: resource },
+      accepts: [{ ...structuredClone(safeCandidate), network: 'eip155:1' }]
+    }),
+    /Payment creation aborted: PayGuard BLOCK:/
+  );
+  assert.equal(schemeCalls, 0);
+});
+
+test('x402 SDK real integration: 6. Incomplete policy: REVIEW; scheme executes zero times', async () => {
+  let schemeCalls = 0;
+  const scheme = {
+    scheme: 'exact',
+    async createPaymentPayload(version, requirements) {
+      schemeCalls++;
+      return { x402Version: version, payload: { signed: 'TEST_SIG' } };
+    }
+  };
+  const client = new x402Client().register('eip155:*', scheme).setSpendControls(false);
+  const incompletePolicy = structuredClone(policy);
+  delete incompletePolicy.allowedPayTo;
+  registerPayGuardX402(client, { intent: incompletePolicy });
+
+  await assert.rejects(
+    client.createPaymentPayload({
+      x402Version: 2,
+      resource: { url: resource },
+      accepts: [structuredClone(safeCandidate)]
+    }),
+    /Payment creation aborted: PayGuard REVIEW:/
+  );
+  assert.equal(schemeCalls, 0);
+});
+
+test('x402 SDK real integration: 7. Missing resource: BLOCK or REVIEW; scheme executes zero times', async () => {
+  let schemeCalls = 0;
+  const scheme = {
+    scheme: 'exact',
+    async createPaymentPayload(version, requirements) {
+      schemeCalls++;
+      return { x402Version: version, payload: { signed: 'TEST_SIG' } };
+    }
+  };
+  const client = new x402Client().register('eip155:*', scheme).setSpendControls(false);
+  registerPayGuardX402(client, { intent: structuredClone(policy) });
+
+  await assert.rejects(
+    client.createPaymentPayload({
+      x402Version: 2,
+      accepts: [structuredClone(safeCandidate)]
+    }),
+    /Payment creation aborted: PayGuard (BLOCK|REVIEW):/
+  );
+  assert.equal(schemeCalls, 0);
+});
+
+test('x402 SDK real integration: 8. Missing resource URL: BLOCK or REVIEW; scheme executes zero times', async () => {
+  let schemeCalls = 0;
+  const scheme = {
+    scheme: 'exact',
+    async createPaymentPayload(version, requirements) {
+      schemeCalls++;
+      return { x402Version: version, payload: { signed: 'TEST_SIG' } };
+    }
+  };
+  const client = new x402Client().register('eip155:*', scheme).setSpendControls(false);
+  registerPayGuardX402(client, { intent: structuredClone(policy) });
+
+  await assert.rejects(
+    client.createPaymentPayload({
+      x402Version: 2,
+      resource: {},
+      accepts: [structuredClone(safeCandidate)]
+    }),
+    /Payment creation aborted: PayGuard (BLOCK|REVIEW):/
+  );
+  assert.equal(schemeCalls, 0);
+});
+
+test('x402 SDK real integration: 9. Malformed resource URL: BLOCK or REVIEW; scheme executes zero times', async () => {
+  let schemeCalls = 0;
+  const scheme = {
+    scheme: 'exact',
+    async createPaymentPayload(version, requirements) {
+      schemeCalls++;
+      return { x402Version: version, payload: { signed: 'TEST_SIG' } };
+    }
+  };
+  const client = new x402Client().register('eip155:*', scheme).setSpendControls(false);
+  registerPayGuardX402(client, { intent: structuredClone(policy) });
+
+  await assert.rejects(
+    client.createPaymentPayload({
+      x402Version: 2,
+      resource: { url: 'not-a-valid-url' },
+      accepts: [structuredClone(safeCandidate)]
+    }),
+    /Payment creation aborted: PayGuard (BLOCK|REVIEW):/
+  );
+  assert.equal(schemeCalls, 0);
+});
+
+test('x402 SDK real integration: 10. HTTP resource URL: reject according to the existing HTTPS policy', async () => {
+  let schemeCalls = 0;
+  const scheme = {
+    scheme: 'exact',
+    async createPaymentPayload(version, requirements) {
+      schemeCalls++;
+      return { x402Version: version, payload: { signed: 'TEST_SIG' } };
+    }
+  };
+  const client = new x402Client().register('eip155:*', scheme).setSpendControls(false);
+  registerPayGuardX402(client, { intent: structuredClone(policy) });
+
+  await assert.rejects(
+    client.createPaymentPayload({
+      x402Version: 2,
+      resource: { url: 'http://api.example.com/report' },
+      accepts: [structuredClone(safeCandidate)]
+    }),
+    /Payment creation aborted: PayGuard BLOCK:/
+  );
+  assert.equal(schemeCalls, 0);
+});
+
+test('x402 SDK real integration: 11. Audit callback failure: fail closed; scheme executes zero times', async () => {
+  let schemeCalls = 0;
+  const scheme = {
+    scheme: 'exact',
+    async createPaymentPayload(version, requirements) {
+      schemeCalls++;
+      return { x402Version: version, payload: { signed: 'TEST_SIG' } };
+    }
+  };
+  const client = new x402Client().register('eip155:*', scheme).setSpendControls(false);
+  registerPayGuardX402(client, {
+    intent: structuredClone(policy),
+    onDecision() {
+      throw new Error('audit sink failed');
+    }
+  });
+
+  await assert.rejects(
+    client.createPaymentPayload({
+      x402Version: 2,
+      resource: { url: resource },
+      accepts: [structuredClone(safeCandidate)]
+    }),
+    /audit sink failed/
+  );
+  assert.equal(schemeCalls, 0);
+});
+
+test('x402 SDK real integration: PayGuard does not mutate original payment requirements or selected requirements', async () => {
+  let schemeCalls = 0;
+  const scheme = {
+    scheme: 'exact',
+    async createPaymentPayload(version, requirements) {
+      schemeCalls++;
+      return { x402Version: version, payload: { signed: 'TEST_SIG' } };
+    }
+  };
+  const client = new x402Client().register('eip155:*', scheme).setSpendControls(false);
+  registerPayGuardX402(client, {
+    intent: structuredClone(policy),
+    onDecision(decision, snapshot) {
+      snapshot.selectedRequirements.amount = '999';
+      snapshot.resourceUrl = 'https://tampered.example';
+    }
+  });
+
+  const originalCandidate = { ...structuredClone(safeCandidate), extra: { metadataKey: 'test-value' } };
+  const paymentRequired = {
+    x402Version: 2,
+    resource: { url: resource },
+    accepts: [originalCandidate]
+  };
+
+  const prSnapshot = JSON.stringify(paymentRequired);
+  const candidateSnapshot = JSON.stringify(originalCandidate);
+
+  await client.createPaymentPayload(paymentRequired);
+
+  assert.equal(schemeCalls, 1);
+  assert.equal(JSON.stringify(paymentRequired), prSnapshot, 'paymentRequired must not be mutated');
+  assert.equal(JSON.stringify(originalCandidate), candidateSnapshot, 'originalCandidate must not be mutated');
+});

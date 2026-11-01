@@ -35,5 +35,8 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "@x402/core": "2.29.0"
   }
 }

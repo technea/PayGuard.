@@ -20,6 +20,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install dependencies
+        run: npm ci
       - name: Build distributable artifacts
         run: npm run build
       - name: Run tests

@@ -152,7 +152,7 @@ PayGuard can be attached to the x402 TypeScript client before payment payload cr
 The adapter has no runtime dependency on x402. It uses the public `onBeforePaymentCreation` hook shape verified against `@x402/core` 2.29.0; keep the SDK version pinned and re-check this contract when upgrading.
 
 ```js
-import { x402Client } from "@x402/core";
+import { x402Client } from "@x402/core/client";
 import { registerPayGuardX402 } from "payguard-paybox-plugin";
 
 const client = new x402Client();
