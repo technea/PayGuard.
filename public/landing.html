@@ -2318,7 +2318,76 @@
       }
     }
 
-  </style>
+  
+    /* Hard override for the Tier 0–4 badges and Sentinel gate status labels. */
+    #system-hierarchy .hierarchy-tier-card .tier-level-badge {
+      display: inline-flex !important;
+      width: max-content !important;
+      max-width: 100% !important;
+      flex: 0 0 auto !important;
+      white-space: nowrap !important;
+      word-break: keep-all !important;
+      overflow-wrap: normal !important;
+      writing-mode: horizontal-tb !important;
+      text-orientation: mixed !important;
+      letter-spacing: normal !important;
+    }
+
+    #sentinel-studio .gate-item {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      align-items: center !important;
+    }
+
+    #sentinel-studio .gate-info {
+      flex: 1 1 0% !important;
+      min-width: 0 !important;
+    }
+
+    #sentinel-studio .gate-status-pill {
+      display: inline-flex !important;
+      flex: 0 0 auto !important;
+      flex-direction: row !important;
+      width: max-content !important;
+      max-width: 48% !important;
+      white-space: nowrap !important;
+      word-break: keep-all !important;
+      overflow-wrap: normal !important;
+      writing-mode: horizontal-tb !important;
+      text-orientation: mixed !important;
+    }
+
+    #sentinel-studio .gate-status-pill i {
+      display: inline-block !important;
+      flex: 0 0 auto !important;
+    }
+
+    @media (max-width: 640px) {
+      #sentinel-studio .gate-status-pill {
+        font-size: clamp(0.48rem, 1.8vw, 0.62rem) !important;
+        padding: 3px 5px !important;
+        gap: 3px !important;
+      }
+
+      #sentinel-studio .gate-text {
+        flex: 1 1 0%;
+        min-width: 0 !important;
+      }
+
+      #sentinel-studio .gate-text h5,
+      #sentinel-studio .gate-text p {
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+      }
+
+      #system-hierarchy .hierarchy-tier-card .tier-level-badge {
+        font-size: 0.6rem !important;
+        padding: 3px 6px !important;
+      }
+    }
+
+</style>
 </head>
 <body>
 
