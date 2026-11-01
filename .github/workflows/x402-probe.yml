@@ -13,47 +13,32 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Registry metadata
-        run: |
-          echo "=== dist-tags"; npm view @x402/core dist-tags --json
-          echo "=== last versions"; npm view @x402/core versions --json | tail -12
-          echo "=== 2.29.0 exists?"; npm view @x402/core@2.29.0 version || echo "2.29.0 NOT FOUND"
-          echo "=== metadata (latest)"; npm view @x402/core license engines dependencies peerDependencies --json
-      - name: Install latest into a temp dir
+      - name: Install the pinned candidate SDK into a temp dir
         run: |
           mkdir /tmp/probe && cd /tmp/probe && npm init -y >/dev/null
-          npm i @x402/core@latest 2>&1 | tail -3
-          echo "=== package.json"; cat node_modules/@x402/core/package.json
-          echo "=== files"; cd node_modules/@x402/core && find . -type f \( -name '*.d.ts' -o -name '*.d.mts' -o -name '*.mjs' -o -name '*.js' -o -name '*.cjs' \) | sort | head -120
-      - name: Which files define the client and hooks
+          npm i --save-exact @x402/core@2.29.0 2>&1 | tail -2
+          node -p "'installed: ' + require('@x402/core/package.json').version" 2>/dev/null || node -p "'installed: ' + require('/tmp/probe/node_modules/@x402/core/package.json').version"
+      - name: Type definitions (request/requirements/spend controls/selector)
         run: |
-          cd /tmp/probe/node_modules/@x402/core
-          echo "=== files mentioning onBeforePaymentCreation"; grep -rl "onBeforePaymentCreation" . | sort
-          echo "=== files defining class x402Client"; grep -rl "class x402Client" . | sort
-      - name: Type definitions for client, hooks and scheme interface
+          cd /tmp/probe/node_modules/@x402/core/dist/esm
+          grep -n -B1 -A22 -E "^(type|interface) (PaymentRequired|PaymentRequirements|ResourceInfo|Network|SelectPaymentRequirements|SpendControls|x402ClientConfig|PaymentPayload)\b" x402Client-*.d.mts | head -330
+          echo "=== register signatures"; grep -n -E "^\s+register(V1)?\(|registerPolicy|setSpendControls" x402Client-*.d.mts
+          echo "=== DEFAULT_MAX_AMOUNT_PER_PAYMENT"; grep -n "DEFAULT_MAX_AMOUNT_PER_PAYMENT" x402Client-*.d.mts | head -3
+      - name: Client implementation - hook execution, abort, spend controls
         run: |
-          cd /tmp/probe/node_modules/@x402/core
-          for f in $(grep -rl "onBeforePaymentCreation" . --include='*.d.mts' --include='*.d.ts' | sort | head -4); do
-            echo "##### $f"
-            grep -n -B1 -A14 -E "BeforePaymentCreation|PaymentCreationContext|PaymentCreatedContext|PaymentCreationFailure|interface SchemeNetworkClient|createPaymentPayload|selectPaymentRequirements|PaymentPolicy|class x402Client|declare class x402Client" "$f" | head -260
-          done
-      - name: Implementation of the client (ESM)
+          cd /tmp/probe/node_modules/@x402/core/dist/esm
+          f=client/index.mjs
+          echo "##### $f ($(wc -l < $f) lines)"
+          grep -n -E "beforePaymentCreationHooks|onPaymentCreationFailureHooks|abort|DEFAULT_MAX_AMOUNT_PER_PAYMENT|Payment creation aborted" $f | head -60
+          n=$(grep -n "async createPaymentPayload(paymentRequired" $f | head -1 | cut -d: -f1)
+          echo "##### createPaymentPayload from line $n"; sed -n "${n},$((n+150))p" $f
+      - name: Behavioural probe against the real client
         run: |
-          cd /tmp/probe/node_modules/@x402/core
-          f=$(grep -rl "class x402Client" . --include='*.mjs' | sort | head -1)
-          echo "##### $f"
-          n=$(grep -n "class x402Client" "$f" | head -1 | cut -d: -f1)
-          sed -n "${n},$((n+520))p" "$f"
-      - name: Import paths resolve (ESM and CommonJS)
-        run: |
-          cd /tmp/probe
-          for spec in "@x402/core" "@x402/core/client" "@x402/core/http"; do
-            echo "=== ESM import $spec"
-            node --input-type=module -e "import('$spec').then(m => console.log(Object.keys(m).sort().join(', '))).catch(e => console.log('FAILED:', e.code || e.message))"
-            echo "=== CJS require $spec"
-            node -e "try { console.log(Object.keys(require('$spec')).sort().join(', ')) } catch (e) { console.log('FAILED:', e.code || e.message) }"
-          done
+          cp .github/probe/behavior.mjs /tmp/probe/behavior.mjs
+          cd /tmp/probe && node behavior.mjs
