@@ -19,26 +19,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install the pinned candidate SDK into a temp dir
+      - name: Generate lockfile for the pinned devDependency
         run: |
-          mkdir /tmp/probe && cd /tmp/probe && npm init -y >/dev/null
-          npm i --save-exact @x402/core@2.29.0 2>&1 | tail -2
-          node -p "'installed: ' + require('@x402/core/package.json').version" 2>/dev/null || node -p "'installed: ' + require('/tmp/probe/node_modules/@x402/core/package.json').version"
-      - name: Type definitions (request/requirements/spend controls/selector)
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          echo "=====BEGIN-LOCK====="; cat package-lock.json; echo "=====END-LOCK====="
+      - name: Prove the lockfile is in sync (npm ci) and the pin is exact
         run: |
-          cd /tmp/probe/node_modules/@x402/core/dist/esm
-          grep -n -B1 -A22 -E "^(type|interface) (PaymentRequired|PaymentRequirements|ResourceInfo|Network|SelectPaymentRequirements|SpendControls|x402ClientConfig|PaymentPayload)\b" x402Client-*.d.mts | head -330
-          echo "=== register signatures"; grep -n -E "^\s+register(V1)?\(|registerPolicy|setSpendControls" x402Client-*.d.mts
-          echo "=== DEFAULT_MAX_AMOUNT_PER_PAYMENT"; grep -n "DEFAULT_MAX_AMOUNT_PER_PAYMENT" x402Client-*.d.mts | head -3
-      - name: Client implementation - hook execution, abort, spend controls
-        run: |
-          cd /tmp/probe/node_modules/@x402/core/dist/esm
-          f=client/index.mjs
-          echo "##### $f ($(wc -l < $f) lines)"
-          grep -n -E "beforePaymentCreationHooks|onPaymentCreationFailureHooks|abort|DEFAULT_MAX_AMOUNT_PER_PAYMENT|Payment creation aborted" $f | head -60
-          n=$(grep -n "async createPaymentPayload(paymentRequired" $f | head -1 | cut -d: -f1)
-          echo "##### createPaymentPayload from line $n"; sed -n "${n},$((n+150))p" $f
-      - name: Behavioural probe against the real client
-        run: |
-          cp .github/probe/behavior.mjs /tmp/probe/behavior.mjs
-          cd /tmp/probe && node behavior.mjs
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm ls --all
+          node -p "'resolved @x402/core = ' + require('./node_modules/@x402/core/package.json').version"
