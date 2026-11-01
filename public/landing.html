@@ -2387,6 +2387,74 @@
       }
     }
 
+
+    /* Mobile readability fix: prevent hierarchy words from breaking into vertical letters. */
+    @media (max-width: 640px) {
+      #system-hierarchy .hierarchy-tier-card,
+      #system-hierarchy .hierarchy-tier-card * {
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+        writing-mode: horizontal-tb !important;
+        text-orientation: mixed !important;
+      }
+
+      #system-hierarchy .hierarchy-tier-card .tier-content-grid,
+      #system-hierarchy .hierarchy-tier-card .tier-header-info {
+        min-width: 0 !important;
+        width: 100%;
+      }
+
+      #system-hierarchy .hierarchy-tier-card .tier-level-badge {
+        display: inline-flex !important;
+        width: max-content !important;
+        max-width: 100% !important;
+        white-space: nowrap !important;
+        flex-wrap: nowrap !important;
+        font-size: clamp(0.56rem, 2.1vw, 0.68rem) !important;
+        letter-spacing: 0 !important;
+      }
+
+      #sentinel-studio .gate-item {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        align-items: center !important;
+        column-gap: 0.5rem !important;
+      }
+
+      #sentinel-studio .gate-info {
+        display: flex !important;
+        min-width: 0 !important;
+      }
+
+      #sentinel-studio .gate-text {
+        min-width: 0 !important;
+      }
+
+      #sentinel-studio .gate-status-pill {
+        display: inline-flex !important;
+        width: max-content !important;
+        max-width: none !important;
+        flex-wrap: nowrap !important;
+        white-space: nowrap !important;
+        word-break: keep-all !important;
+        overflow-wrap: normal !important;
+        writing-mode: horizontal-tb !important;
+        font-size: clamp(0.48rem, 1.8vw, 0.62rem) !important;
+        line-height: 1.2 !important;
+      }
+    }
+
+    @media (max-width: 380px) {
+      #sentinel-studio .gate-item {
+        grid-template-columns: minmax(0, 1fr) !important;
+        row-gap: 0.4rem !important;
+      }
+
+      #sentinel-studio .gate-status-pill {
+        justify-self: start !important;
+      }
+    }
+
 </style>
 </head>
 <body>
