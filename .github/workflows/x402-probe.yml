@@ -1,0 +1,59 @@
+name: x402 SDK probe (temporary)
+
+'on':
+  push:
+    branches:
+      - scratch/x402-sdk-probe
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Registry metadata
+        run: |
+          echo "=== dist-tags"; npm view @x402/core dist-tags --json
+          echo "=== last versions"; npm view @x402/core versions --json | tail -12
+          echo "=== 2.29.0 exists?"; npm view @x402/core@2.29.0 version || echo "2.29.0 NOT FOUND"
+          echo "=== metadata (latest)"; npm view @x402/core license engines dependencies peerDependencies --json
+      - name: Install latest into a temp dir
+        run: |
+          mkdir /tmp/probe && cd /tmp/probe && npm init -y >/dev/null
+          npm i @x402/core@latest 2>&1 | tail -3
+          echo "=== package.json"; cat node_modules/@x402/core/package.json
+          echo "=== files"; cd node_modules/@x402/core && find . -type f \( -name '*.d.ts' -o -name '*.d.mts' -o -name '*.mjs' -o -name '*.js' -o -name '*.cjs' \) | sort | head -120
+      - name: Which files define the client and hooks
+        run: |
+          cd /tmp/probe/node_modules/@x402/core
+          echo "=== files mentioning onBeforePaymentCreation"; grep -rl "onBeforePaymentCreation" . | sort
+          echo "=== files defining class x402Client"; grep -rl "class x402Client" . | sort
+      - name: Type definitions for client, hooks and scheme interface
+        run: |
+          cd /tmp/probe/node_modules/@x402/core
+          for f in $(grep -rl "onBeforePaymentCreation" . --include='*.d.mts' --include='*.d.ts' | sort | head -4); do
+            echo "##### $f"
+            grep -n -B1 -A14 -E "BeforePaymentCreation|PaymentCreationContext|PaymentCreatedContext|PaymentCreationFailure|interface SchemeNetworkClient|createPaymentPayload|selectPaymentRequirements|PaymentPolicy|class x402Client|declare class x402Client" "$f" | head -260
+          done
+      - name: Implementation of the client (ESM)
+        run: |
+          cd /tmp/probe/node_modules/@x402/core
+          f=$(grep -rl "class x402Client" . --include='*.mjs' | sort | head -1)
+          echo "##### $f"
+          n=$(grep -n "class x402Client" "$f" | head -1 | cut -d: -f1)
+          sed -n "${n},$((n+520))p" "$f"
+      - name: Import paths resolve (ESM and CommonJS)
+        run: |
+          cd /tmp/probe
+          for spec in "@x402/core" "@x402/core/client" "@x402/core/http"; do
+            echo "=== ESM import $spec"
+            node --input-type=module -e "import('$spec').then(m => console.log(Object.keys(m).sort().join(', '))).catch(e => console.log('FAILED:', e.code || e.message))"
+            echo "=== CJS require $spec"
+            node -e "try { console.log(Object.keys(require('$spec')).sort().join(', ')) } catch (e) { console.log('FAILED:', e.code || e.message) }"
+          done
