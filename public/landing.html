@@ -2657,7 +2657,7 @@
       <div class="container">
         <div class="hero-status-pill">
           <span class="sec-dot"></span>
-          <span>BASE MAINNET SECURITY</span>
+          <span>BASE-FIRST SECURITY</span>
           <span style="color:var(--border-medium)">|</span>
           <span>BASE MAINNET (8453)</span>
           <span style="color:var(--border-medium)">|</span>
@@ -2724,7 +2724,7 @@
             <div class="pg-scan-beam"></div>
             <div class="pg-map-caption"><span><i class="fa-solid fa-circle-nodes"></i> 8 ANALYSIS LAYERS</span><span>ILLUSTRATIVE ARCHITECTURE</span></div>
           </div>
-          <p class="pg-visual-footnote"><i class="fa-solid fa-circle-info"></i> Architecture visualization only. A live scan starts when you submit a target; no background wallet access or transaction signing.</p>
+          <p class="pg-visual-footnote"><i class="fa-solid fa-circle-info"></i> Illustrative overview. Submit a target below to run a check.</p>
         </div>
 
 
@@ -2750,7 +2750,7 @@
     <!-- VISUAL CENTERPIECE: THE 8-LAYER PRE-SIGNING COCKPIT (DECLOAK + RABBY BENCHMARK) -->
     <section id="investigation-center" class="container">
       <div class="section-header">
-        <span class="sec-eyebrow"><i class="fa-solid fa-desktop"></i> Security Operations Center</span>
+        <span class="sec-eyebrow"><i class="fa-solid fa-desktop"></i> Security Scanner</span>
         <h2 class="section-title">Check a website, token or transaction</h2>
         <p class="section-subtitle">
           Run a URL check, screen a token contract or inspect calldata. Each result shows which checks ran and which were unavailable or not applicable.
@@ -2774,7 +2774,7 @@
           </div>
         </div>
 
-        <!-- Investigation Area Tabs (3 Core Product Pillars) -->
+        <!-- Security check types -->
         <div class="inv-tab-nav">
           <div class="inv-tabs-group">
             <button class="inv-tab-btn active" id="tabBtnUrl" onclick="switchInvestigationPillar('url')">
@@ -2795,7 +2795,7 @@
           </div>
         </div>
 
-        <!-- Unified Interactive Scanner Input Bar (Decloak Benchmark) -->
+        <!-- Unified security scanner input -->
         <div class="decloak-scanner-box">
           <div class="scanner-input-row">
             <input type="text" id="cockpitTargetInput" class="scanner-target-input" placeholder="Paste a URL, token address, wallet address or calldata..." value="https://base.org/bridge">
@@ -2809,13 +2809,21 @@
             </div>
           </div>
 
-          <!-- Scenario Sub-Bar (Pre-configured sample data for instant inspection) -->
+          <div class="scanner-context-field" id="scannerTargetRow" hidden>
+            <label for="scannerTargetInput">Token contract address</label>
+            <input id="scannerTargetInput" class="scanner-context-input" type="text" inputmode="text"
+              autocomplete="off" spellcheck="false"
+              value="0x833589fCD6eDb6E08f4c7C32d4f71b54bdA02913"
+              placeholder="0x…">
+            <small>Required to decode token calldata. This check does not submit or sign a transaction.</small>
+          </div>
+
           <div class="inv-scenario-bar" id="scenarioBarContainer">
             <!-- Dynamically populated via JS according to active pillar -->
           </div>
         </div>
 
-        <!-- Workflow Pipeline Progress Track (Decloak + Scan URL) -->
+        <!-- Scan workflow -->
         <div class="inv-workflow-track">
           <div class="workflow-step done" id="wfStep1">
             <span class="step-num"><i class="fa-solid fa-check"></i></span>
@@ -2835,7 +2843,7 @@
           </div>
         </div>
 
-        <!-- 3-Column Cockpit Layout -->
+        <!-- Scan result panels -->
         <div class="inv-stage-grid">
           <!-- Col 1: Target Entity & Connected Topology / Rabby Preview -->
           <div class="inv-panel">
@@ -2864,7 +2872,7 @@
 
             <!-- Conditional Display: Rabby-Style Simulation Preview OR Connected Entities Graph -->
             <div id="rabbyPreviewContainer" style="display:none; margin-top:auto;">
-              <span class="entity-label"><i class="fa-solid fa-wallet" style="color:var(--violet)"></i> Rabby-Style Pre-Signing Simulation</span>
+              <span class="entity-label"><i class="fa-solid fa-wallet" style="color:var(--violet)"></i> Decoded transaction details</span>
               <div class="rabby-sim-preview" id="rabbySimCard">
                 <div class="rabby-sim-row"><span class="rabby-sim-label">Method:</span><span class="rabby-sim-val" id="rabbyMethod">approve(address,uint256)</span></div>
                 <div class="rabby-sim-row"><span class="rabby-sim-label">Spender:</span><span class="rabby-sim-val" id="rabbySpender" style="color:var(--rose)">0xattacker999... [UNVERIFIED]</span></div>
@@ -2927,7 +2935,7 @@
 
         <!-- Footer Notice: Honest Demonstration vs Live Scan -->
         <div class="inv-footer-notice">
-          <div><i class="fa-solid fa-circle-info" style="color:var(--cyan)"></i> <strong>8-LAYER ANALYSIS ARCHITECTURE</strong> &mdash; Type any URL above to execute a real live scan via <code>POST /api/analyze-url</code>. Sample scenarios provide demonstration telemetry across each domain, contract, and calldata layer.</div>
+          <div><i class="fa-solid fa-circle-info" style="color:var(--cyan)"></i> <strong>LIVE CHECKS</strong> &mdash; URL, token, wallet and calldata requests use separate read-only APIs. Examples show sample data; submit a target for a live result.</div>
           <div><span style="color:var(--emerald)">&bull;</span> Non-Custodial Advisory Intelligence</div>
         </div>
       </div>
@@ -3817,7 +3825,7 @@
 
       wallet: {
         scenarios: [
-          { id: 1, label: "Unlimited Approval Drainer", icon: "fa-triangle-exclamation", iconColor: "var(--rose)", targetVal: "0x095ea7b3000000000000000000000000attacker9999000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" },
+          { id: 1, label: "Unlimited Approval Drainer", icon: "fa-triangle-exclamation", iconColor: "var(--rose)", targetVal: "0x095ea7b30000000000000000000000001111111111111111111111111111111111111111ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" },
           { id: 2, label: "Standard transfer() Calldata", icon: "fa-circle-check", iconColor: "var(--emerald)", targetVal: "0xa9059cbb00000000000000000000000020556f0cfa3f93f0206faeb5452d2745e14234690000000000000000000000000000000000000000000000000000000000989680" },
           { id: 3, label: "Base Wallet Portfolio Scan", icon: "fa-wallet", iconColor: "var(--cyan)", targetVal: "0x20556F0cfA3f93F0206faeb5452d2745e1423469" }
         ],
@@ -3998,7 +4006,7 @@
       document.getElementById('invTargetText').textContent = item.targetText;
       document.getElementById('invNetworkVal').textContent = item.network;
       document.getElementById('invPrivacyVal').textContent = item.privacy;
-      document.getElementById('invLatency').textContent = item.latency;
+      document.getElementById('invLatency').textContent = item.isLiveResult ? (item.latency || 'LIVE RESULT') : 'SAMPLE DATA';
 
       // Column 1: Connected Entities or Rabby Preview
       const rabbyContainer = document.getElementById('rabbyPreviewContainer');
