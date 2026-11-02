@@ -109,25 +109,6 @@ test("metrics have low-cardinality labels and do not expose URL inputs", async (
   assert.ok(!metrics.includes("bad.example"));
 });
 
-test("server rate limiting rejects excessive requests with HTTP 429", async () => {
-  // Rapid burst of requests to trigger rate limiting
-  let got429 = false;
-  for (let i = 0; i < 150; i++) {
-    const res = await fetch(baseUrl + "/api/analyze-url", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ url: "https://example.com" })
-    });
-    if (res.status === 429) {
-      got429 = true;
-      const body = await res.json();
-      assert.ok(body.error.includes("Rate limit exceeded") || body.error.includes("Server busy"));
-      break;
-    }
-  }
-  assert.equal(got429, true, "Expected 429 rate limit response under rapid burst");
-});
-
 test("root endpoint returns service info and discovery links", async () => {
   const response = await fetch(baseUrl + "/");
   const body = await response.json();
@@ -184,4 +165,84 @@ test("GET / with Accept: text/html serves interactive web dashboard to browsers"
   assert.ok(html.includes("<!DOCTYPE html>"));
   assert.ok(html.includes("PayGuard"));
 });
+test("GET /api/capabilities reports configured features and supported chains", async () => {
+  const response = await fetch(baseUrl + "/api/capabilities");
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.equal(data.service, "payguard");
+  assert.equal(data.mode, "read-only");
+  assert.deepEqual(data.supportedChains, ["8453"]);
+  assert.ok(Array.isArray(data.modules));
+  assert.ok(data.modules.includes("address-security"));
+  assert.ok(data.modules.includes("token-security"));
+  assert.ok(data.modules.includes("calldata-inspector"));
+});
 
+test("POST /api/inspect-calldata decodes ERC-20 calldata and provides policy verdict", async () => {
+  const response = await fetch(baseUrl + "/api/inspect-calldata", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      to: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      value: "0",
+      data: "0xa9059cbb00000000000000000000000020556f0cfa3f93f0206faeb5452d2745e142346900000000000000000000000000000000000000000000000000000000000186a0",
+      policy: {
+        allowedRecipients: ["0x20556f0cfa3f93f0206faeb5452d2745e1423469"],
+        maxTransferAmount: "1000000"
+      }
+    })
+  });
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.equal(data.verdict, "PASS");
+  assert.equal(data.operation, "ERC20_TRANSFER");
+});
+
+test("POST /api/token-security returns UNVERIFIED on unsupported chain (fail-closed)", async () => {
+  const response = await fetch(baseUrl + "/api/token-security", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      chainId: "84532",
+      contractAddress: "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+    })
+  });
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.equal(data.verdict, "UNVERIFIED");
+  assert.equal(data.dataStatus, "UNSUPPORTED");
+});
+
+test("POST /api/address-security rejects malformed address input fail-closed", async () => {
+  const response = await fetch(baseUrl + "/api/address-security", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      chainId: "8453",
+      address: "0xinvalid-format"
+    })
+  });
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.equal(data.verdict, "UNVERIFIED");
+  assert.equal(data.dataStatus, "MALFORMED_INPUT");
+});
+
+test("server rate limiting rejects excessive requests with HTTP 429", async () => {
+  // Rapid burst of requests to trigger rate limiting
+  let got429 = false;
+  for (let i = 0; i < 150; i++) {
+    const res = await fetch(baseUrl + "/api/analyze-url", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ url: "https://example.com" })
+    });
+    if (res.status === 429) {
+      got429 = true;
+      const body = await res.json();
+      assert.ok(body.error.includes("Rate limit exceeded") || body.error.includes("Server busy"));
+      break;
+    }
+  }
+  assert.equal(got429, true, "Expected 429 rate limit response under rapid burst");
+});

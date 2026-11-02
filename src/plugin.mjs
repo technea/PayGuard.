@@ -1,6 +1,7 @@
 import { inspectCalldata } from "./calldata-inspector.mjs";
 import { checkTokenSecurity } from "./token-security.mjs";
 import { checkAddressSecurity } from "./address-security.mjs";
+import { scanBaseWalletTokens } from "./wallet-token-scanner.mjs";
 /**
  * PayGuard: policy-based x402 payment-intent checker.
  *
@@ -1141,7 +1142,71 @@ export const payGuardTool = Object.freeze({
   run: evaluatePaymentIntent
 });
 
-export const tools = Object.freeze([payGuardTool, payGuardUrlSentinelTool, payGuardThreatReportTool, payGuardCalldataInspectorTool, payGuardTokenSecurityTool, payGuardAddressSecurityTool]);
+
+export const WALLET_SCANNER_NAME = "payguard_scan_wallet_tokens";
+export const WALLET_SCANNER_DESCRIPTION =
+  "Automatically scan ERC-20 token holdings in a Base Mainnet wallet for honeypots, malicious taxes, " +
+  "impersonation of official Base assets, and suspicious airdrops. Read-only: never requests keys or executes transactions.";
+
+export const WALLET_SCANNER_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["walletAddress"],
+  properties: {
+    walletAddress: {
+      type: "string",
+      pattern: "^0x[0-9a-fA-F]{40}$",
+      description: "Base wallet address (20-byte hexadecimal address prefixed with 0x) to scan."
+    },
+    customTokenAddresses: {
+      type: "array",
+      items: {
+        type: "string",
+        pattern: "^0x[0-9a-fA-F]{40}$"
+      },
+      maxItems: 30,
+      description: "Optional array of specific token contract addresses to inspect for this wallet."
+    }
+  }
+};
+
+export async function payGuardScanWalletTokens(input, options = {}) {
+  if (!isRecord(input)) {
+    return {
+      status: "ERROR",
+      walletAddress: null,
+      chainId: "8453",
+      error: "Input must be a valid JSON object containing walletAddress.",
+      tokens: [],
+      summary: { totalTokensScanned: 0, highRiskCount: 0, suspiciousCount: 0, cleanCount: 0, unverifiedCount: 0 },
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  const walletAddress = typeof input.walletAddress === "string" ? input.walletAddress : "";
+  const customTokenAddresses = Array.isArray(input.customTokenAddresses) ? input.customTokenAddresses : [];
+
+  return scanBaseWalletTokens({
+    walletAddress,
+    customTokenAddresses
+  }, options);
+}
+
+export const payGuardWalletScannerTool = Object.freeze({
+  id: WALLET_SCANNER_NAME,
+  name: WALLET_SCANNER_NAME,
+  title: WALLET_SCANNER_NAME,
+  description: WALLET_SCANNER_DESCRIPTION,
+  inputSchema: WALLET_SCANNER_SCHEMA,
+  input_schema: WALLET_SCANNER_SCHEMA,
+  outputSchema: { type: "object" },
+  output_schema: { type: "object" },
+  handler: payGuardScanWalletTokens,
+  execute: payGuardScanWalletTokens,
+  run: payGuardScanWalletTokens
+});
+
+export const tools = Object.freeze([payGuardTool, payGuardUrlSentinelTool, payGuardThreatReportTool, payGuardCalldataInspectorTool, payGuardTokenSecurityTool, payGuardAddressSecurityTool, payGuardWalletScannerTool]);
 
 export const plugin = Object.freeze({
   id: "payguard",
@@ -1158,6 +1223,7 @@ export const plugin = Object.freeze({
     if (name === CALLDATA_INSPECTOR_NAME) return payGuardInspectCalldata(input);
     if (name === TOKEN_SECURITY_NAME) return payGuardCheckTokenSecurity(input);
     if (name === ADDRESS_SECURITY_NAME) return payGuardCheckAddressSecurity(input);
+    if (name === WALLET_SCANNER_NAME) return payGuardScanWalletTokens(input);
     throw new Error(`Unknown tool: ${String(name)}`);
   },
   execute(name, input) {

@@ -6,6 +6,7 @@ const srcFile = new URL('../src/plugin.mjs', import.meta.url);
 const srcCalldataFile = new URL('../src/calldata-inspector.mjs', import.meta.url);
 const srcTokenSecurityFile = new URL('../src/token-security.mjs', import.meta.url);
 const srcAddressSecurityFile = new URL('../src/address-security.mjs', import.meta.url);
+const srcWalletScannerFile = new URL('../src/wallet-token-scanner.mjs', import.meta.url);
 const destPluginMjs = new URL('../dist/plugin.mjs', import.meta.url);
 const destIndexMjs = new URL('../dist/index.mjs', import.meta.url);
 const destIndexJs = new URL('../dist/index.js', import.meta.url);
@@ -18,6 +19,8 @@ const destTokenSecurityMjs = new URL('../dist/token-security.mjs', import.meta.u
 const destTokenSecurityCjs = new URL('../dist/token-security.cjs', import.meta.url);
 const destAddressSecurityMjs = new URL('../dist/address-security.mjs', import.meta.url);
 const destAddressSecurityCjs = new URL('../dist/address-security.cjs', import.meta.url);
+const destWalletScannerMjs = new URL('../dist/wallet-token-scanner.mjs', import.meta.url);
+const destWalletScannerCjs = new URL('../dist/wallet-token-scanner.cjs', import.meta.url);
 const destDts = new URL('../dist/index.d.ts', import.meta.url);
 const rootIndexJs = new URL('../index.js', import.meta.url);
 const rootIndexCjs = new URL('../index.cjs', import.meta.url);
@@ -29,6 +32,7 @@ const srcContent = await readFile(srcFile, 'utf8');
 const calldataContent = await readFile(srcCalldataFile, 'utf8');
 const tokenSecurityContent = await readFile(srcTokenSecurityFile, 'utf8');
 const addressSecurityContent = await readFile(srcAddressSecurityFile, 'utf8');
+const walletScannerContent = await readFile(srcWalletScannerFile, 'utf8');
 
 // Verify that the source is self-contained with no external npm imports
 const importMatches = [...srcContent.matchAll(/^(?:import|export)\s+.*?\s+from\s+['"]([^'"]+)['"]/gm)].map(m => m[1]);
@@ -48,6 +52,7 @@ await writeFile(destPluginJs, esmShebangContent, 'utf8');
 await writeFile(destCalldataMjs, calldataContent, 'utf8');
 await writeFile(destTokenSecurityMjs, tokenSecurityContent, 'utf8');
 await writeFile(destAddressSecurityMjs, addressSecurityContent, 'utf8');
+await writeFile(destWalletScannerMjs, walletScannerContent, 'utf8');
 
 // 3. Generate CommonJS bundles (index.cjs, plugin.cjs, calldata-inspector.cjs, token-security.cjs, address-security.cjs)
 function toCommonJS(esmCode) {
@@ -146,6 +151,7 @@ export declare const payGuardThreatReportTool: any;
 export declare const payGuardCalldataInspectorTool: any;
 export declare const payGuardTokenSecurityTool: any;
 export declare const payGuardAddressSecurityTool: any;
+export declare const payGuardWalletScannerTool: any;
 export declare function evaluatePaymentIntent(input: any): any;
 export declare function createPayGuardX402Hook(options: { intent: Record<string, unknown>; onDecision?: (result: any, context: any) => void | Promise<void> }): (context: { paymentRequired?: any; selectedRequirements?: any }) => Promise<void | { abort: true; reason: string }>;
 export declare function registerPayGuardX402(client: { onBeforePaymentCreation(hook: (context: any) => Promise<any>): any }, options: { intent: Record<string, unknown>; onDecision?: (result: any, context: any) => void | Promise<void> }): any;
@@ -154,6 +160,7 @@ export declare function prepareThreatReport(input: any, options?: any): Promise<
 export declare function payGuardInspectCalldata(input: any): Promise<any>;
 export declare function payGuardCheckTokenSecurity(input: any, options?: any): Promise<any>;
 export declare function payGuardCheckAddressSecurity(input: any, options?: any): Promise<any>;
+export declare function payGuardScanWalletTokens(input: any, options?: any): Promise<any>;
 export declare function startMcpServer(targetPlugin?: any): void;
 `;
 await writeFile(destDts, dtsContent, 'utf8');

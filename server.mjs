@@ -6,7 +6,8 @@ import {
   prepareThreatReport,
   payGuardInspectCalldata,
   payGuardCheckTokenSecurity,
-  payGuardCheckAddressSecurity
+  payGuardCheckAddressSecurity,
+  payGuardScanWalletTokens
 } from "./src/plugin.mjs";
 import { BAZAAR_DISCOVERY_METADATA, build402Challenge, verifyPaymentProof } from "./paybox.mjs";
 
@@ -105,6 +106,8 @@ function routeLabel(path) {
   if (path === "/api/inspect-calldata") return "inspect_calldata";
   if (path === "/api/token-security") return "token_security";
   if (path === "/api/address-security") return "address_security";
+  if (path === "/api/scan-wallet-tokens") return "scan_wallet_tokens";
+  if (path === "/api/capabilities") return "capabilities";
   if (path === "/health") return "health";
   if (path === "/.well-known/x402-bazaar.json" || path === "/api/bazaar") return "bazaar";
   return "other";
@@ -236,6 +239,11 @@ const routes = new Map([
     const result = await payGuardCheckAddressSecurity(input);
     recordVerdict("address_security", result.verdict);
     return result;
+  }],
+  ["/api/scan-wallet-tokens", async input => {
+    const result = await payGuardScanWalletTokens(input);
+    recordVerdict("scan_wallet_tokens", result.status === "SUCCESS" ? "PASS" : "UNVERIFIED");
+    return result;
   }]
 ]);
 
@@ -309,9 +317,32 @@ async function requestHandler(req, res) {
           inspectCalldata: "/api/inspect-calldata",
           tokenSecurity: "/api/token-security",
           addressSecurity: "/api/address-security",
+          scanWalletTokens: "/api/scan-wallet-tokens",
+          capabilities: "/api/capabilities",
           bazaar: "/.well-known/x402-bazaar.json",
           metrics: "/metrics"
         }
+      });
+    }
+
+    if (req.method === "GET" && parsed.pathname === "/api/capabilities") {
+      statusCode = 200;
+      return sendJson(res, statusCode, {
+        service: "payguard",
+        version: "0.1.0",
+        mode: "read-only",
+        goPlusConfigured: Boolean(process.env.GOPLUS_API_KEY && process.env.GOPLUS_API_KEY.trim()),
+        webRiskConfigured: Boolean(process.env.GOOGLE_WEB_RISK_API_KEY && process.env.GOOGLE_WEB_RISK_API_KEY.trim()),
+        supportedChains: ["8453"],
+        modules: [
+          "url-sentinel",
+          "payment-guard",
+          "calldata-inspector",
+          "token-security",
+          "address-security",
+          "wallet-token-scanner",
+          "threat-report"
+        ]
       });
     }
 

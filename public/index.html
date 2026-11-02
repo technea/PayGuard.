@@ -802,6 +802,9 @@
       <button class="tab-btn" onclick="switchTab('address-security')">
         <i class="fa-solid fa-address-card"></i> Address Security
       </button>
+      <button class="tab-btn" onclick="switchTab('wallet-scanner')">
+        <i class="fa-solid fa-radar"></i> Base Wallet Scanner
+      </button>
       <button class="tab-btn" onclick="switchTab('threat-report')">
         <i class="fa-solid fa-file-shield"></i> Threat Reports
       </button>
@@ -1283,7 +1286,103 @@
     </section>
 
     <!-- TAB 4: THREAT REPORT GENERATOR -->
-    <section id="tab-threat-report" class="tab-content">
+
+    <!-- TAB: BASE WALLET TOKEN SCANNER -->
+    <section id="tab-wallet-scanner" class="tab-content">
+      <div class="glass-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><i class="fa-solid fa-radar" style="color: var(--cyan);"></i> Automatic Base Wallet Token Scanner</div>
+            <div class="card-subtitle">Automatically screens ERC-20 token holdings in any Base wallet for malicious honeypots, predatory taxes, and deceptive token impersonation attacks.</div>
+          </div>
+        </div>
+
+        <div class="action-guidance-card" style="margin-bottom:1.25rem">
+          <i class="fa-solid fa-user-shield action-guidance-icon"></i>
+          <div>
+            <div class="action-guidance-title">Zero-Signature Read-Only Investigation</div>
+            <div class="action-guidance-text">PayGuard never requests wallet connection signatures, private keys, or token permissions. Simply enter any public Base address to run multi-vector token discovery (Blockscout + Canonical Base Registry + GoPlus Security).</div>
+          </div>
+        </div>
+
+        <div class="preset-bar">
+          <span class="preset-label"><i class="fa-solid fa-flask" style="color: var(--cyan); margin-right: 0.25rem;"></i> Sample Wallets:</span>
+          <button class="preset-chip" onclick="setWalletScannerPreset('0x20556F0cfA3f93F0206faeb5452d2745e1423469')"><i class="fa-solid fa-wallet" style="color: var(--emerald);"></i> PayGuard Active Merchant Wallet</button>
+          <button class="preset-chip" onclick="setWalletScannerPreset('0x4200000000000000000000000000000000000006')"><i class="fa-solid fa-landmark" style="color: var(--cyan);"></i> Base Canonical WETH Contract</button>
+          <button class="preset-chip" onclick="setWalletScannerPreset('0x0000000000000000000000000000000000000000')"><i class="fa-solid fa-ban" style="color: var(--rose);"></i> Zero / Burn Address</button>
+        </div>
+
+        <div class="form-layout" style="margin-bottom: 1.25rem;">
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label" for="scanner-wallet-address">Base Wallet Address to Scan (ERC-20 Holdings)</label>
+            <input type="text" id="scanner-wallet-address" class="input-box" placeholder="0x... (40 hexadecimal characters)" value="0x20556F0cfA3f93F0206faeb5452d2745e1423469" maxlength="42">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label class="form-label" for="scanner-custom-tokens">Additional Specific Token Contracts to Audit (Optional, comma-separated)</label>
+          <input type="text" id="scanner-custom-tokens" class="input-box" placeholder="0x... (optional custom token contract to test for lookalike impersonation)">
+        </div>
+
+        <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+          <button class="btn" id="btn-scan-wallet" onclick="runWalletTokenScan()">
+            <i class="fa-solid fa-radar"></i> Scan Wallet Token Portfolio
+          </button>
+          <span style="font-size: 0.85rem; color: var(--text-dim);"><i class="fa-solid fa-shield"></i> Read-only public audit • Base Mainnet (8453)</span>
+        </div>
+
+        <!-- Scanner Results Container -->
+        <div id="wallet-scanner-results" style="display: none;">
+          <!-- Summary Hero Banner -->
+          <div id="wallet-scanner-hero" class="verdict-hero PASS">
+            <div style="display: flex; align-items: center; gap: 1.25rem;">
+              <div class="verdict-icon-box" id="wallet-scanner-icon-box">
+                <i class="fa-solid fa-shield-halved"></i>
+              </div>
+              <div>
+                <div class="verdict-title" id="wallet-scanner-title">Portfolio Scan Complete</div>
+                <div class="verdict-plain-summary" id="wallet-scanner-summary">Audited tokens against GoPlus Security and Base canonical registry.</div>
+              </div>
+            </div>
+            <div id="wallet-scanner-badge" class="verdict-risk-tag low">
+              <i class="fa-solid fa-shield"></i> AUDIT COMPLETE
+            </div>
+          </div>
+
+          <!-- Summary Metric Cards -->
+          <div class="metric-grid" style="margin-top: 1.25rem;">
+            <div class="metric-card">
+              <div class="metric-label">Tokens Audited</div>
+              <div class="metric-value" id="stat-tokens-total" style="color: var(--cyan);">0</div>
+              <div class="metric-sub"><i class="fa-solid fa-coins"></i> Verified Ecosystem Holdings</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">High Risk / Impersonators</div>
+              <div class="metric-value" id="stat-tokens-high-risk" style="color: var(--rose);">0</div>
+              <div class="metric-sub"><i class="fa-solid fa-triangle-exclamation"></i> Immediate Avoidance Required</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Suspicious / Caution</div>
+              <div class="metric-value" id="stat-tokens-suspicious" style="color: var(--amber);">0</div>
+              <div class="metric-sub"><i class="fa-solid fa-clipboard-question"></i> Review Before Interacting</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Verified Clean</div>
+              <div class="metric-value" id="stat-tokens-clean" style="color: var(--emerald);">0</div>
+              <div class="metric-sub"><i class="fa-solid fa-circle-check"></i> Standard Security Markers</div>
+            </div>
+          </div>
+
+          <!-- Tokens Detailed Grid -->
+          <div class="checks-section-heading" style="margin-top: 1.5rem;">
+            <i class="fa-solid fa-list-check" style="color: var(--cyan);"></i> Detected Token Holdings & Threat Evaluations
+          </div>
+          <div id="wallet-tokens-list" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 0.75rem;"></div>
+        </div>
+      </div>
+    </section>
+
+<section id="tab-threat-report" class="tab-content">
       <div class="glass-card">
         <div class="card-header">
           <div>
@@ -2296,6 +2395,189 @@
       }).join('');
     }
 
-  </script>
+
+    // ----------------------------------------------------
+    // Base Wallet Token Scanner UI Logic
+    // ----------------------------------------------------
+    function setWalletScannerPreset(addr) {
+      document.getElementById('scanner-wallet-address').value = addr;
+      runWalletTokenScan();
+    }
+
+    async function runWalletTokenScan() {
+      const walletAddress = document.getElementById('scanner-wallet-address').value.trim();
+      const customRaw = document.getElementById('scanner-custom-tokens').value.trim();
+      const customTokenAddresses = customRaw ? customRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+      const btn = document.getElementById('btn-scan-wallet');
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Auditing Wallet Holdings...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/scan-wallet-tokens', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ walletAddress, customTokenAddresses })
+        });
+        const result = await res.json();
+        renderWalletScanResult(result);
+      } catch (err) {
+        alert('Wallet scan failed: ' + err.message);
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-radar"></i> Scan Wallet Token Portfolio';
+        btn.disabled = false;
+        updateTelemetry();
+      }
+    }
+
+    function renderWalletScanResult(data) {
+      const container = document.getElementById('wallet-scanner-results');
+      const hero = document.getElementById('wallet-scanner-hero');
+      const iconBox = document.getElementById('wallet-scanner-icon-box');
+      const title = document.getElementById('wallet-scanner-title');
+      const summary = document.getElementById('wallet-scanner-summary');
+      const badge = document.getElementById('wallet-scanner-badge');
+      const list = document.getElementById('wallet-tokens-list');
+
+      container.style.display = 'block';
+
+      if (data.status === 'ERROR') {
+        hero.className = 'verdict-hero BLOCK';
+        iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+        title.textContent = 'Scan Error';
+        summary.textContent = data.error || 'Failed to inspect wallet address.';
+        badge.className = 'verdict-risk-tag high';
+        badge.innerHTML = '<i class="fa-solid fa-ban"></i> INVALID';
+        list.innerHTML = '';
+        return;
+      }
+
+      const total = data.summary?.totalTokensScanned || 0;
+      const highRisk = data.summary?.highRiskCount || 0;
+      const suspicious = data.summary?.suspiciousCount || 0;
+      const clean = data.summary?.cleanCount || 0;
+
+      document.getElementById('stat-tokens-total').textContent = total;
+      document.getElementById('stat-tokens-high-risk').textContent = highRisk;
+      document.getElementById('stat-tokens-suspicious').textContent = suspicious;
+      document.getElementById('stat-tokens-clean').textContent = clean;
+
+      hero.className = 'verdict-hero';
+
+      if (highRisk > 0) {
+        hero.classList.add('BLOCK');
+        iconBox.innerHTML = '<i class="fa-solid fa-skull-crossbones"></i>';
+        title.innerHTML = 'HIGH RISK TOKENS DETECTED IN WALLET';
+        summary.innerHTML = 'Found ' + highRisk + ' high-risk or impersonating token(s). Do not approve, swap, or send!';
+        badge.className = 'verdict-risk-tag high';
+        badge.innerHTML = '<i class="fa-solid fa-ban"></i> ACTION REQUIRED';
+      } else if (suspicious > 0) {
+        hero.classList.add('REVIEW');
+        iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+        title.innerHTML = 'Caution: Suspicious Tokens Found';
+        summary.innerHTML = 'Found ' + suspicious + ' token(s) with centralized privileges or unusual tax patterns.';
+        badge.className = 'verdict-risk-tag medium';
+        badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> REVIEW';
+      } else {
+        hero.classList.add('PASS');
+        iconBox.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+        title.innerHTML = 'Portfolio Clear: No High-Risk Tokens Found';
+        summary.innerHTML = 'Audited ' + total + ' token holding(s). All evaluated assets passed automated honeypot and impersonation checks.';
+        badge.className = 'verdict-risk-tag low';
+        badge.innerHTML = '<i class="fa-solid fa-check"></i> NO KNOWN THREATS';
+      }
+
+      list.innerHTML = (data.tokens || []).map(t => {
+        let cardBorder = 'var(--border-subtle)';
+        let statusBadgeClass = 'low';
+        let statusIcon = 'fa-solid fa-circle-check';
+
+        if (t.securityStatus === 'HIGH RISK') {
+          cardBorder = 'rgba(244, 63, 94, 0.45)';
+          statusBadgeClass = 'high';
+          statusIcon = 'fa-solid fa-ban';
+        } else if (t.securityStatus === 'SUSPICIOUS') {
+          cardBorder = 'rgba(245, 158, 11, 0.45)';
+          statusBadgeClass = 'medium';
+          statusIcon = 'fa-solid fa-triangle-exclamation';
+        } else if (t.securityStatus === 'UNABLE TO VERIFY' || t.securityStatus === 'UNSUPPORTED') {
+          cardBorder = 'rgba(148, 163, 184, 0.3)';
+          statusBadgeClass = 'medium';
+          statusIcon = 'fa-solid fa-circle-question';
+        }
+
+        // Format balance human-readably
+        let balanceDisplay = t.balance;
+        try {
+          if (t.balance && t.decimals !== undefined) {
+            const b = BigInt(t.balance);
+            const dec = BigInt(10 ** Math.min(t.decimals, 18));
+            const whole = b / dec;
+            const frac = (b % dec).toString().padStart(Math.min(t.decimals, 18), '0').slice(0, 4);
+            balanceDisplay = whole.toString() + (frac !== '0000' ? '.' + frac : '');
+          }
+        } catch {}
+
+        return `
+          <div class="glass-card" style="padding: 1.25rem; border: 1px solid ${cardBorder};">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                  <span style="font-weight: 800; font-size: 1.1rem; color: #ffffff;">${t.symbol}</span>
+                  <span style="font-size: 0.85rem; color: var(--text-dim);">(${t.name})</span>
+                  ${t.isVerifiedOfficial ? '<span class="pill-secondary" style="font-size: 0.7rem; color: var(--emerald); border-color: rgba(16, 185, 129, 0.3);"><i class="fa-solid fa-certificate"></i> Verified Official Base</span>' : ''}
+                  ${t.isImpersonation ? '<span class="verdict-risk-tag high" style="font-size: 0.7rem;"><i class="fa-solid fa-masks-theater"></i> Impersonator</span>' : ''}
+                </div>
+                <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim); margin-top: 0.25rem;">
+                  Contract: <a href="https://basescan.org/token/${t.contractAddress}" target="_blank" style="color: var(--cyan); text-decoration: none;">${t.contractAddress}</a>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
+                <span class="verdict-risk-tag ${statusBadgeClass}">
+                  <i class="${statusIcon}"></i> ${t.securityStatus}
+                </span>
+                <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
+                  Balance: ${balanceDisplay} ${t.symbol}
+                </span>
+              </div>
+            </div>
+
+            <!-- Warning Notice for High Risk / Suspicious Tokens -->
+            ${(t.securityStatus === 'HIGH RISK' || t.securityStatus === 'SUSPICIOUS') ? `
+              <div class="action-guidance-card" style="background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.35); margin-top: 0.75rem; padding: 0.75rem 1rem;">
+                <i class="fa-solid fa-triangle-exclamation" style="color: var(--rose); margin-top: 0.15rem;"></i>
+                <div>
+                  <div style="color: var(--rose); font-weight: 700; font-size: 0.825rem; text-transform: uppercase;">Stay away. This token has suspicious security indicators.</div>
+                  <div style="font-size: 0.85rem; color: var(--text-main); line-height: 1.4;">${t.recommendedAction}</div>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Indicators Breakdown -->
+            <div style="margin-top: 0.85rem; display: flex; flex-direction: column; gap: 0.4rem;">
+              ${(t.detectedIndicators || []).map(ind => {
+                const isCrit = ind.severity === 'CRITICAL' || ind.severity === 'HIGH';
+                const isInfo = ind.severity === 'INFO';
+                const color = isCrit ? 'var(--rose)' : (isInfo ? 'var(--emerald)' : 'var(--amber)');
+                const icon = isCrit ? 'fa-solid fa-triangle-exclamation' : (isInfo ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-exclamation');
+                return `
+                  <div style="font-size: 0.8rem; display: flex; align-items: flex-start; gap: 0.5rem; line-height: 1.4;">
+                    <i class="${icon}" style="color: ${color}; margin-top: 0.2rem;"></i>
+                    <span><strong>${ind.label}:</strong> ${ind.detail}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div style="margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.05); display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-dim);">
+              <span>Source: ${t.provider}</span>
+              <span>Checked: ${new Date(t.lastChecked).toLocaleTimeString()}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+</script>
 </body>
 </html>
