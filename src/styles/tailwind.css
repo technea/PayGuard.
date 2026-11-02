@@ -1,0 +1,4 @@
+@tailwind utilities;
+
+/* Tailwind utilities are layered without global resets so the existing
+   security console design system remains stable. */
