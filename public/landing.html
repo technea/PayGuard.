@@ -2057,6 +2057,354 @@
       .pg-reveal-target { transition: none; }
     }
 
+
+    /* Refined navigation: clear hierarchy, keyboard feedback and compact glass surface */
+    header.sec-header {
+      background: rgba(4, 7, 18, .82);
+      border-bottom-color: rgba(148, 163, 184, .12);
+      box-shadow: 0 8px 34px rgba(0, 0, 0, .18);
+      transition: background .28s ease, box-shadow .28s ease, border-color .28s ease;
+      isolation: isolate;
+    }
+    header.sec-header::after {
+      content: "";
+      position: absolute;
+      left: max(1.25rem, calc((100% - 1240px) / 2));
+      right: max(1.25rem, calc((100% - 1240px) / 2));
+      bottom: -1px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,240,255,.42), rgba(129,140,248,.28), transparent);
+      pointer-events: none;
+    }
+    header.sec-header.is-scrolled {
+      background: rgba(3, 7, 18, .94);
+      border-bottom-color: rgba(0,240,255,.16);
+      box-shadow: 0 14px 42px rgba(0,0,0,.34);
+    }
+    .nav-container { min-height: 72px; gap: clamp(.8rem, 1.8vw, 1.5rem); }
+    .brand { flex-shrink: 0; }
+    .brand-icon {
+      position: relative;
+      width: 39px;
+      height: 39px;
+      border-radius: 11px;
+      box-shadow: 0 0 22px rgba(0,240,255,.09), inset 0 0 12px rgba(0,240,255,.07);
+    }
+    .brand-icon::after {
+      content: "";
+      position: absolute;
+      inset: -5px;
+      border: 1px solid rgba(0,240,255,.19);
+      border-radius: 14px;
+      opacity: 0;
+      transform: scale(.88);
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    .brand:hover .brand-icon::after { opacity: 1; transform: scale(1); }
+    .brand-badge { box-shadow: inset 0 0 10px rgba(0,240,255,.06); }
+    .nav-links { gap: clamp(.65rem, 1.35vw, 1.35rem); }
+    .nav-link {
+      position: relative;
+      padding: .55rem 0;
+      font-size: .81rem;
+      white-space: nowrap;
+      transition: color .2s ease, transform .2s ease;
+    }
+    .nav-link::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: .1rem;
+      height: 2px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--cyan), #818cf8);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform .22s cubic-bezier(.16,1,.3,1);
+    }
+    .nav-link:hover, .nav-link:focus-visible, .nav-link.active { color: #e8fbff; }
+    .nav-link:hover::after, .nav-link:focus-visible::after,
+    .nav-link.active::after, .nav-link[aria-current="page"]::after { transform: scaleX(1); }
+    .nav-link:focus-visible, .mobile-menu-toggle:focus-visible, .mobile-nav-link:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 4px;
+    }
+    .nav-actions { flex-shrink: 0; gap: .65rem; }
+    .nav-actions .btn-cyan { box-shadow: 0 0 20px rgba(0,240,255,.16); }
+    .nav-actions .btn-cyan:hover { box-shadow: 0 0 26px rgba(0,240,255,.28); }
+    .mobile-menu-toggle {
+      width: auto;
+      min-width: 82px;
+      height: 39px;
+      padding: 0 .8rem;
+      gap: .5rem;
+      border-radius: 8px;
+      border-color: rgba(0,240,255,.26);
+      background: linear-gradient(135deg, rgba(0,240,255,.09), rgba(129,140,248,.07));
+      color: #dffaff;
+      font: 700 .75rem var(--font-sans);
+      letter-spacing: .02em;
+      transition: border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+    .mobile-menu-toggle:hover, .mobile-menu-toggle[aria-expanded="true"] {
+      border-color: rgba(0,240,255,.62);
+      background: rgba(0,240,255,.13);
+      box-shadow: 0 0 22px rgba(0,240,255,.12);
+    }
+    .menu-toggle-icon { display: inline-flex; width: 16px; justify-content: center; font-size: .9rem; }
+    .menu-toggle-icon i { transition: transform .22s ease; }
+    .mobile-menu-toggle[aria-expanded="true"] .menu-toggle-icon i { transform: rotate(90deg); }
+    .mobile-menu-panel-spacer { display: none; }
+    .mobile-nav-panel {
+      top: calc(100% + .55rem);
+      left: 1rem;
+      right: 1rem;
+      max-width: 620px;
+      margin-left: auto;
+      padding: 1.1rem;
+      gap: .85rem;
+      border: 1px solid rgba(0,240,255,.2);
+      border-radius: 15px;
+      background:
+        radial-gradient(ellipse at 100% 0%, rgba(0,240,255,.09), transparent 42%),
+        linear-gradient(145deg, rgba(8,14,31,.985), rgba(3,7,18,.985));
+      box-shadow: 0 24px 70px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.045);
+      transform-origin: top right;
+      animation: pg-menu-enter .24s cubic-bezier(.16,1,.3,1) both;
+    }
+    .mobile-nav-panel[hidden] { display: none; }
+    .mobile-nav-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      padding: .2rem .2rem .8rem;
+      border-bottom: 1px solid rgba(148,163,184,.12);
+    }
+    .mobile-nav-heading > div { display: grid; gap: .18rem; }
+    .mobile-nav-kicker {
+      color: var(--cyan);
+      font: 700 .58rem var(--font-mono);
+      letter-spacing: .12em;
+    }
+    .mobile-nav-heading strong { color: #f8fafc; font-size: .95rem; }
+    .mobile-nav-network {
+      display: inline-flex;
+      align-items: center;
+      gap: .42rem;
+      padding: .35rem .5rem;
+      border: 1px solid rgba(16,185,129,.2);
+      border-radius: 6px;
+      color: #6ee7b7;
+      background: rgba(16,185,129,.06);
+      font: 600 .57rem var(--font-mono);
+      white-space: nowrap;
+    }
+    .mobile-nav-network .net-pulse-dot { width: 5px; height: 5px; }
+    .mobile-nav-links { display: grid; gap: .4rem; }
+    .mobile-nav-link {
+      min-height: 56px;
+      padding: .55rem .65rem;
+      gap: .7rem;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      transition: border-color .2s ease, background .2s ease, transform .2s ease, color .2s ease;
+      animation: pg-menu-item-enter .28s cubic-bezier(.16,1,.3,1) both;
+    }
+    .mobile-nav-link:nth-child(2) { animation-delay: 25ms; }
+    .mobile-nav-link:nth-child(3) { animation-delay: 50ms; }
+    .mobile-nav-link:nth-child(4) { animation-delay: 75ms; }
+    .mobile-nav-link:nth-child(5) { animation-delay: 100ms; }
+    .mobile-nav-link:hover, .mobile-nav-link[aria-current="page"] {
+      background: rgba(0,240,255,.075);
+      border-color: rgba(0,240,255,.17);
+      color: #f8fafc;
+      transform: translateX(3px);
+    }
+    .mobile-nav-icon {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      color: var(--cyan);
+      background: rgba(0,240,255,.08);
+      border: 1px solid rgba(0,240,255,.12);
+    }
+    .mobile-nav-copy { display: grid; gap: .08rem; min-width: 0; }
+    .mobile-nav-copy strong { color: #e2e8f0; font-size: .78rem; font-weight: 700; }
+    .mobile-nav-copy small { color: #64748b; font-size: .64rem; }
+    .mobile-nav-arrow { margin-left: auto; color: #475569; font-size: .68rem; }
+    .mobile-nav-footer {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .7rem .2rem 0;
+      border-top: 1px solid rgba(148,163,184,.1);
+      color: #64748b;
+      font: 600 .55rem var(--font-mono);
+      letter-spacing: .04em;
+    }
+    .mobile-nav-footer i { color: var(--cyan); }
+    .mobile-nav-footer span:last-child { margin-left: auto; color: #475569; }
+    @keyframes pg-menu-enter {
+      from { opacity: 0; transform: translateY(-7px) scale(.985); filter: blur(4px); }
+      to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+    @keyframes pg-menu-item-enter {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 1100px) {
+      .nav-links { gap: .72rem; }
+      .nav-link { font-size: .76rem; }
+      .nav-container { padding-left: 1.2rem; padding-right: 1.2rem; }
+    }
+    @media (max-width: 960px) {
+      .nav-links { display: none; }
+      .mobile-menu-toggle { display: inline-flex; align-items: center; justify-content: center; }
+      .nav-container { min-height: 68px; }
+    }
+    @media (max-width: 640px) {
+      .nav-container { padding: .65rem 1rem; gap: .55rem; }
+      .brand { gap: .55rem; }
+      .brand-icon { width: 35px; height: 35px; }
+      .brand-title { font-size: 1.08rem; }
+      .brand-badge { font-size: .57rem; padding: .12rem .34rem; }
+      .nav-actions { gap: .45rem; }
+      .net-pulse-chip { display: none; }
+      .mobile-nav-panel { left: .65rem; right: .65rem; padding: .9rem; }
+      .mobile-nav-footer { font-size: .49rem; }
+    }
+    @media (max-width: 420px) {
+      .nav-actions .nav-dashboard-cta { display: none; }
+      .mobile-menu-toggle { min-width: 76px; }
+      .mobile-nav-panel { left: .5rem; right: .5rem; }
+    }
+
+    /* Connected flow steps: circular checkpoints and an animated progress spine */
+    .pg-flow-list { position: relative; }
+    .pg-flow-list::before {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      left: 1.55rem;
+      top: 1.85rem;
+      bottom: 1.85rem;
+      width: 1px;
+      background: linear-gradient(180deg, rgba(0,240,255,.08), rgba(0,240,255,.5), rgba(129,140,248,.12));
+      transform-origin: top;
+      animation: pg-flow-line 5.5s ease-in-out infinite;
+    }
+    .pg-flow-list::after {
+      content: "";
+      position: absolute;
+      z-index: 1;
+      left: calc(1.55rem - 2px);
+      top: 1.85rem;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #a5f3fc;
+      box-shadow: 0 0 12px rgba(0,240,255,.9);
+      animation: pg-flow-pulse 5.5s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .pg-flow-item { position: relative; z-index: 2; background: rgba(2,6,18,.62); }
+    .pg-flow-index {
+      width: 29px;
+      height: 29px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      border: 1px solid rgba(0,240,255,.48);
+      color: #a5f3fc;
+      background: radial-gradient(circle at 35% 25%, rgba(0,240,255,.2), rgba(3,10,24,.98) 72%);
+      box-shadow: 0 0 0 4px rgba(0,240,255,.045), inset 0 0 12px rgba(0,240,255,.12);
+      font: 700 .62rem var(--font-mono);
+      position: relative;
+      transition: box-shadow .25s ease, border-color .25s ease, transform .25s ease;
+    }
+    .pg-flow-index::after {
+      content: "";
+      position: absolute;
+      inset: -5px;
+      border: 1px solid rgba(0,240,255,.22);
+      border-radius: 50%;
+      animation: pg-flow-ring 3.6s ease-out infinite;
+    }
+    .pg-flow-item:nth-child(2) .pg-flow-index::after { animation-delay: 1.2s; }
+    .pg-flow-item:nth-child(3) .pg-flow-index::after { animation-delay: 2.4s; }
+    .pg-flow-item:hover .pg-flow-index {
+      transform: scale(1.08);
+      border-color: rgba(0,240,255,.9);
+      box-shadow: 0 0 0 5px rgba(0,240,255,.07), 0 0 24px rgba(0,240,255,.17);
+    }
+    @keyframes pg-flow-line { 0%,100% { opacity: .4; } 50% { opacity: 1; } }
+    @keyframes pg-flow-pulse { 0%,8% { transform: translateY(0); opacity: 0; } 18% { opacity: 1; } 82% { opacity: 1; } 96%,100% { transform: translateY(7.9rem); opacity: 0; } }
+    @keyframes pg-flow-ring { 0% { transform: scale(.72); opacity: .75; } 75%,100% { transform: scale(1.55); opacity: 0; } }
+
+    /* Ambient light field below the content and above the network canvas */
+    .ambient-light-field {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      overflow: hidden;
+      pointer-events: none;
+      opacity: .78;
+      contain: paint;
+    }
+    .ambient-orb {
+      position: absolute;
+      display: block;
+      width: clamp(250px, 38vw, 620px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      filter: blur(95px);
+      opacity: .12;
+      will-change: transform;
+      mix-blend-mode: screen;
+    }
+    .ambient-orb-cyan {
+      left: -14%; top: 7%;
+      background: radial-gradient(circle, rgba(0,240,255,.72), rgba(0,240,255,.12) 44%, transparent 72%);
+      animation: pg-ambient-drift 26s ease-in-out infinite alternate;
+    }
+    .ambient-orb-violet {
+      right: -16%; top: 30%;
+      background: radial-gradient(circle, rgba(129,140,248,.7), rgba(129,140,248,.1) 48%, transparent 72%);
+      animation: pg-ambient-drift-reverse 32s ease-in-out infinite alternate;
+    }
+    .ambient-orb-blue {
+      left: 30%; bottom: -38%;
+      width: clamp(280px, 45vw, 700px);
+      background: radial-gradient(circle, rgba(14,165,233,.62), rgba(14,165,233,.08) 50%, transparent 72%);
+      animation: pg-ambient-breathe 21s ease-in-out infinite alternate;
+    }
+    @keyframes pg-ambient-drift {
+      0% { transform: translate3d(-2%, -1%, 0) scale(.9); }
+      100% { transform: translate3d(13%, 12%, 0) scale(1.12); }
+    }
+    @keyframes pg-ambient-drift-reverse {
+      0% { transform: translate3d(1%, -5%, 0) scale(1.05); }
+      100% { transform: translate3d(-14%, 13%, 0) scale(.88); }
+    }
+    @keyframes pg-ambient-breathe {
+      0% { transform: translate3d(0, 4%, 0) scale(.9); opacity: .08; }
+      100% { transform: translate3d(6%, -8%, 0) scale(1.16); opacity: .18; }
+    }
+    @media (max-width: 640px) {
+      .ambient-light-field { opacity: .55; }
+      .ambient-orb { filter: blur(72px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .mobile-nav-panel, .mobile-nav-link, .pg-flow-list::before, .pg-flow-list::after,
+      .pg-flow-index::after, .ambient-orb { animation: none !important; }
+      .nav-link::after, .mobile-nav-link, .mobile-menu-toggle { transition: none !important; }
+    }
+
   </style>
 </head>
 <body>
@@ -2064,6 +2412,11 @@
   <!-- Animated Security Canvas (Nodes, Topology, Scanning Radar Beam) -->
   <canvas id="securityCanvas"></canvas>
   <div class="vignette-overlay"></div>
+  <div class="ambient-light-field" aria-hidden="true">
+    <span class="ambient-orb ambient-orb-cyan"></span>
+    <span class="ambient-orb ambient-orb-violet"></span>
+    <span class="ambient-orb ambient-orb-blue"></span>
+  </div>
 
   <!-- Header Navigation -->
   <header class="sec-header">
@@ -2079,8 +2432,8 @@
         <span class="brand-motto-label">Verify Before You Trust</span>
       </a>
 
-      <nav class="nav-links">
-        <a href="/" class="nav-link active"><i class="fa-solid fa-house"></i> Home</a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="/" class="nav-link active" aria-current="page"><i class="fa-solid fa-house"></i> Home</a>
         <a href="/dashboard" class="nav-link"><i class="fa-solid fa-gauge-high"></i> Security Tools</a>
         <a href="/whitepaper" class="nav-link"><i class="fa-solid fa-file-contract"></i> Whitepaper</a>
         <a href="/docs" class="nav-link"><i class="fa-solid fa-book"></i> Technical Docs</a>
@@ -2092,22 +2445,48 @@
           <span class="net-pulse-dot"></span>
           <span>BASE (8453) // LIVE</span>
         </div>
-        <a href="/dashboard" class="btn btn-cyan" title="Launch Security Console">
+        <a href="/dashboard" class="btn btn-cyan nav-dashboard-cta" title="Launch Security Console">
           <i class="fa-solid fa-sliders"></i> Open Dashboard
         </a>
+        <button class="mobile-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobileNavPanel">
+          <span class="menu-toggle-icon"><i class="fa-solid fa-bars" aria-hidden="true"></i></span>
+          <span class="menu-toggle-label">Menu</span>
+        </button>
       </div>
 
-      <button class="mobile-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobileNavPanel">
-        <i class="fa-solid fa-bars" aria-hidden="true"></i>
-      </button>
-
       <nav class="mobile-nav-panel" id="mobileNavPanel" aria-label="Mobile navigation" hidden>
-        <a href="/" class="mobile-nav-link"><i class="fa-solid fa-house"></i> Home</a>
-        <a href="/dashboard" class="mobile-nav-link"><i class="fa-solid fa-gauge-high"></i> Security Tools</a>
-        <a href="/whitepaper" class="mobile-nav-link"><i class="fa-solid fa-file-contract"></i> Whitepaper</a>
-        <a href="/docs" class="mobile-nav-link"><i class="fa-solid fa-book"></i> Technical Docs</a>
-        <a href="#faq" class="mobile-nav-link"><i class="fa-solid fa-circle-question"></i> FAQ</a>
-        <a href="/dashboard" class="mobile-nav-link" style="color:var(--cyan); font-weight:700;"><i class="fa-solid fa-sliders"></i> Open Dashboard</a>
+        <div class="mobile-nav-heading">
+          <div><span class="mobile-nav-kicker">PAYGUARD NAVIGATION</span><strong>Explore the platform</strong></div>
+          <span class="mobile-nav-network"><span class="net-pulse-dot"></span> BASE 8453</span>
+        </div>
+        <div class="mobile-nav-links">
+          <a href="/" class="mobile-nav-link" aria-current="page">
+            <span class="mobile-nav-icon"><i class="fa-solid fa-house"></i></span>
+            <span class="mobile-nav-copy"><strong>Home</strong><small>PayGuard overview</small></span>
+            <i class="fa-solid fa-arrow-up-right-from-square mobile-nav-arrow"></i>
+          </a>
+          <a href="/dashboard" class="mobile-nav-link">
+            <span class="mobile-nav-icon"><i class="fa-solid fa-gauge-high"></i></span>
+            <span class="mobile-nav-copy"><strong>Security Tools</strong><small>Run scans and inspect risks</small></span>
+            <i class="fa-solid fa-arrow-up-right-from-square mobile-nav-arrow"></i>
+          </a>
+          <a href="/whitepaper" class="mobile-nav-link">
+            <span class="mobile-nav-icon"><i class="fa-solid fa-file-contract"></i></span>
+            <span class="mobile-nav-copy"><strong>Whitepaper</strong><small>Product architecture and scope</small></span>
+            <i class="fa-solid fa-arrow-up-right-from-square mobile-nav-arrow"></i>
+          </a>
+          <a href="/docs" class="mobile-nav-link">
+            <span class="mobile-nav-icon"><i class="fa-solid fa-book"></i></span>
+            <span class="mobile-nav-copy"><strong>Technical Docs</strong><small>APIs and agent integration</small></span>
+            <i class="fa-solid fa-arrow-up-right-from-square mobile-nav-arrow"></i>
+          </a>
+          <a href="#faq" class="mobile-nav-link">
+            <span class="mobile-nav-icon"><i class="fa-solid fa-circle-question"></i></span>
+            <span class="mobile-nav-copy"><strong>FAQ</strong><small>Security model and limitations</small></span>
+            <i class="fa-solid fa-arrow-up-right-from-square mobile-nav-arrow"></i>
+          </a>
+        </div>
+        <div class="mobile-nav-footer"><i class="fa-solid fa-shield-halved"></i><span>Verify Before You Trust.</span><span>FREE · NON-CUSTODIAL</span></div>
       </nav>
     </div>
   </header>
@@ -2164,9 +2543,9 @@
             <h2 class="pg-visual-title">Signals before signatures.</h2>
             <p class="pg-visual-description">A layered inspection path for websites, token contracts and transaction calldata. Each result is tied to the checks that actually ran.</p>
             <div class="pg-flow-list">
-              <div class="pg-flow-item"><span class="pg-flow-index">01</span><span><strong>Identify</strong><small>Normalize domains, addresses and payloads</small></span><i class="fa-solid fa-arrow-right"></i></div>
-              <div class="pg-flow-item"><span class="pg-flow-index">02</span><span><strong>Cross-check</strong><small>Compare canonical references and threat signals</small></span><i class="fa-solid fa-arrow-right"></i></div>
-              <div class="pg-flow-item"><span class="pg-flow-index">03</span><span><strong>Explain</strong><small>Return evidence, coverage and an advisory verdict</small></span><i class="fa-solid fa-arrow-right"></i></div>
+              <div class="pg-flow-item"><span class="pg-flow-index" aria-hidden="true">01</span><span><strong>Identify</strong><small>Normalize domains, addresses and payloads</small></span><i class="fa-solid fa-arrow-right"></i></div>
+              <div class="pg-flow-item"><span class="pg-flow-index" aria-hidden="true">02</span><span><strong>Cross-check</strong><small>Compare canonical references and threat signals</small></span><i class="fa-solid fa-arrow-right"></i></div>
+              <div class="pg-flow-item"><span class="pg-flow-index" aria-hidden="true">03</span><span><strong>Explain</strong><small>Return evidence, coverage and an advisory verdict</small></span><i class="fa-solid fa-arrow-right"></i></div>
             </div>
           </div>
           <div class="pg-network-stage relative min-h-[250px] overflow-hidden rounded-xl border border-white/10 bg-slate-900/40 md:min-h-[300px]" aria-hidden="true">
@@ -2840,8 +3219,14 @@
       }
 
       function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        w = window.innerWidth;
+        h = window.innerHeight;
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
       window.addEventListener('resize', resize, { passive: true });
       resize();
@@ -2850,7 +3235,7 @@
       let scanY = 0;
       const SCAN_SPEED = 0.5;
 
-      const NODE_COUNT = Math.min(26, Math.floor((w * h) / 38000));
+      const NODE_COUNT = Math.min(w < 680 ? 18 : 34, Math.max(16, Math.floor((w * h) / 33000)));
       const nodes = [];
       for (let i = 0; i < NODE_COUNT; i++) {
         nodes.push({
@@ -2865,6 +3250,7 @@
       }
 
       function draw() {
+        const motionTime = performance.now() / 1000;
         ctx.clearRect(0, 0, w, h);
 
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.022)';
@@ -2942,6 +3328,22 @@
               ctx.moveTo(n.x, n.y);
               ctx.lineTo(n2.x, n2.y);
               ctx.stroke();
+
+              // A small signal packet travels along selected links to suggest
+              // real network activity without simulating a live security scan.
+              if ((i + j) % 3 === 0) {
+                const phase = (motionTime * 0.19 + i * 0.17 + j * 0.11) % 1;
+                const packetX = n.x - dx * phase;
+                const packetY = n.y - dy * phase;
+                ctx.save();
+                ctx.shadowBlur = 9;
+                ctx.shadowColor = 'rgba(0, 240, 255, 0.85)';
+                ctx.fillStyle = 'rgba(165, 243, 252, 0.9)';
+                ctx.beginPath();
+                ctx.arc(packetX, packetY, 1.45, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+              }
             }
           }
         }
@@ -3704,17 +4106,27 @@
     // 5. ACCESSIBLE MOBILE NAVIGATION DRAWER
     // =========================================================
     (function initMobileNavigation() {
+      const header = document.querySelector('.sec-header');
       const toggle = document.querySelector('.mobile-menu-toggle');
       const panel = document.getElementById('mobileNavPanel');
-      if (!toggle || !panel) return;
+      if (!header || !toggle || !panel) return;
 
-      function setMenuOpen(open) {
+      function setMenuOpen(open, returnFocus) {
         toggle.setAttribute('aria-expanded', String(open));
         toggle.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
-        toggle.innerHTML = open
+        const icon = toggle.querySelector('.menu-toggle-icon');
+        const label = toggle.querySelector('.menu-toggle-label');
+        if (icon) icon.innerHTML = open
           ? '<i class="fa-solid fa-xmark" aria-hidden="true"></i>'
           : '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
+        if (label) label.textContent = open ? 'Close' : 'Menu';
         panel.hidden = !open;
+        if (open) {
+          const firstLink = panel.querySelector('a');
+          if (firstLink) firstLink.setAttribute('tabindex', '0');
+        } else if (returnFocus) {
+          toggle.focus();
+        }
       }
 
       toggle.addEventListener('click', function() {
@@ -3722,27 +4134,47 @@
       });
 
       panel.querySelectorAll('a').forEach(function(link) {
-        link.addEventListener('click', function() { setMenuOpen(false); });
+        link.addEventListener('click', function() {
+          setMenuOpen(false, false);
+        });
       });
 
       document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-          if (toggle.getAttribute('aria-expanded') === 'true') {
-            setMenuOpen(false);
-            toggle.focus();
-          }
-          closeThreatReportModal();
+        if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+          event.preventDefault();
+          setMenuOpen(false, true);
         }
+        if (event.key === 'Escape') closeThreatReportModal();
       });
 
       document.addEventListener('click', function(event) {
         if (toggle.getAttribute('aria-expanded') !== 'true') return;
-        if (!panel.contains(event.target) && !toggle.contains(event.target)) setMenuOpen(false);
+        if (!panel.contains(event.target) && !toggle.contains(event.target)) setMenuOpen(false, false);
       });
 
-      window.addEventListener('resize', function() {
-        if (window.innerWidth > 960) setMenuOpen(false);
+      const desktopQuery = window.matchMedia('(min-width: 961px)');
+      const handleBreakpointChange = function(event) {
+        if (event.matches) setMenuOpen(false, false);
+      };
+      if (desktopQuery.addEventListener) desktopQuery.addEventListener('change', handleBreakpointChange);
+      else desktopQuery.addListener(handleBreakpointChange);
+    })();
+
+    // Add a compact depth cue to the sticky header after the first scroll.
+    (function initHeaderScrollState() {
+      const header = document.querySelector('.sec-header');
+      if (!header) return;
+      let scheduled = false;
+      const update = function() {
+        header.classList.toggle('is-scrolled', window.scrollY > 10);
+        scheduled = false;
+      };
+      window.addEventListener('scroll', function() {
+        if (scheduled) return;
+        scheduled = true;
+        window.requestAnimationFrame(update);
       }, { passive: true });
+      update();
     })();
 
     // Reveal high-value sections as they enter the viewport.
