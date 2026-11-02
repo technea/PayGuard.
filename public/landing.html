@@ -4316,13 +4316,13 @@
       const impersonations = tokens.filter(function(token) { return token.isImpersonation; }).length;
       const highRisk = highCount > 0;
       const review = suspiciousCount > 0;
-      const tokenList = tokens.slice(0, 8).map(function(token) { return token.symbol + ': ' + token.securityStatus; }).join(' · ');
+      const tokenList = tokens.slice(0, 8).map(function(token) { return (token.symbol || token.contractAddress || 'Token') + ': ' + (token.securityStatus || token.verdict || 'UNVERIFIED'); }).join(' · ');
       const hasTaxFinding = tokens.some(function(token) {
         return (token.findings || []).some(function(finding) {
           return /tax|sell|transfer|honeypot/i.test(String(finding.code || '') + ' ' + String(finding.message || ''));
         });
       });
-      const hasCoverageGap = partial || unverifiedCount > 0 || data.status !== 'SUCCESS';
+      const hasCoverageGap = partial || unverifiedCount > 0 || data.status !== 'SUCCESS' || tokens.length === 0;
       const layers = [
         makeLayer('L01', 'Wallet address format', 'VALID ADDRESS', 'pass', 'The wallet address was accepted by the Base scanner.'),
         makeLayer('L02', 'Token discovery coverage', partial ? 'PARTIAL' : 'INDEXED', partial ? 'warn' : 'pass', data.advisoryNotice || data.discoveryMode || 'Discovery coverage not stated.'),
