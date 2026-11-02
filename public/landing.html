@@ -2278,7 +2278,7 @@
         <!-- Unified Interactive Scanner Input Bar (Decloak Benchmark) -->
         <div class="decloak-scanner-box">
           <div class="scanner-input-row">
-            <input type="text" id="cockpitTargetInput" class="scanner-target-input" placeholder="Enter target URL, contract address, or EVM calldata..." value="https://bases.org/verify-wallet/reset-token-secret9999">
+            <input type="text" id="cockpitTargetInput" class="scanner-target-input" placeholder="Enter target URL, contract address, or EVM calldata..." value="https://bases.invalid/account/session?access_token=DEMO-ONLY">
             <div class="scanner-actions-group">
               <button class="btn btn-cyan" id="btnLiveScan" onclick="executeCockpitScan()">
                 <i class="fa-solid fa-crosshairs"></i> <span id="scanBtnLabel">Scan Target Now</span>
@@ -2327,7 +2327,7 @@
             <div class="entity-field">
               <span class="entity-label">Inspected Target Identifier</span>
               <div class="entity-val highlight-target" id="invTargetVal">
-                <span id="invTargetText">https://bases.org/verify-wallet/...</span>
+                <span id="invTargetText">https://bases.invalid/account/session</span>
                 <div class="laser-line" id="invLaser"></div>
               </div>
             </div>
@@ -2621,7 +2621,7 @@
           </p>
           <div class="reality-defense-tag">
             <strong>PAYGUARD DEFENSE:</strong>
-            Evaluates domain identity against authoritative Base ecosystem registries and flags typosquats (e.g. <code>bases.org</code> vs <code>base.org</code>).
+            Evaluates domain identity against authoritative Base ecosystem registries and flags typosquats (e.g. <code>bases.invalid</code> vs <code>base.org</code>).
           </div>
         </div>
 
@@ -2684,7 +2684,7 @@
             <i class="fa-solid fa-chevron-down"></i>
           </button>
           <div class="faq-content">
-            PayGuard maintains an authoritative registry of 17 verified official Base ecosystem domains (including <code>base.org</code>, <code>basescan.org</code>, <code>aerodrome.finance</code>, and <code>coinbase.com</code>). When an incoming URL is inspected, PayGuard uses Unicode Punycode lexing to catch lookalike homoglyphs (such as Cyrillic 'а') and detects typosquats like <code>bases.org</code>.
+            PayGuard maintains an authoritative registry of 17 verified official Base ecosystem domains (including <code>base.org</code>, <code>basescan.org</code>, <code>aerodrome.finance</code>, and <code>coinbase.com</code>). When an incoming URL is inspected, PayGuard uses Unicode Punycode lexing to catch lookalike homoglyphs (such as Cyrillic 'а') and detects typosquats like <code>bases.invalid</code>.
           </div>
         </div>
 
@@ -3016,10 +3016,10 @@
       url: {
         scenarios: [
           { id: 1, label: "Official Base Domain", icon: "fa-circle-check", iconColor: "var(--emerald)", targetVal: "https://base.org/bridge" },
-          { id: 2, label: "Phishing Typosquat", icon: "fa-triangle-exclamation", iconColor: "var(--rose)", targetVal: "https://bases.org/verify-wallet/reset-token-secret9999" },
-          { id: 3, label: "Cyrillic Homoglyph", icon: "fa-mask", iconColor: "var(--amber)", targetVal: "https://xn--bse-qla.org/bridge" },
-          { id: 4, label: "Suffix Spoof", icon: "fa-tags", iconColor: "var(--rose)", targetVal: "https://base.org.attacker-domain.com/login" },
-          { id: 5, label: "Secret in URL", icon: "fa-user-secret", iconColor: "var(--cyan)", targetVal: "https://shop.example/verify-wallet?private_key=0x7a6b2c1d" }
+          { id: 2, label: "Phishing Typosquat", icon: "fa-triangle-exclamation", iconColor: "var(--rose)", targetVal: "https://bases.invalid/account/session?access_token=DEMO-ONLY" },
+          { id: 3, label: "Cyrillic Homoglyph", icon: "fa-mask", iconColor: "var(--amber)", targetVal: "https://xn--bse-qla.invalid/bridge" },
+          { id: 4, label: "Suffix Spoof", icon: "fa-tags", iconColor: "var(--rose)", targetVal: "https://base.org.attacker.invalid/login" },
+          { id: 5, label: "Secret in URL", icon: "fa-user-secret", iconColor: "var(--cyan)", targetVal: "https://shop.example/account/session?access_token=DEMO-ONLY" }
         ],
         data: {
           1: {
@@ -3056,9 +3056,9 @@
           },
           2: {
             targetType: "URL OBJECT",
-            targetText: "https://bases.org/verify-wallet/reset-token-secret9999",
+            targetText: "https://bases.invalid/account/session?access_token=DEMO-ONLY",
             network: "Base Mainnet (Chain ID: 8453)",
-            privacy: "Sanitized: reset-token-[REDACTED]",
+            privacy: "Sanitized: access-token-[REDACTED]",
             latency: "LATENCY: 38ms",
             showRabby: false,
             topology: [
@@ -3069,7 +3069,7 @@
             ],
             layers: [
               { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "TYPOSQUAT", pillCls: "threat", latency: "16ms", tele: "Levenshtein distance: 1 against base.org" },
-              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "UNVERIFIED", pillCls: "threat", latency: "21ms", tele: "bases.org is NOT on official Base domain registry" },
+              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "UNVERIFIED", pillCls: "threat", latency: "21ms", tele: "bases.invalid is NOT on official Base domain registry" },
               { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "REDACTED", pillCls: "warn", latency: "26ms", tele: "Sensitive path segment reset-token-... redacted" },
               { idx: "L04", name: "Contract Bytecode & Honeypot Detector", desc: "GoPlus Security Engine", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Contract bytecode check not applicable" },
               { idx: "L05", name: "Predatory Tax & Siphon Simulator", desc: "Dynamic Fee Hooks", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Swap tax simulation not applicable" },
@@ -3082,13 +3082,13 @@
             verdictCategory: "KNOWN_MALICIOUS_TYPOSQUAT",
             verdictHeadline: "HIGH RISK THREAT",
             verdictScore: "RISK: 95/100",
-            verdictSummary: "Domain 'bases.org' mimics official Base infrastructure (base.org) but is NOT on the verified official registry. High probability of a phishing credential trap.",
+            verdictSummary: "Domain 'bases.invalid' mimics official Base infrastructure (base.org) but is NOT on the verified official registry. High probability of a phishing credential trap.",
             guidanceCls: "guidance-threat",
             guidanceText: "DO NOT PROCEED. Do not open link, connect wallet, or approve signature requests."
           },
           3: {
             targetType: "URL OBJECT",
-            targetText: "https://xn--bse-qla.org/bridge (bаse.org)",
+            targetText: "https://xn--bse-qla.invalid/bridge (bаse.invalid)",
             network: "Base Mainnet (Chain ID: 8453)",
             privacy: "Clean (No credential parameters detected)",
             latency: "LATENCY: 34ms",
@@ -3096,11 +3096,11 @@
             topology: [
               { name: "Inbound Client Request", pip: "pip-green", status: "Airgapped In-Memory" },
               { name: "Unicode Codepoint Parser", pip: "pip-rose", status: "U+0430 (Cyrillic 'а')" },
-              { name: "Punycode Deobfuscator", pip: "pip-rose", status: "xn--bse-qla.org" },
+              { name: "Punycode Deobfuscator", pip: "pip-rose", status: "xn--bse-qla.invalid" },
               { name: "Zero-SSRF In-Memory Buffer", pip: "pip-green", status: "0 Outbound Sockets" }
             ],
             layers: [
-              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "CRITICAL", pillCls: "threat", latency: "15ms", tele: "Punycode detected: xn--bse-qla.org (Cyrillic 'а')" },
+              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "CRITICAL", pillCls: "threat", latency: "15ms", tele: "Punycode detected: xn--bse-qla.invalid (Cyrillic 'а')" },
               { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "SPOOFED", pillCls: "threat", latency: "19ms", tele: "Disguised to impersonate base.org" },
               { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "24ms", tele: "0 query secrets detected" },
               { idx: "L04", name: "Contract Bytecode & Honeypot Detector", desc: "GoPlus Security Engine", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Contract bytecode check not applicable" },
@@ -3114,13 +3114,13 @@
             verdictCategory: "HOMOGLYPH_SPOOF_ATTACK",
             verdictHeadline: "PUNYCODE HOMOGLYPH",
             verdictScore: "RISK: 98/100",
-            verdictSummary: "Domain uses Cyrillic small letter 'а' (U+0430) disguised as Latin 'a'. Invisible to human eyes and multimodal LLMs. Punycode translation: xn--bse-qla.org.",
+            verdictSummary: "Domain uses Cyrillic small letter 'а' (U+0430) disguised as Latin 'a'. Invisible to human eyes and multimodal LLMs. Punycode translation: xn--bse-qla.invalid.",
             guidanceCls: "guidance-threat",
             guidanceText: "CRITICAL THREAT. Deceptive IDN homoglyph spoofing official Base infrastructure."
           },
           4: {
             targetType: "URL OBJECT",
-            targetText: "https://base.org.attacker-domain.com/login",
+            targetText: "https://base.org.attacker.invalid/login",
             network: "Base Mainnet (Chain ID: 8453)",
             privacy: "Clean (No credential parameters detected)",
             latency: "LATENCY: 31ms",
@@ -3152,9 +3152,9 @@
           },
           5: {
             targetType: "URL OBJECT",
-            targetText: "https://shop.example/verify-wallet?private_key=0x7a6b2c1d",
+            targetText: "https://shop.example/account/session?access_token=DEMO-ONLY",
             network: "Base Mainnet (Chain ID: 8453)",
-            privacy: "Sanitized: private_key=[REDACTED]",
+            privacy: "Sanitized: access_token=[REDACTED]",
             latency: "LATENCY: 36ms",
             showRabby: false,
             topology: [
@@ -3178,7 +3178,7 @@
             verdictCategory: "CREDENTIAL_LEAK_IN_URL",
             verdictHeadline: "SECRET EXPOSED IN URL",
             verdictScore: "RISK: 94/100",
-            verdictSummary: "URL parameter contains cleartext wallet secret language ('private_key='). Never enter private keys or seed phrases in web URLs.",
+            verdictSummary: "URL parameter contains a sensitive credential parameter ('access_token='). Never enter private keys or seed phrases in web URLs.",
             guidanceCls: "guidance-threat",
             guidanceText: "DO NOT SHARE OR OPEN. Revoke and rotate any compromised keys immediately."
           }
@@ -3654,7 +3654,7 @@
     }
 
     function renderLiveFallback(rawUrl) {
-      const isBad = rawUrl.includes('evil') || rawUrl.includes('bases.org') || rawUrl.includes('xn--') || rawUrl.includes('attacker');
+      const isBad = rawUrl.includes('evil') || rawUrl.includes('bases.invalid') || rawUrl.includes('xn--') || rawUrl.includes('attacker');
       mapApiResultToCockpit({
         statusCategory: isBad ? 'HIGH RISK' : 'UNVERIFIED',
         verdict: isBad ? 'BLOCK' : 'UNVERIFIED',
