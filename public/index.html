@@ -35,7 +35,7 @@
 
     body {
       background-color: var(--bg-dark);
-      background-image: 
+      background-image:
         radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
         radial-gradient(circle at 85% 20%, rgba(0, 240, 255, 0.1) 0%, transparent 45%),
         radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
@@ -785,7 +785,7 @@
     <!-- Navigation Tabs -->
     <nav class="tab-nav">
       <button class="tab-btn active" onclick="switchTab('overview')">
-        <i class="fa-solid fa-chart-line"></i> Telemetry & Health
+        <i class="fa-solid fa-compass"></i> Overview
       </button>
       <button class="tab-btn" onclick="switchTab('url-sentinel')">
         <i class="fa-solid fa-magnifying-glass-chart"></i> URL Sentinel
@@ -793,11 +793,20 @@
       <button class="tab-btn" onclick="switchTab('payment-guard')">
         <i class="fa-solid fa-vault"></i> Payment Guard
       </button>
+      <button class="tab-btn" onclick="switchTab('calldata-inspector')">
+        <i class="fa-solid fa-binary"></i> Calldata Inspector
+      </button>
+      <button class="tab-btn" onclick="switchTab('token-security')">
+        <i class="fa-solid fa-coins"></i> Token Security
+      </button>
+      <button class="tab-btn" onclick="switchTab('address-security')">
+        <i class="fa-solid fa-address-card"></i> Address Security
+      </button>
       <button class="tab-btn" onclick="switchTab('threat-report')">
         <i class="fa-solid fa-file-shield"></i> Threat Reports
       </button>
-      <button class="tab-btn" onclick="switchTab('bazaar')">
-        <i class="fa-solid fa-store"></i> x402 Bazaar Catalog
+      <button class="tab-btn" onclick="switchTab('system-health')">
+        <i class="fa-solid fa-heart-pulse"></i> System Health
       </button>
     </nav>
 
@@ -1039,6 +1048,240 @@
       </div>
     </section>
 
+    <!-- TAB 4: EVM CALLDATA INSPECTOR -->
+    <section id="tab-calldata-inspector" class="tab-content">
+      <div class="glass-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><i class="fa-solid fa-binary" style="color: var(--cyan);"></i> EVM Transaction Calldata Inspector</div>
+            <div class="card-subtitle">Decode and evaluate proposed EVM transactions against configurable allowlists and maximum caps before signing.</div>
+          </div>
+        </div>
+
+        <div class="action-guidance-card" style="margin-bottom:1.25rem">
+          <i class="fa-solid fa-shield-halved action-guidance-icon"></i>
+          <div>
+            <div class="action-guidance-title">Pre-Flight Deterministic Analysis</div>
+            <div class="action-guidance-text">Decodes standard ERC-20 operations (approve, transfer, transferFrom) and audits allowance size (such as uint256.max unlimited drain risk). Purely advisory — zero private keys or broadcasting.</div>
+          </div>
+        </div>
+
+        <div class="preset-bar">
+          <span class="preset-label"><i class="fa-solid fa-flask" style="color: var(--cyan); margin-right: 0.25rem;"></i> Test Scenarios:</span>
+          <button class="preset-chip" onclick="setCalldataPreset('unlimited-approve')"><i class="fa-solid fa-triangle-exclamation" style="color: var(--amber);"></i> Unlimited Approval (REVIEW)</button>
+          <button class="preset-chip" onclick="setCalldataPreset('safe-approve')"><i class="fa-solid fa-circle-check" style="color: var(--emerald);"></i> Bounded Approval (PASS)</button>
+          <button class="preset-chip" onclick="setCalldataPreset('unauthorized-spender')"><i class="fa-solid fa-ban" style="color: var(--rose);"></i> Unauthorized Spender (BLOCK)</button>
+          <button class="preset-chip" onclick="setCalldataPreset('safe-transfer')"><i class="fa-solid fa-arrow-right-arrow-left" style="color: var(--emerald);"></i> Standard Transfer (PASS)</button>
+          <button class="preset-chip" onclick="setCalldataPreset('unknown-selector')"><i class="fa-solid fa-question" style="color: var(--violet);"></i> Unknown Selector (REVIEW)</button>
+        </div>
+
+        <div class="form-layout" style="margin-bottom: 1.25rem;">
+          <div class="form-group">
+            <label class="form-label" for="calldata-to">Target Contract Address (to)</label>
+            <input type="text" id="calldata-to" class="input-box" placeholder="0x... (ERC-20 token contract address)" value="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" maxlength="42">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="calldata-value">Transaction Native Value (wei)</label>
+            <input type="text" id="calldata-value" class="input-box" placeholder="0" value="0">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label class="form-label" for="calldata-data">Transaction Hex Calldata (data)</label>
+          <textarea id="calldata-data" class="input-box" style="min-height: 90px; font-family: var(--font-mono); font-size: 0.85rem;" placeholder="0x095ea7b3...">0x095ea7b3000000000000000000000000deadbeefdeadbeefdeadbeefdeadbeefdeadbeefffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff</textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label class="form-label" for="calldata-policy">Policy Allowlist Constraints (Optional JSON)</label>
+          <textarea id="calldata-policy" class="input-box" style="min-height: 80px; font-family: var(--font-mono); font-size: 0.85rem;" placeholder='{"allowedSpenders":["0x..."],"maxAllowance":"1000000"}'></textarea>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+          <button class="btn" id="btn-inspect-calldata" onclick="runCalldataInspector()">
+            <i class="fa-solid fa-bolt"></i> Inspect Calldata
+          </button>
+        </div>
+
+        <div id="calldata-verdict-container" style="display: none;">
+          <div id="calldata-verdict-hero" class="verdict-hero PASS">
+            <div style="display: flex; align-items: center; gap: 1.25rem;">
+              <div class="verdict-icon-box" id="calldata-icon-box">
+                <i class="fa-solid fa-circle-check"></i>
+              </div>
+              <div>
+                <div class="verdict-title" id="calldata-verdict-title">Calldata Validated</div>
+                <div class="verdict-plain-summary" id="calldata-verdict-summary">No dangerous allowance or policy violations detected.</div>
+              </div>
+            </div>
+            <div id="calldata-risk-badge" class="verdict-risk-tag low">
+              <i class="fa-solid fa-shield"></i> PASS
+            </div>
+          </div>
+
+          <div class="action-guidance-card" id="calldata-guidance-box">
+            <i class="fa-solid fa-circle-info action-guidance-icon"></i>
+            <div>
+              <div class="action-guidance-title">Operation Analysis</div>
+              <div class="action-guidance-text" id="calldata-action-text">Review details before signing.</div>
+            </div>
+          </div>
+
+          <div class="checks-section-heading">
+            <i class="fa-solid fa-list-check" style="color: var(--cyan);"></i> Calldata Checks & Operation Details
+          </div>
+          <div class="check-grid" id="calldata-checks-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: BASE TOKEN SECURITY -->
+    <section id="tab-token-security" class="tab-content">
+      <div class="glass-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><i class="fa-solid fa-coins" style="color: var(--cyan);"></i> Base Token Security (GoPlus Intelligence)</div>
+            <div class="card-subtitle">Inspect token contracts on Base Mainnet (Chain ID 8453) for honeypots, malicious taxes, transfer restrictions, and minting privileges.</div>
+          </div>
+        </div>
+
+        <div class="action-guidance-card" style="margin-bottom:1.25rem">
+          <i class="fa-solid fa-database action-guidance-icon"></i>
+          <div>
+            <div class="action-guidance-title">Base Mainnet Support Only (8453)</div>
+            <div class="action-guidance-text">Live token reputation is powered by GoPlus Security API for Base Mainnet. Base Sepolia (84532) is not indexed upstream and safely returns UNVERIFIED. All error paths fail closed.</div>
+          </div>
+        </div>
+
+        <div class="preset-bar">
+          <span class="preset-label"><i class="fa-solid fa-flask" style="color: var(--cyan); margin-right: 0.25rem;"></i> Verified Base Tokens:</span>
+          <button class="preset-chip" onclick="setTokenPreset('0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', 'USDC (Native Base)')"><i class="fa-solid fa-circle-check" style="color: var(--emerald);"></i> Base USDC (Canonical)</button>
+          <button class="preset-chip" onclick="setTokenPreset('0x4200000000000000000000000000000000000006', 'WETH (Wrapped Ether)')"><i class="fa-solid fa-circle-check" style="color: var(--emerald);"></i> Base WETH</button>
+          <button class="preset-chip" onclick="setTokenPreset('0x036CbD53842c5426634e7929541eC2318f3dCF7e', 'Sepolia USDC (Testnet)')"><i class="fa-solid fa-circle-question" style="color: var(--amber);"></i> Base Sepolia (UNSUPPORTED_CHAIN)</button>
+        </div>
+
+        <div class="form-layout" style="margin-bottom: 1.25rem;">
+          <div class="form-group">
+            <label class="form-label" for="token-chain-id">Network Chain ID</label>
+            <input type="text" id="token-chain-id" class="input-box" value="8453" placeholder="8453 (Base Mainnet)">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="token-address">Token Contract Address</label>
+            <input type="text" id="token-address" class="input-box" placeholder="0x... (20-byte token address)" value="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" maxlength="42">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+          <button class="btn" id="btn-check-token" onclick="runTokenSecurity()">
+            <i class="fa-solid fa-shield-halved"></i> Inspect Token Risk
+          </button>
+        </div>
+
+        <div id="token-verdict-container" style="display: none;">
+          <div id="token-verdict-hero" class="verdict-hero PASS">
+            <div style="display: flex; align-items: center; gap: 1.25rem;">
+              <div class="verdict-icon-box" id="token-icon-box">
+                <i class="fa-solid fa-circle-check"></i>
+              </div>
+              <div>
+                <div class="verdict-title" id="token-verdict-title">Token Verified Safe</div>
+                <div class="verdict-plain-summary" id="token-verdict-summary">No honeypot or malicious fee structures detected.</div>
+              </div>
+            </div>
+            <div id="token-risk-badge" class="verdict-risk-tag low">
+              <i class="fa-solid fa-shield"></i> PASS
+            </div>
+          </div>
+
+          <div class="action-guidance-card" id="token-guidance-box">
+            <i class="fa-solid fa-circle-info action-guidance-icon"></i>
+            <div>
+              <div class="action-guidance-title">Token Assessment</div>
+              <div class="action-guidance-text" id="token-action-text">Review token attributes.</div>
+            </div>
+          </div>
+
+          <div class="checks-section-heading">
+            <i class="fa-solid fa-list-check" style="color: var(--cyan);"></i> Security Findings & Markers
+          </div>
+          <div class="check-grid" id="token-checks-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: BASE ADDRESS SECURITY -->
+    <section id="tab-address-security" class="tab-content">
+      <div class="glass-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><i class="fa-solid fa-address-card" style="color: var(--cyan);"></i> Base Address Security (GoPlus Intelligence)</div>
+            <div class="card-subtitle">Screen EVM counterparty wallets and contracts on Base Mainnet for phishing, theft attacks, OFAC sanctions, cybercrime, and honeypot affiliation.</div>
+          </div>
+        </div>
+
+        <div class="action-guidance-card" style="margin-bottom:1.25rem">
+          <i class="fa-solid fa-user-shield action-guidance-icon"></i>
+          <div>
+            <div class="action-guidance-title">Counterparty Reputation Screening</div>
+            <div class="action-guidance-text">Identifies addresses flagged in active cybercrime or financial sanctions lists. Address security operates with a 3-second hard timeout and 10-minute in-memory caching.</div>
+          </div>
+        </div>
+
+        <div class="preset-bar">
+          <span class="preset-label"><i class="fa-solid fa-flask" style="color: var(--cyan); margin-right: 0.25rem;"></i> Test Scenarios:</span>
+          <button class="preset-chip" onclick="setAddressPreset('0x20556F0cfA3f93F0206faeb5452d2745e1423469')"><i class="fa-solid fa-circle-check" style="color: var(--emerald);"></i> Clean Merchant Address</button>
+          <button class="preset-chip" onclick="setAddressPreset('0x0000000000000000000000000000000000000000')"><i class="fa-solid fa-ban" style="color: var(--rose);"></i> Zero / Burn Address</button>
+          <button class="preset-chip" onclick="setAddressPreset('0xinvalid-format')"><i class="fa-solid fa-triangle-exclamation" style="color: var(--amber);"></i> Malformed Address Input</button>
+        </div>
+
+        <div class="form-layout" style="margin-bottom: 1.25rem;">
+          <div class="form-group">
+            <label class="form-label" for="address-chain-id">Network Chain ID</label>
+            <input type="text" id="address-chain-id" class="input-box" value="8453" placeholder="8453 (Base Mainnet)">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="address-target">EVM Wallet or Contract Address</label>
+            <input type="text" id="address-target" class="input-box" placeholder="0x... (40 hexadecimal characters)" value="0x20556F0cfA3f93F0206faeb5452d2745e1423469" maxlength="42">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+          <button class="btn" id="btn-check-address" onclick="runAddressSecurity()">
+            <i class="fa-solid fa-address-card"></i> Check Address Reputation
+          </button>
+        </div>
+
+        <div id="address-verdict-container" style="display: none;">
+          <div id="address-verdict-hero" class="verdict-hero PASS">
+            <div style="display: flex; align-items: center; gap: 1.25rem;">
+              <div class="verdict-icon-box" id="address-icon-box">
+                <i class="fa-solid fa-circle-check"></i>
+              </div>
+              <div>
+                <div class="verdict-title" id="address-verdict-title">Address Clear: No Known Flags</div>
+                <div class="verdict-plain-summary" id="address-verdict-summary">No active sanctions, phishing, or theft records found.</div>
+              </div>
+            </div>
+            <div id="address-risk-badge" class="verdict-risk-tag low">
+              <i class="fa-solid fa-shield"></i> PASS
+            </div>
+          </div>
+
+          <div class="action-guidance-card" id="address-guidance-box">
+            <i class="fa-solid fa-circle-info action-guidance-icon"></i>
+            <div>
+              <div class="action-guidance-title">Reputation Guidance</div>
+              <div class="action-guidance-text" id="address-action-text">Review address history before transferring funds.</div>
+            </div>
+          </div>
+
+          <div class="checks-section-heading">
+            <i class="fa-solid fa-list-check" style="color: var(--cyan);"></i> Reputation Indicators Evaluated
+          </div>
+          <div class="check-grid" id="address-checks-grid"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- TAB 4: THREAT REPORT GENERATOR -->
     <section id="tab-threat-report" class="tab-content">
       <div class="glass-card">
@@ -1070,8 +1313,8 @@
       </div>
     </section>
 
-    <!-- TAB 5: x402 BAZAAR CATALOG -->
-    <section id="tab-bazaar" class="tab-content">
+    <!-- TAB 8: SYSTEM HEALTH & TELEMETRY -->
+    <section id="tab-system-health" class="tab-content">
       <div class="glass-card">
         <div class="card-header">
           <div>
@@ -1118,10 +1361,10 @@
     function switchTab(tabId) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-      
+
       const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
       if (targetBtn) targetBtn.classList.add('active');
-      
+
       const targetPanel = document.getElementById('tab-' + tabId);
       if (targetPanel) targetPanel.classList.add('active');
     }
@@ -1139,7 +1382,7 @@
         const metricsRes = await fetch('/metrics');
         if (metricsRes.ok) {
           const mText = await metricsRes.text();
-          
+
           // Parse total requests
           let totalReqs = 0;
           const reqMatches = mText.matchAll(/payguard_http_requests_total\{[^}]*\}\s+(\d+)/g);
@@ -1695,6 +1938,364 @@
     setPaymentPreset('pass');
     loadBazaarData();
     simulate402Challenge();
+
+    // ----------------------------------------------------
+    // Calldata Inspector UI Logic
+    // ----------------------------------------------------
+    const calldataPresets = {
+      'unlimited-approve': {
+        to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        value: '0',
+        data: '0x095ea7b3000000000000000000000000deadbeefdeadbeefdeadbeefdeadbeefdeadbeefffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+        policy: '{\n  "allowedSpenders": ["0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"],\n  "maxAllowance": "1000000"\n}'
+      },
+      'safe-approve': {
+        to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        value: '0',
+        data: '0x095ea7b3000000000000000000000000deadbeefdeadbeefdeadbeefdeadbeefdeadbeef00000000000000000000000000000000000000000000000000000000000f4240',
+        policy: '{\n  "allowedSpenders": ["0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"],\n  "maxAllowance": "1000000"\n}'
+      },
+      'unauthorized-spender': {
+        to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        value: '0',
+        data: '0x095ea7b3000000000000000000000000badbeefbadbeefbadbeefbadbeefbadbeef0000000000000000000000000000000000000000000000000000000000000000f4240',
+        policy: '{\n  "allowedSpenders": ["0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"],\n  "maxAllowance": "1000000"\n}'
+      },
+      'safe-transfer': {
+        to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        value: '0',
+        data: '0xa9059cbb00000000000000000000000020556f0cfa3f93f0206faeb5452d2745e142346900000000000000000000000000000000000000000000000000000000000186a0',
+        policy: '{\n  "allowedRecipients": ["0x20556f0cfa3f93f0206faeb5452d2745e1423469"],\n  "maxTransferAmount": "1000000"\n}'
+      },
+      'unknown-selector': {
+        to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        value: '0',
+        data: '0x1234567800000000000000000000000020556f0cfa3f93f0206faeb5452d2745e1423469',
+        policy: '{}'
+      }
+    };
+
+    function setCalldataPreset(key) {
+      const p = calldataPresets[key];
+      if (!p) return;
+      document.getElementById('calldata-to').value = p.to;
+      document.getElementById('calldata-value').value = p.value;
+      document.getElementById('calldata-data').value = p.data;
+      document.getElementById('calldata-policy').value = p.policy;
+      runCalldataInspector();
+    }
+
+    async function runCalldataInspector() {
+      const to = document.getElementById('calldata-to').value.trim();
+      const value = document.getElementById('calldata-value').value.trim();
+      const data = document.getElementById('calldata-data').value.trim();
+      const policyRaw = document.getElementById('calldata-policy').value.trim();
+
+      let policy = {};
+      if (policyRaw) {
+        try { policy = JSON.parse(policyRaw); }
+        catch (e) {
+          alert('Invalid JSON in Policy Constraints: ' + e.message);
+          return;
+        }
+      }
+
+      const btn = document.getElementById('btn-inspect-calldata');
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Decoding Calldata...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/inspect-calldata', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ to, value, data, policy })
+        });
+        const result = await res.json();
+        renderCalldataResult(result);
+      } catch (err) {
+        alert('Calldata inspection request failed: ' + err.message);
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Inspect Calldata';
+        btn.disabled = false;
+        updateTelemetry();
+      }
+    }
+
+    function renderCalldataResult(data) {
+      const container = document.getElementById('calldata-verdict-container');
+      const hero = document.getElementById('calldata-verdict-hero');
+      const iconBox = document.getElementById('calldata-icon-box');
+      const title = document.getElementById('calldata-verdict-title');
+      const summary = document.getElementById('calldata-verdict-summary');
+      const riskBadge = document.getElementById('calldata-risk-badge');
+      const guidance = document.getElementById('calldata-action-text');
+      const grid = document.getElementById('calldata-checks-grid');
+
+      container.style.display = 'block';
+      const verdict = data.verdict || 'REVIEW';
+      const op = data.operation || 'UNKNOWN_OPERATION';
+
+      hero.className = 'verdict-hero';
+
+      if (verdict === 'PASS') {
+        hero.classList.add('PASS');
+        iconBox.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+        title.innerHTML = 'Calldata Approved • ' + op;
+        riskBadge.className = 'verdict-risk-tag low';
+        riskBadge.innerHTML = '<i class="fa-solid fa-check"></i> PASS • ' + (data.riskLevel || 'LOW');
+        summary.textContent = 'All parameters match configured policy allowlists and caps.';
+        guidance.textContent = 'Operation is clean and adheres to policies. Note: Pass indicates compliance with configured constraints; contract bytecode must be audited separately.';
+      } else if (verdict === 'REVIEW') {
+        hero.classList.add('REVIEW');
+        iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+        title.innerHTML = 'Review Advisory • ' + op;
+        riskBadge.className = 'verdict-risk-tag medium';
+        riskBadge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> REVIEW • ' + (data.riskLevel || 'MEDIUM');
+        summary.textContent = (data.reasons && data.reasons.length) ? data.reasons.join(', ') : 'Attention required before signing.';
+        guidance.textContent = op === 'UNKNOWN_OPERATION'
+          ? 'Unrecognized function selector. Calldata cannot be fully decoded into standard ERC-20 operations. Verify target contract method independently.'
+          : 'High or unlimited allowance detected. Confirm if this dApp requires full balance spending permission.';
+      } else {
+        hero.classList.add('BLOCK');
+        iconBox.innerHTML = '<i class="fa-solid fa-ban"></i>';
+        title.innerHTML = 'TRANSACTION BLOCKED • ' + op;
+        riskBadge.className = 'verdict-risk-tag high';
+        riskBadge.innerHTML = '<i class="fa-solid fa-shield-xmark"></i> BLOCK • ' + (data.riskLevel || 'CRITICAL');
+        summary.textContent = (data.reasons && data.reasons.length) ? data.reasons.join(', ') : 'Policy constraint violation detected.';
+        guidance.textContent = 'DO NOT SIGN. Target, spender, recipient, or amount violates your configured security policy.';
+      }
+
+      // Render checks
+      grid.innerHTML = (data.checks || []).map(c => {
+        const statusClass = c.status === 'PASS' ? 'pass' : c.status === 'FAIL' ? 'fail' : 'warn';
+        const statusLabel = c.status;
+        const statusIcon = c.status === 'PASS' ? 'fa-solid fa-circle-check' : c.status === 'FAIL' ? 'fa-solid fa-circle-xmark' : 'fa-solid fa-triangle-exclamation';
+
+        return `
+          <div class="check-card ${statusClass}">
+            <div class="check-card-header">
+              <div class="check-title-group">
+                <i class="fa-solid fa-code" style="color: var(--cyan); font-size: 0.95rem;"></i>
+                <span class="check-friendly-name">${c.id.replace(/_/g, ' ').toUpperCase()}</span>
+              </div>
+              <span class="check-badge"><i class="${statusIcon}"></i> ${statusLabel}</span>
+            </div>
+            <div class="check-explain">${c.detail}</div>
+            ${data.details ? '<div class="check-tech-id">Details: ' + JSON.stringify(data.details) + '</div>' : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ----------------------------------------------------
+    // Token Security UI Logic
+    // ----------------------------------------------------
+    function setTokenPreset(address, label) {
+      document.getElementById('token-address').value = address;
+      if (address.toLowerCase() === '0x036cbd53842c5426634e7929541ec2318f3dcf7e') {
+        document.getElementById('token-chain-id').value = '84532';
+      } else {
+        document.getElementById('token-chain-id').value = '8453';
+      }
+      runTokenSecurity();
+    }
+
+    async function runTokenSecurity() {
+      const chainId = document.getElementById('token-chain-id').value.trim();
+      const contractAddress = document.getElementById('token-address').value.trim();
+
+      const btn = document.getElementById('btn-check-token');
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Querying GoPlus Intelligence...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/token-security', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ chainId, contractAddress })
+        });
+        const result = await res.json();
+        renderTokenResult(result);
+      } catch (err) {
+        alert('Token security query failed: ' + err.message);
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Inspect Token Risk';
+        btn.disabled = false;
+        updateTelemetry();
+      }
+    }
+
+    function renderTokenResult(data) {
+      const container = document.getElementById('token-verdict-container');
+      const hero = document.getElementById('token-verdict-hero');
+      const iconBox = document.getElementById('token-icon-box');
+      const title = document.getElementById('token-verdict-title');
+      const summary = document.getElementById('token-verdict-summary');
+      const riskBadge = document.getElementById('token-risk-badge');
+      const guidance = document.getElementById('token-action-text');
+      const grid = document.getElementById('token-checks-grid');
+
+      container.style.display = 'block';
+      const verdict = data.verdict || 'UNVERIFIED';
+      hero.className = 'verdict-hero';
+
+      if (verdict === 'PASS') {
+        hero.classList.add('PASS');
+        iconBox.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+        title.innerHTML = 'Token Clean • ' + (data.tokenSymbol ? data.tokenSymbol : 'Base Mainnet Asset');
+        riskBadge.className = 'verdict-risk-tag low';
+        riskBadge.innerHTML = '<i class="fa-solid fa-shield"></i> PASS • LOW RISK';
+        summary.textContent = 'Token is open source with no honeypot markers or predatory taxes detected.';
+        guidance.textContent = 'Token contract passed automated honeypot and tax risk checks on Base Mainnet.';
+      } else if (verdict === 'REVIEW') {
+        hero.classList.add('REVIEW');
+        iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+        title.innerHTML = 'Token Caution • ' + (data.tokenSymbol || 'Base Asset');
+        riskBadge.className = 'verdict-risk-tag medium';
+        riskBadge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> REVIEW';
+        summary.textContent = 'Moderate risk markers detected (e.g. mintability, pausable transfers, or unverified source).';
+        guidance.textContent = 'Exercise caution. The token contract has centralized admin privileges or unverified source code.';
+      } else if (verdict === 'BLOCK') {
+        hero.classList.add('BLOCK');
+        iconBox.innerHTML = '<i class="fa-solid fa-ban"></i>';
+        title.innerHTML = 'HIGH RISK / HONEYPOT DETECTED';
+        riskBadge.className = 'verdict-risk-tag high';
+        riskBadge.innerHTML = '<i class="fa-solid fa-shield-xmark"></i> BLOCK • CRITICAL';
+        summary.textContent = 'Token contract flagged with critical malicious markers (honeypot, cannot sell, or excessive fee drain).';
+        guidance.textContent = 'DO NOT BUY OR INTERACT. GoPlus intelligence indicates holders are unable to sell or owner can drain balances.';
+      } else {
+        hero.classList.add('UNVERIFIED');
+        iconBox.innerHTML = '<i class="fa-solid fa-question"></i>';
+        title.innerHTML = 'Token Intelligence Unverified';
+        riskBadge.className = 'verdict-risk-tag medium';
+        riskBadge.innerHTML = '<i class="fa-solid fa-question"></i> UNVERIFIED';
+        summary.textContent = (data.findings && data.findings.length) ? data.findings[0].message : 'Intelligence unavailable or unsupported network.';
+        guidance.textContent = 'Absence of data is not proof of safety. GoPlus Token Security supports Base Mainnet (8453) only.';
+      }
+
+      grid.innerHTML = (data.findings || []).map(f => {
+        const severity = f.severity || 'medium';
+        const statusClass = (severity === 'critical' || severity === 'high') ? 'fail' : (severity === 'info' ? 'pass' : 'warn');
+        const statusIcon = statusClass === 'fail' ? 'fa-solid fa-circle-xmark' : statusClass === 'pass' ? 'fa-solid fa-circle-check' : 'fa-solid fa-triangle-exclamation';
+
+        return `
+          <div class="check-card ${statusClass}">
+            <div class="check-card-header">
+              <div class="check-title-group">
+                <i class="fa-solid fa-coins" style="color: var(--cyan); font-size: 0.95rem;"></i>
+                <span class="check-friendly-name">${f.code.replace(/_/g, ' ')}</span>
+              </div>
+              <span class="check-badge"><i class="${statusIcon}"></i> ${severity.toUpperCase()}</span>
+            </div>
+            <div class="check-explain">${f.message}</div>
+            <div class="check-tech-id">Provider: GoPlus Security • Status: ${data.dataStatus || 'AVAILABLE'}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ----------------------------------------------------
+    // Address Security UI Logic
+    // ----------------------------------------------------
+    function setAddressPreset(addr) {
+      document.getElementById('address-target').value = addr;
+      runAddressSecurity();
+    }
+
+    async function runAddressSecurity() {
+      const chainId = document.getElementById('address-chain-id').value.trim();
+      const address = document.getElementById('address-target').value.trim();
+
+      const btn = document.getElementById('btn-check-address');
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Screening Address...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/address-security', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ chainId, address })
+        });
+        const result = await res.json();
+        renderAddressResult(result);
+      } catch (err) {
+        alert('Address security query failed: ' + err.message);
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-address-card"></i> Check Address Reputation';
+        btn.disabled = false;
+        updateTelemetry();
+      }
+    }
+
+    function renderAddressResult(data) {
+      const container = document.getElementById('address-verdict-container');
+      const hero = document.getElementById('address-verdict-hero');
+      const iconBox = document.getElementById('address-icon-box');
+      const title = document.getElementById('address-verdict-title');
+      const summary = document.getElementById('address-verdict-summary');
+      const riskBadge = document.getElementById('address-risk-badge');
+      const guidance = document.getElementById('address-action-text');
+      const grid = document.getElementById('address-checks-grid');
+
+      container.style.display = 'block';
+      const verdict = data.verdict || 'UNVERIFIED';
+      hero.className = 'verdict-hero';
+
+      if (verdict === 'PASS') {
+        hero.classList.add('PASS');
+        iconBox.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+        title.innerHTML = 'Address Clear: No Known Malicious Flags';
+        riskBadge.className = 'verdict-risk-tag low';
+        riskBadge.innerHTML = '<i class="fa-solid fa-shield"></i> PASS • LOW RISK';
+        summary.textContent = 'No records of phishing, theft, OFAC sanctions, or cybercrime found for this address.';
+        guidance.textContent = 'Counterparty address has no adverse reputation marks in GoPlus security database.';
+      } else if (verdict === 'REVIEW') {
+        hero.classList.add('REVIEW');
+        iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+        title.innerHTML = 'Address Caution: Moderate Risk Markers';
+        riskBadge.className = 'verdict-risk-tag medium';
+        riskBadge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> REVIEW';
+        summary.textContent = 'Address has interacted with privacy mixers, darkweb services, or suspicious gas patterns.';
+        guidance.textContent = 'Review transaction intent. Address has associated obfuscation or high-risk activity.';
+      } else if (verdict === 'BLOCK') {
+        hero.classList.add('BLOCK');
+        iconBox.innerHTML = '<i class="fa-solid fa-ban"></i>';
+        title.innerHTML = 'DANGER: Malicious / Sanctioned Address';
+        riskBadge.className = 'verdict-risk-tag high';
+        riskBadge.innerHTML = '<i class="fa-solid fa-shield-xmark"></i> BLOCK • CRITICAL';
+        summary.textContent = 'Address is actively linked to phishing attacks, wallet draining, or regulatory sanctions.';
+        guidance.textContent = 'DO NOT SEND FUNDS. Counterparty address is flagged on active threat intelligence feeds.';
+      } else {
+        hero.classList.add('UNVERIFIED');
+        iconBox.innerHTML = '<i class="fa-solid fa-question"></i>';
+        title.innerHTML = 'Address Reputation Unverified';
+        riskBadge.className = 'verdict-risk-tag medium';
+        riskBadge.innerHTML = '<i class="fa-solid fa-question"></i> UNVERIFIED';
+        summary.textContent = (data.findings && data.findings.length) ? data.findings[0].message : 'Intelligence unavailable or unsupported network.';
+        guidance.textContent = 'Absence of data is not proof of safety. Address security supports Base Mainnet (8453) only.';
+      }
+
+      grid.innerHTML = (data.findings || []).map(f => {
+        const severity = f.severity || 'medium';
+        const statusClass = (severity === 'critical' || severity === 'high') ? 'fail' : (severity === 'info' ? 'pass' : 'warn');
+        const statusIcon = statusClass === 'fail' ? 'fa-solid fa-circle-xmark' : statusClass === 'pass' ? 'fa-solid fa-circle-check' : 'fa-solid fa-triangle-exclamation';
+
+        return `
+          <div class="check-card ${statusClass}">
+            <div class="check-card-header">
+              <div class="check-title-group">
+                <i class="fa-solid fa-address-card" style="color: var(--cyan); font-size: 0.95rem;"></i>
+                <span class="check-friendly-name">${f.code.replace(/_/g, ' ')}</span>
+              </div>
+              <span class="check-badge"><i class="${statusIcon}"></i> ${severity.toUpperCase()}</span>
+            </div>
+            <div class="check-explain">${f.message}</div>
+            <div class="check-tech-id">Provider: GoPlus Security • Chain: ${data.chainId || '8453'}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
   </script>
 </body>
 </html>

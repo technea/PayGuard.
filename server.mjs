@@ -1,6 +1,13 @@
 import http from "node:http";
 import { readFileSync, existsSync } from "node:fs";
-import { analyzeUrlSecurity, evaluatePaymentIntent, prepareThreatReport } from "./src/plugin.mjs";
+import {
+  analyzeUrlSecurity,
+  evaluatePaymentIntent,
+  prepareThreatReport,
+  payGuardInspectCalldata,
+  payGuardCheckTokenSecurity,
+  payGuardCheckAddressSecurity
+} from "./src/plugin.mjs";
 import { BAZAAR_DISCOVERY_METADATA, build402Challenge, verifyPaymentProof } from "./paybox.mjs";
 
 import path from "node:path";
@@ -95,6 +102,9 @@ function routeLabel(path) {
   if (path === "/api/analyze-url") return "analyze_url";
   if (path === "/api/check-payment") return "check_payment";
   if (path === "/api/threat-report") return "threat_report";
+  if (path === "/api/inspect-calldata") return "inspect_calldata";
+  if (path === "/api/token-security") return "token_security";
+  if (path === "/api/address-security") return "address_security";
   if (path === "/health") return "health";
   if (path === "/.well-known/x402-bazaar.json" || path === "/api/bazaar") return "bazaar";
   return "other";
@@ -211,6 +221,21 @@ const routes = new Map([
     const result = await prepareThreatReport(input);
     recordVerdict("threat_report", result.verdict);
     return result;
+  }],
+  ["/api/inspect-calldata", async input => {
+    const result = await payGuardInspectCalldata(input);
+    recordVerdict("inspect_calldata", result.verdict);
+    return result;
+  }],
+  ["/api/token-security", async input => {
+    const result = await payGuardCheckTokenSecurity(input);
+    recordVerdict("token_security", result.verdict);
+    return result;
+  }],
+  ["/api/address-security", async input => {
+    const result = await payGuardCheckAddressSecurity(input);
+    recordVerdict("address_security", result.verdict);
+    return result;
   }]
 ]);
 
@@ -281,6 +306,9 @@ async function requestHandler(req, res) {
           analyzeUrl: "/api/analyze-url",
           checkPayment: "/api/check-payment",
           threatReport: "/api/threat-report",
+          inspectCalldata: "/api/inspect-calldata",
+          tokenSecurity: "/api/token-security",
+          addressSecurity: "/api/address-security",
           bazaar: "/.well-known/x402-bazaar.json",
           metrics: "/metrics"
         }
