@@ -606,7 +606,7 @@
     }
 
     /* =========================================================
-       THE PRE-SIGNING COCKPIT — DECLOAK LAYER-BASED SCANNER BENCHMARK
+       THE PRE-SIGNING COCKPIT — PAYGUARD LAYER-BASED SCANNER BENCHMARK
        ========================================================= */
     #investigation-center {
       padding: 3.5rem 0 5rem;
@@ -719,8 +719,8 @@
       box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
     }
 
-    /* Unified Live Scanner Input Bar (Decloak Benchmark) */
-    .decloak-scanner-box {
+    /* Unified Live Scanner Input Bar (PayGuard Benchmark) */
+    .scan-input-panel {
       background: #040816;
       border-bottom: 1px solid var(--border-subtle);
       padding: 1.15rem 1.4rem;
@@ -999,39 +999,16 @@
     .pip-indicator.pip-amber { background: var(--amber); }
     .pip-indicator.pip-rose { background: var(--rose); }
 
-    /* Rabby-Style Simulation Preview Card */
-    .rabby-sim-preview {
-      background: rgba(4, 8, 20, 0.95);
-      border: 1px solid rgba(244, 63, 94, 0.35);
-      border-radius: 6px;
-      padding: 0.85rem;
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      margin-top: 0.5rem;
-    }
-
-    .rabby-sim-preview.safe {
-      border-color: rgba(16, 185, 129, 0.35);
-    }
-
-    .rabby-sim-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 0.35rem;
-    }
-    .rabby-sim-label { color: var(--text-dim); }
-    .rabby-sim-val { font-weight: 600; color: #ffffff; }
-
     /* =========================================================
-       DECLOAK 8-LAYER ANALYSIS MATRIX (COLUMN 2)
+       PAYGUARD 8-LAYER ANALYSIS MATRIX (COLUMN 2)
        ========================================================= */
-    .decloak-layer-grid {
+    .security-layer-grid {
       display: flex;
       flex-direction: column;
       gap: 0.55rem;
     }
 
-    .decloak-layer-row {
+    .security-layer-row {
       background: var(--bg-terminal);
       border: 1px solid var(--border-subtle);
       border-radius: 6px;
@@ -1043,7 +1020,7 @@
       transition: all 0.2s ease;
     }
 
-    .decloak-layer-row:hover {
+    .security-layer-row:hover {
       border-color: rgba(255, 255, 255, 0.2);
     }
 
@@ -1253,7 +1230,7 @@
       color: var(--text-secondary);
     }
 
-    /* Decloak-Style Export Threat Report Button */
+    /* PayGuard-Style Export Threat Report Button */
     .btn-export-report {
       width: 100%;
       background: rgba(255, 255, 255, 0.03);
@@ -2423,17 +2400,17 @@
     .scanner-context-field small { color: var(--text-dim); font-size: .68rem; line-height: 1.45; }
     .scanner-context-input { width: 100%; min-width: 0; min-height: 44px; padding: .7rem .85rem; border: 1px solid var(--border-medium); border-radius: 7px; outline: none; background: var(--bg-terminal); color: #f8fafc; font: .8rem var(--font-mono); }
     .scanner-context-input:focus-visible { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,240,255,.1); }
-    .inv-container-card, .inv-topbar, .inv-tab-nav, .decloak-scanner-box, .inv-workflow-track, .inv-footer-notice { min-width: 0; }
+    .inv-container-card, .inv-topbar, .inv-tab-nav, .scan-input-panel, .inv-workflow-track, .inv-footer-notice { min-width: 0; }
     .inv-tabs-group, .inv-panel, .layer-text-wrap { min-width: 0; }
     .inv-tab-btn { min-height: 42px; }
     .scanner-target-input { min-width: 0; width: 100%; }
     .scanner-actions-group { min-width: 0; flex-wrap: wrap; }
     .scanner-actions-group .btn { flex: 1 1 150px; min-height: 44px; }
     .inv-panel-header { gap: .65rem; flex-wrap: wrap; }
-    .entity-val, .rabby-sim-val, .layer-telemetry, .verdict-summary-text, .guidance-box { overflow-wrap: anywhere; word-break: break-word; }
+    .entity-val, .layer-telemetry, .verdict-summary-text, .guidance-box { overflow-wrap: anywhere; word-break: break-word; }
     .topology-row { gap: .35rem .8rem; flex-wrap: wrap; }
     .topology-row > :last-child { margin-left: auto; overflow-wrap: anywhere; text-align: right; }
-    .decloak-layer-row { min-width: 0; }
+    .security-layer-row { min-width: 0; }
     .pillar-card, .reality-box, .agent-card, .cta-banner { min-width: 0; }
     .pillar-point span { min-width: 0; overflow-wrap: anywhere; }
     html { scroll-padding-top: 84px; }
@@ -2486,7 +2463,7 @@
       .inv-topbar { padding: .75rem .85rem; }
       .inv-meta-left { font-size: .65rem; gap: .45rem; }
       .inv-status-chip { font-size: .6rem; white-space: normal; }
-      .inv-tab-nav, .decloak-scanner-box { padding: .8rem; }
+      .inv-tab-nav, .scan-input-panel { padding: .8rem; }
       .inv-tabs-group { grid-template-columns: 1fr; }
       .inv-tab-btn { font-size: .76rem; padding: .65rem .75rem; }
       .scanner-input-row { display: flex; flex-direction: column; gap: .65rem; }
@@ -2507,7 +2484,7 @@
       .topology-box { font-size: .65rem; }
       .topology-row { align-items: flex-start; flex-direction: column; gap: .15rem; }
       .topology-row > :last-child { margin-left: 1rem; text-align: left; }
-      .decloak-layer-row { padding: .65rem .55rem; gap: .45rem; }
+      .security-layer-row { padding: .65rem .55rem; gap: .45rem; }
       .layer-index { flex: 0 0 auto; }
       .layer-pill, .layer-latency { font-size: .58rem; }
       .layer-telemetry { font-size: .68rem; line-height: 1.45; }
@@ -2747,7 +2724,7 @@
       </div>
     </section>
 
-    <!-- VISUAL CENTERPIECE: THE 8-LAYER PRE-SIGNING COCKPIT (DECLOAK + RABBY BENCHMARK) -->
+    <!-- PAYGUARD SECURITY SCANNER -->
     <section id="investigation-center" class="container">
       <div class="section-header">
         <span class="sec-eyebrow"><i class="fa-solid fa-desktop"></i> Security Scanner</span>
@@ -2796,7 +2773,7 @@
         </div>
 
         <!-- Unified security scanner input -->
-        <div class="decloak-scanner-box">
+        <div class="scan-input-panel">
           <div class="scanner-input-row">
             <input type="text" id="cockpitTargetInput" class="scanner-target-input" placeholder="Paste a URL, token address, wallet address or calldata..." value="https://base.org/bridge">
             <div class="scanner-actions-group">
@@ -2845,7 +2822,7 @@
 
         <!-- Scan result panels -->
         <div class="inv-stage-grid">
-          <!-- Col 1: Target Entity & Connected Topology / Rabby Preview -->
+          <!-- Target and evidence sources -->
           <div class="inv-panel">
             <div class="inv-panel-header">
               <span class="inv-panel-title"><i class="fa-solid fa-arrow-right-to-bracket" style="color:var(--cyan)"></i> 1. Target Entity</span>
@@ -2866,22 +2843,11 @@
             </div>
 
             <div class="entity-field">
-              <span class="entity-label">SSRF Airgap &amp; Privacy State</span>
+              <span class="entity-label">Privacy scope</span>
               <div class="entity-val" id="invPrivacyVal" style="color:var(--emerald)">URL target is not opened</div>
             </div>
 
-            <!-- Conditional Display: Rabby-Style Simulation Preview OR Connected Entities Graph -->
-            <div id="rabbyPreviewContainer" style="display:none; margin-top:auto;">
-              <span class="entity-label"><i class="fa-solid fa-wallet" style="color:var(--violet)"></i> Decoded transaction details</span>
-              <div class="rabby-sim-preview" id="rabbySimCard">
-                <div class="rabby-sim-row"><span class="rabby-sim-label">Method:</span><span class="rabby-sim-val" id="rabbyMethod">approve(address,uint256)</span></div>
-                <div class="rabby-sim-row"><span class="rabby-sim-label">Spender:</span><span class="rabby-sim-val" id="rabbySpender" style="color:var(--rose)">0xattacker999... [UNVERIFIED]</span></div>
-                <div class="rabby-sim-row"><span class="rabby-sim-label">Allowance:</span><span class="rabby-sim-val" id="rabbyAllowance" style="color:var(--rose)">type(uint256).max (Unlimited Allowance)</span></div>
-                <div class="rabby-sim-row"><span class="rabby-sim-label">Spend Authority:</span><span class="rabby-sim-val" id="rabbyImpact" style="color:var(--amber)">Maximum permission granted; balance vulnerable if spender is untrusted</span></div>
-              </div>
-            </div>
-
-            <!-- Connected Entities Topology Box (Firedome + Deck.gl) -->
+            <!-- Connected Entities Topology Box (Security topology) -->
             <div class="topology-box" id="topologyContainer">
               <div class="topology-title"><i class="fa-solid fa-circle-nodes" style="color:var(--cyan)"></i> Evidence sources</div>
               <div class="topology-nodes" id="invTopologyNodes">
@@ -2890,19 +2856,19 @@
             </div>
           </div>
 
-          <!-- Col 2: The 8-Layer Security Analysis Matrix (Decloak Benchmark) -->
+          <!-- Security checks -->
           <div class="inv-panel">
             <div class="inv-panel-header">
               <span class="inv-panel-title"><i class="fa-solid fa-layer-group" style="color:var(--cyan)"></i> 2. Security checks</span>
-              <span class="inv-panel-badge" id="invLatency">LATENCY: 38ms</span>
+              <span class="inv-panel-badge" id="invLatency">SAMPLE DATA</span>
             </div>
 
-            <div class="decloak-layer-grid" id="invLayerMatrix">
+            <div class="security-layer-grid" id="invLayerMatrix">
               <!-- Dynamically populated with 8 discrete security layers -->
             </div>
           </div>
 
-          <!-- Col 3: Advisory Security Verdict & Action Guidance (Decloak Report Style) -->
+          <!-- Advisory result -->
           <div class="inv-panel">
             <div class="inv-panel-header">
               <span class="inv-panel-title"><i class="fa-solid fa-gavel" style="color:var(--emerald)"></i> 3. Advisory Verdict</span>
@@ -2915,7 +2881,7 @@
                   <i class="fa-solid fa-triangle-exclamation"></i>
                   <span id="invVerdictText">HIGH RISK THREAT</span>
                 </div>
-                <span class="verdict-score-badge" id="invVerdictScore">RISK: 95/100</span>
+                <span class="verdict-score-badge" id="invVerdictScore">SAMPLE SCORE</span>
               </div>
               <div class="verdict-summary-text" id="invVerdictSummary">
                 Domain mimics official Base ecosystem infrastructure (base.org) but is not in the authoritative Base registry.
@@ -3309,7 +3275,7 @@
     </div>
   </footer>
 
-  <!-- INCIDENT REPORT MODAL (DECLOAK-STYLE TELEMETRY EXPORT) -->
+  <!-- Incident report viewer -->
   <div class="report-modal-backdrop" id="reportModal" onclick="closeThreatReportModal(event)">
     <div class="report-modal-card" onclick="event.stopPropagation()">
       <div class="report-modal-header">
@@ -3538,7 +3504,7 @@
 
     // =========================================================
     // 3. THE 8-LAYER PRE-SIGNING COCKPIT DATA & INTERACTION ENGINE
-    // (Direct Decloak 8-Layer Analysis + Rabby Pre-Signing Benchmark)
+    // (Direct PayGuard 8-Layer Analysis + transaction decoding)
     // =========================================================
     let currentPillar = 'url';
     let currentScenarioId = 1; // Start with the official-domain example
@@ -3559,23 +3525,22 @@
             targetText: "https://base.org/bridge",
             network: "Base Mainnet (Chain ID: 8453)",
             privacy: "Clean (No credential parameters detected)",
-            latency: "LATENCY: 32ms",
-            showRabby: false,
-            topology: [
+            latency: "SAMPLE DATA",
+                        topology: [
               { name: "Inbound Client Request", pip: "pip-green", status: "Airgapped In-Memory" },
               { name: "Authoritative Base Registry", pip: "pip-green", status: "MATCHED (base.org)" },
               { name: "Unicode Punycode Lexer", pip: "pip-green", status: "ASCII Latin [Clean]" },
               { name: "Zero-SSRF In-Memory Buffer", pip: "pip-green", status: "0 Outbound Sockets" }
             ],
             layers: [
-              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "PASS", pillCls: "pass", latency: "14ms", tele: "ASCII Latin [U+0061..U+007A] &bull; 0 mixed scripts" },
-              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "VERIFIED", pillCls: "pass", latency: "18ms", tele: "Exact match: base.org recorded in registry" },
-              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "22ms", tele: "0 high-entropy keys or reset tokens found" },
+              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "PASS", pillCls: "pass", latency: "DEMO", tele: "ASCII Latin [U+0061..U+007A] &bull; 0 mixed scripts" },
+              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "VERIFIED", pillCls: "pass", latency: "DEMO", tele: "Exact match: base.org recorded in registry" },
+              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "URL credential checks", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "0 high-entropy keys or reset tokens found" },
               { idx: "L04", name: "Contract Bytecode & Honeypot Detector", desc: "GoPlus Security Engine", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Contract bytecode check not applicable" },
-              { idx: "L05", name: "Predatory Tax & Siphon Simulator", desc: "Dynamic Fee Hooks", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Swap tax simulation not applicable" },
+              { idx: "L05", name: "Predatory Tax & Siphon Simulator", desc: "Provider-reported tax checks", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Swap tax simulation not applicable" },
               { idx: "L06", name: "Canonical Asset Impersonation Guard", desc: "Official Base Token Registry", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Token impersonation check not applicable" },
-              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "Rabby-Style 4-Byte EVM Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
-              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "CLEAN", pillCls: "pass", latency: "32ms", tele: "Domain clean &bull; 0 reported drainer affiliations" }
+              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "4-Byte EVM Selector Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
+              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "Domain clean &bull; 0 reported drainer affiliations" }
             ],
             verdictCls: "verdict-pass",
             verdictIcon: "fa-circle-check",
@@ -3591,29 +3556,28 @@
             targetText: "https://bases.invalid/account/session?access_token=DEMO-ONLY",
             network: "Base Mainnet (Chain ID: 8453)",
             privacy: "Sanitized: access-token-[REDACTED]",
-            latency: "LATENCY: 38ms",
-            showRabby: false,
-            topology: [
+            latency: "SAMPLE DATA",
+                        topology: [
               { name: "Inbound Client Request", pip: "pip-green", status: "Airgapped In-Memory" },
               { name: "Authoritative Base Registry", pip: "pip-rose", status: "MISMATCH // Not in registry" },
               { name: "Typosquat Distance Analyzer", pip: "pip-rose", status: "Distance: 1 (base.org)" },
               { name: "Privacy Redactor Buffer", pip: "pip-amber", status: "1 Query Secret Redacted" }
             ],
             layers: [
-              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "TYPOSQUAT", pillCls: "threat", latency: "16ms", tele: "Levenshtein distance: 1 against base.org" },
-              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "UNVERIFIED", pillCls: "threat", latency: "21ms", tele: "bases.invalid is NOT on official Base domain registry" },
-              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "REDACTED", pillCls: "warn", latency: "26ms", tele: "Sensitive path segment reset-token-... redacted" },
+              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "TYPOSQUAT", pillCls: "threat", latency: "DEMO", tele: "Levenshtein distance: 1 against base.org" },
+              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "UNVERIFIED", pillCls: "threat", latency: "DEMO", tele: "bases.invalid is NOT on official Base domain registry" },
+              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "REDACTED", pillCls: "warn", latency: "DEMO", tele: "Sensitive path segment reset-token-... redacted" },
               { idx: "L04", name: "Contract Bytecode & Honeypot Detector", desc: "GoPlus Security Engine", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Contract bytecode check not applicable" },
               { idx: "L05", name: "Predatory Tax & Siphon Simulator", desc: "Dynamic Fee Hooks", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Swap tax simulation not applicable" },
               { idx: "L06", name: "Canonical Asset Impersonation Guard", desc: "Official Base Token Registry", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Token impersonation check not applicable" },
-              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "Rabby-Style 4-Byte EVM Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
-              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "BLOCK ADVISED", pillCls: "threat", latency: "38ms", tele: "Domain pattern matches known wallet drainer campaigns" }
+              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "4-Byte EVM Selector Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
+              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "BLOCK ADVISED", pillCls: "threat", latency: "DEMO", tele: "Domain pattern matches known wallet drainer campaigns" }
             ],
             verdictCls: "verdict-threat",
             verdictIcon: "fa-triangle-exclamation",
             verdictCategory: "KNOWN_MALICIOUS_TYPOSQUAT",
             verdictHeadline: "HIGH RISK THREAT",
-            verdictScore: "RISK: 95/100",
+            verdictScore: "SAMPLE SCORE",
             verdictSummary: "Domain 'bases.invalid' mimics official Base infrastructure (base.org) but is NOT on the verified official registry. High probability of a phishing credential trap.",
             guidanceCls: "guidance-threat",
             guidanceText: "DO NOT PROCEED. Do not open link, connect wallet, or approve signature requests."
@@ -3623,29 +3587,28 @@
             targetText: "https://xn--bse-qla.invalid/bridge (bаse.invalid)",
             network: "Base Mainnet (Chain ID: 8453)",
             privacy: "Clean (No credential parameters detected)",
-            latency: "LATENCY: 34ms",
-            showRabby: false,
-            topology: [
+            latency: "SAMPLE DATA",
+                        topology: [
               { name: "Inbound Client Request", pip: "pip-green", status: "Airgapped In-Memory" },
               { name: "Unicode Codepoint Parser", pip: "pip-rose", status: "U+0430 (Cyrillic 'а')" },
               { name: "Punycode Deobfuscator", pip: "pip-rose", status: "xn--bse-qla.invalid" },
               { name: "Zero-SSRF In-Memory Buffer", pip: "pip-green", status: "0 Outbound Sockets" }
             ],
             layers: [
-              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "CRITICAL", pillCls: "threat", latency: "15ms", tele: "Punycode detected: xn--bse-qla.invalid (Cyrillic 'а')" },
-              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "SPOOFED", pillCls: "threat", latency: "19ms", tele: "Disguised to impersonate base.org" },
-              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "24ms", tele: "0 query secrets detected" },
+              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "CRITICAL", pillCls: "threat", latency: "DEMO", tele: "Punycode detected: xn--bse-qla.invalid (Cyrillic 'а')" },
+              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "SPOOFED", pillCls: "threat", latency: "DEMO", tele: "Disguised to impersonate base.org" },
+              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "0 query secrets detected" },
               { idx: "L04", name: "Contract Bytecode & Honeypot Detector", desc: "GoPlus Security Engine", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Contract bytecode check not applicable" },
               { idx: "L05", name: "Predatory Tax & Siphon Simulator", desc: "Dynamic Fee Hooks", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Swap tax simulation not applicable" },
               { idx: "L06", name: "Canonical Asset Impersonation Guard", desc: "Official Base Token Registry", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Token impersonation check not applicable" },
-              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "Rabby-Style 4-Byte EVM Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
-              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "FLAGGED", pillCls: "threat", latency: "34ms", tele: "Deceptive homoglyph spoofing official Base infrastructure" }
+              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "4-Byte EVM Selector Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
+              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "FLAGGED", pillCls: "threat", latency: "DEMO", tele: "Deceptive homoglyph spoofing official Base infrastructure" }
             ],
             verdictCls: "verdict-threat",
             verdictIcon: "fa-mask",
             verdictCategory: "HOMOGLYPH_SPOOF_ATTACK",
             verdictHeadline: "PUNYCODE HOMOGLYPH",
-            verdictScore: "RISK: 98/100",
+            verdictScore: "SAMPLE SCORE",
             verdictSummary: "Domain uses Cyrillic small letter 'а' (U+0430) disguised as Latin 'a'. Invisible to human eyes and multimodal LLMs. Punycode translation: xn--bse-qla.invalid.",
             guidanceCls: "guidance-threat",
             guidanceText: "CRITICAL THREAT. Deceptive IDN homoglyph spoofing official Base infrastructure."
@@ -3655,29 +3618,28 @@
             targetText: "https://base.org.attacker.invalid/login",
             network: "Base Mainnet (Chain ID: 8453)",
             privacy: "Clean (No credential parameters detected)",
-            latency: "LATENCY: 31ms",
-            showRabby: false,
-            topology: [
+            latency: "SAMPLE DATA",
+                        topology: [
               { name: "Inbound Client Request", pip: "pip-green", status: "Airgapped In-Memory" },
               { name: "Subdomain Hierarchy Parser", pip: "pip-rose", status: "Suffix Spoofing Detected" },
               { name: "Authoritative Base Registry", pip: "pip-rose", status: "Target: attacker.invalid" },
               { name: "SSRF Airgap Isolation", pip: "pip-green", status: "0 Outbound Sockets" }
             ],
             layers: [
-              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "SUFFIX SPOOF", pillCls: "threat", latency: "14ms", tele: "base.org placed as subdomain of attacker.invalid" },
-              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "UNVERIFIED", pillCls: "threat", latency: "19ms", tele: "Registered domain is attacker.invalid" },
-              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "23ms", tele: "Path sanitized" },
+              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "SUFFIX SPOOF", pillCls: "threat", latency: "DEMO", tele: "base.org placed as subdomain of attacker.invalid" },
+              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "UNVERIFIED", pillCls: "threat", latency: "DEMO", tele: "Registered domain is attacker.invalid" },
+              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "Path sanitized" },
               { idx: "L04", name: "Contract Bytecode & Honeypot Detector", desc: "GoPlus Security Engine", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Contract bytecode check not applicable" },
               { idx: "L05", name: "Predatory Tax & Siphon Simulator", desc: "Dynamic Fee Hooks", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Swap tax simulation not applicable" },
               { idx: "L06", name: "Canonical Asset Impersonation Guard", desc: "Official Base Token Registry", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Token impersonation check not applicable" },
-              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "Rabby-Style 4-Byte EVM Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
-              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "BLOCK ADVISED", pillCls: "threat", latency: "31ms", tele: "Host matches deceptive subdomain phishing heuristics" }
+              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "4-Byte EVM Selector Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
+              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "BLOCK ADVISED", pillCls: "threat", latency: "DEMO", tele: "Host matches deceptive subdomain phishing heuristics" }
             ],
             verdictCls: "verdict-threat",
             verdictIcon: "fa-triangle-exclamation",
             verdictCategory: "SUFFIX_SPOOF_PHISHING",
             verdictHeadline: "SUFFIX SPOOF DETECTED",
-            verdictScore: "RISK: 92/100",
+            verdictScore: "SAMPLE SCORE",
             verdictSummary: "Attacker places 'base.org' as a subdomain label before an external root domain. Real destination is attacker.invalid.",
             guidanceCls: "guidance-threat",
             guidanceText: "DO NOT PROCEED. Phishing deception misrepresenting itself as official Base infrastructure."
@@ -3687,29 +3649,28 @@
             targetText: "https://shop.example/account/session?access_token=DEMO-ONLY",
             network: "Base Mainnet (Chain ID: 8453)",
             privacy: "Sanitized: access_token=[REDACTED]",
-            latency: "LATENCY: 36ms",
-            showRabby: false,
-            topology: [
+            latency: "SAMPLE DATA",
+                        topology: [
               { name: "Inbound Client Request", pip: "pip-green", status: "Airgapped In-Memory" },
               { name: "Credential Pattern Lexer", pip: "pip-rose", status: "WALLET_SECRET_TERMS Detected" },
               { name: "High-Entropy Redactor", pip: "pip-amber", status: "Param Redacted from Threat Log" },
               { name: "SSRF Airgap Isolation", pip: "pip-green", status: "0 Outbound Sockets" }
             ],
             layers: [
-              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "CLEAN", pillCls: "pass", latency: "14ms", tele: "ASCII Latin domain" },
-              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "UNINDEXED", pillCls: "unverified", latency: "18ms", tele: "Third-party host (shop.example)" },
-              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CRITICAL LEAK", pillCls: "threat", latency: "25ms", tele: "URL contains private_key query parameter &bull; REDACTED" },
+              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "ASCII Latin domain" },
+              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "UNINDEXED", pillCls: "unverified", latency: "DEMO", tele: "Third-party host (shop.example)" },
+              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CRITICAL LEAK", pillCls: "threat", latency: "DEMO", tele: "URL contains private_key query parameter &bull; REDACTED" },
               { idx: "L04", name: "Contract Bytecode & Honeypot Detector", desc: "GoPlus Security Engine", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Contract bytecode check not applicable" },
               { idx: "L05", name: "Predatory Tax & Siphon Simulator", desc: "Dynamic Fee Hooks", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Swap tax simulation not applicable" },
               { idx: "L06", name: "Canonical Asset Impersonation Guard", desc: "Official Base Token Registry", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Token impersonation check not applicable" },
-              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "Rabby-Style 4-Byte EVM Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
-              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "HIGH RISK", pillCls: "threat", latency: "36ms", tele: "URL leaks sensitive credentials in cleartext" }
+              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "4-Byte EVM Selector Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
+              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "HIGH RISK", pillCls: "threat", latency: "DEMO", tele: "URL leaks sensitive credentials in cleartext" }
             ],
             verdictCls: "verdict-threat",
             verdictIcon: "fa-user-secret",
             verdictCategory: "CREDENTIAL_LEAK_IN_URL",
             verdictHeadline: "SECRET EXPOSED IN URL",
-            verdictScore: "RISK: 94/100",
+            verdictScore: "SAMPLE SCORE",
             verdictSummary: "URL parameter contains a sensitive credential parameter ('access_token='). Never enter private keys or seed phrases in web URLs.",
             guidanceCls: "guidance-threat",
             guidanceText: "DO NOT SHARE OR OPEN. Revoke and rotate any compromised keys immediately."
@@ -3729,29 +3690,28 @@
             targetText: "0x4200000000000000000000000000000000000006 (Canonical WETH)",
             network: "Base Mainnet (Chain ID: 8453)",
             privacy: "Bytecode Query via GoPlus API",
-            latency: "LATENCY: 48ms",
-            showRabby: false,
-            topology: [
+            latency: "SAMPLE DATA",
+                        topology: [
               { name: "Base Mainnet RPC (8453)", pip: "pip-green", status: "Contract Verified" },
               { name: "GoPlus Security Feed", pip: "pip-green", status: "Audit Clean (0 flags)" },
               { name: "Canonical Token Registry", pip: "pip-green", status: "WETH / Canonical Match" },
               { name: "Transfer Restrictions Engine", pip: "pip-green", status: "0 Blacklists" }
             ],
             layers: [
-              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "PASS", pillCls: "pass", latency: "10ms", tele: "Valid EVM 20-byte hexadecimal address format" },
-              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "CANONICAL", pillCls: "pass", latency: "16ms", tele: "Matches official canonical Wrapped Ether contract" },
-              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "18ms", tele: "Public smart contract address query" },
+              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "PASS", pillCls: "pass", latency: "DEMO", tele: "Valid EVM 20-byte hexadecimal address format" },
+              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "CANONICAL", pillCls: "pass", latency: "DEMO", tele: "Matches official canonical Wrapped Ether contract" },
+              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "Public smart contract address query" },
               { idx: "L04", name: "Contract Bytecode & Honeypot Detector", desc: "GoPlus Security Engine", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Contract bytecode check not applicable" },
               { idx: "L05", name: "Predatory Tax & Siphon Simulator", desc: "Dynamic Fee Hooks", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Swap tax simulation not applicable" },
               { idx: "L06", name: "Canonical Asset Impersonation Guard", desc: "Official Base Token Registry", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Token impersonation check not applicable" },
-              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "Rabby-Style 4-Byte EVM Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
-              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "CLEAN", pillCls: "pass", latency: "48ms", tele: "Base Genesis system contract &bull; Zero risk flags" }
+              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "4-Byte EVM Selector Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
+              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "Base Genesis system contract &bull; Zero risk flags" }
             ],
             verdictCls: "verdict-pass",
             verdictIcon: "fa-circle-check",
             verdictCategory: "CANONICAL_TOKEN_MATCH",
             verdictHeadline: "CANONICAL TOKEN MATCH",
-            verdictScore: "RISK: 0/100",
+            verdictScore: "SAMPLE SCORE",
             verdictSummary: "The supplied address matches the curated canonical WETH reference. Sample provider telemetry reports no listed risk flags; this is not a guarantee of contract behavior or transaction safety.",
             guidanceCls: "guidance-pass",
             guidanceText: "Canonical reference match only. Verify the dApp, spender, token behavior, and transaction details independently before signing."
@@ -3761,29 +3721,28 @@
             targetText: "0x89b14041d8e6bfb6f0e4b85750ec63ad44dca01b (Spoofed 'USDC')",
             network: "Base Mainnet (Chain ID: 8453)",
             privacy: "Bytecode Query via GoPlus API",
-            latency: "LATENCY: 54ms",
-            showRabby: false,
-            topology: [
+            latency: "SAMPLE DATA",
+                        topology: [
               { name: "Base Mainnet RPC (8453)", pip: "pip-green", status: "Deployed on 8453" },
               { name: "GoPlus Security Feed", pip: "pip-rose", status: "Honeypot Flagged (is_honeypot: 1)" },
               { name: "Canonical Token Registry", pip: "pip-rose", status: "MISMATCH // Fake USDC" },
               { name: "Sell Tax Bytecode Hook", pip: "pip-rose", status: "99.0% Siphon Tax" }
             ],
             layers: [
-              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "PASS", pillCls: "pass", latency: "10ms", tele: "Valid EVM address format" },
-              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "MISMATCH", pillCls: "threat", latency: "18ms", tele: "Claims 'USDC' symbol but address != canonical USDC" },
-              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "20ms", tele: "Bytecode inquiry" },
+              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "PASS", pillCls: "pass", latency: "DEMO", tele: "Valid EVM address format" },
+              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "MISMATCH", pillCls: "threat", latency: "DEMO", tele: "Claims 'USDC' symbol but address != canonical USDC" },
+              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "Bytecode inquiry" },
               { idx: "L04", name: "Contract Bytecode & Honeypot Detector", desc: "GoPlus Security Engine", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Contract bytecode check not applicable" },
               { idx: "L05", name: "Predatory Tax & Siphon Simulator", desc: "Dynamic Fee Hooks", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Swap tax simulation not applicable" },
               { idx: "L06", name: "Canonical Asset Impersonation Guard", desc: "Official Base Token Registry", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Token impersonation check not applicable" },
-              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "Rabby-Style 4-Byte EVM Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
-              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "FLAGGED", pillCls: "threat", latency: "54ms", tele: "Deployer associated with multiple scam honeypots" }
+              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "4-Byte EVM Selector Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
+              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "FLAGGED", pillCls: "threat", latency: "DEMO", tele: "Deployer associated with multiple scam honeypots" }
             ],
             verdictCls: "verdict-threat",
             verdictIcon: "fa-triangle-exclamation",
             verdictCategory: "CRITICAL_HONEYPOT_THREAT",
             verdictHeadline: "CRITICAL HONEYPOT",
-            verdictScore: "RISK: 99/100",
+            verdictScore: "SAMPLE SCORE",
             verdictSummary: "Contract bytecode contains transfer blacklists and a predatory 99% sell tax. Buyer funds cannot be retrieved once swapped. Impersonates canonical USDC.",
             guidanceCls: "guidance-threat",
             guidanceText: "DO NOT INTERACT. Swapping for this asset results in total loss of funds."
@@ -3793,23 +3752,22 @@
             targetText: "0x7a22ef2791fe5510f22497d39d6728bc41b8a972 (Custom Token Contract)",
             network: "Base Mainnet (Chain ID: 8453)",
             privacy: "Upstream Provider Timeout",
-            latency: "LATENCY: 5000ms",
-            showRabby: false,
-            topology: [
+            latency: "SAMPLE DATA",
+                        topology: [
               { name: "Base Mainnet RPC (8453)", pip: "pip-green", status: "Contract Exists" },
               { name: "GoPlus Security Feed", pip: "pip-amber", status: "HTTP 504 Gateway Timeout" },
               { name: "Canonical Token Registry", pip: "pip-amber", status: "Unindexed Contract" },
               { name: "Fail-Closed Boundary", pip: "pip-amber", status: "Enforced UNVERIFIED" }
             ],
             layers: [
-              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "PASS", pillCls: "pass", latency: "10ms", tele: "Valid address structure" },
-              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "UNINDEXED", pillCls: "unverified", latency: "18ms", tele: "Custom unindexed smart contract" },
-              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "20ms", tele: "Clean address query" },
+              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "PASS", pillCls: "pass", latency: "DEMO", tele: "Valid address structure" },
+              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "UNINDEXED", pillCls: "unverified", latency: "DEMO", tele: "Custom unindexed smart contract" },
+              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "Clean address query" },
               { idx: "L04", name: "Contract Bytecode & Honeypot Detector", desc: "GoPlus Security Engine", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Contract bytecode check not applicable" },
               { idx: "L05", name: "Predatory Tax & Siphon Simulator", desc: "Dynamic Fee Hooks", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Swap tax simulation not applicable" },
               { idx: "L06", name: "Canonical Asset Impersonation Guard", desc: "Official Base Token Registry", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Token impersonation check not applicable" },
-              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "Rabby-Style 4-Byte EVM Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
-              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "UNVERIFIED", pillCls: "warn", latency: "35ms", tele: "Security audit incomplete &bull; Caution advised" }
+              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "4-Byte EVM Selector Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
+              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "UNVERIFIED", pillCls: "warn", latency: "DEMO", tele: "Security audit incomplete &bull; Caution advised" }
             ],
             verdictCls: "verdict-warn",
             verdictIcon: "fa-triangle-exclamation",
@@ -3835,15 +3793,7 @@
             targetText: "0x095ea7b3...ffffffff (approve uint256.max)",
             network: "Base Mainnet (Chain ID: 8453)",
             privacy: "Decoded via EVM 4-Byte Signature Database",
-            latency: "LATENCY: 22ms",
-            showRabby: true,
-            rabby: {
-              method: "approve(address spender, uint256 amount)",
-              spender: "0xattacker999... [UNVERIFIED SPENDER]",
-              allowance: "type(uint256).max (Unlimited allowance: 2^256 - 1)",
-              impact: "MAX ALLOWANCE GRANTED // Token balance vulnerable if spender is untrusted",
-              safe: false
-            },
+            latency: "SAMPLE DATA",
             topology: [
               { name: "Inbound Calldata Buffer", pip: "pip-green", status: "68 Bytes Valid Hex" },
               { name: "4-Byte Signature Lexer", pip: "pip-amber", status: "approve(address,uint256)" },
@@ -3851,20 +3801,20 @@
               { name: "Allowance Upper Bound", pip: "pip-rose", status: "type(uint256).max" }
             ],
             layers: [
-              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "PASS", pillCls: "pass", latency: "8ms", tele: "Calldata hex syntax verified &bull; 68 bytes" },
-              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "UNINDEXED", pillCls: "threat", latency: "14ms", tele: "Spender address != verified Base swap router" },
-              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "16ms", tele: "Pre-signing payload decoded in-memory" },
+              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "PASS", pillCls: "pass", latency: "DEMO", tele: "Calldata hex syntax verified &bull; 68 bytes" },
+              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "UNINDEXED", pillCls: "threat", latency: "DEMO", tele: "Spender address != verified Base swap router" },
+              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "Pre-signing payload decoded in-memory" },
               { idx: "L04", name: "Contract Bytecode & Honeypot Detector", desc: "GoPlus Security Engine", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Contract bytecode check not applicable" },
               { idx: "L05", name: "Predatory Tax & Siphon Simulator", desc: "Dynamic Fee Hooks", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Swap tax simulation not applicable" },
               { idx: "L06", name: "Canonical Asset Impersonation Guard", desc: "Official Base Token Registry", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Token impersonation check not applicable" },
-              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "Rabby-Style 4-Byte EVM Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
-              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "HIGH RISK", pillCls: "threat", latency: "22ms", tele: "Wallet drain vulnerability: unverified spender" }
+              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "4-Byte EVM Selector Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
+              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "HIGH RISK", pillCls: "threat", latency: "DEMO", tele: "Wallet drain vulnerability: unverified spender" }
             ],
             verdictCls: "verdict-threat",
             verdictIcon: "fa-triangle-exclamation",
             verdictCategory: "UNLIMITED_ALLOWANCE_DRAIN",
             verdictHeadline: "UNLIMITED APPROVAL",
-            verdictScore: "RISK: 96/100",
+            verdictScore: "SAMPLE SCORE",
             verdictSummary: "Calldata requests unlimited spend approval (type(uint256).max) for an unverified third-party spender. Common wallet-drain attack vector.",
             guidanceCls: "guidance-threat",
             guidanceText: "REJECT TRANSACTION ADVISED. Grants unverified spender maximum withdrawal authority over token balance."
@@ -3874,15 +3824,7 @@
             targetText: "0xa9059cbb...989680 (transfer 10 USDC)",
             network: "Base Mainnet (Chain ID: 8453)",
             privacy: "Decoded via EVM 4-Byte Signature Database",
-            latency: "LATENCY: 18ms",
-            showRabby: true,
-            rabby: {
-              method: "transfer(address recipient, uint256 amount)",
-              spender: "Recipient: 0x2055...3469 [Clean EOA]",
-              allowance: "Exact: 10,000,000 units (10 USDC)",
-              impact: "-10.00 USDC [Bounded Transfer]",
-              safe: true
-            },
+            latency: "SAMPLE DATA",
             topology: [
               { name: "Inbound Calldata Buffer", pip: "pip-green", status: "68 Bytes Valid Hex" },
               { name: "4-Byte Signature Lexer", pip: "pip-green", status: "transfer(address,uint256)" },
@@ -3890,14 +3832,14 @@
               { name: "Allowance Upper Bound", pip: "pip-green", status: "Exact: 10,000,000 units" }
             ],
             layers: [
-              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "PASS", pillCls: "pass", latency: "6ms", tele: "68 bytes EVM calldata &bull; Valid hex" },
-              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "PASS", pillCls: "pass", latency: "10ms", tele: "Target matches canonical USDC token on Base" },
-              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "12ms", tele: "Zero credential leakage" },
+              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "PASS", pillCls: "pass", latency: "DEMO", tele: "68 bytes EVM calldata &bull; Valid hex" },
+              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "PASS", pillCls: "pass", latency: "DEMO", tele: "Target matches canonical USDC token on Base" },
+              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "Zero credential leakage" },
               { idx: "L04", name: "Contract Bytecode & Honeypot Detector", desc: "GoPlus Security Engine", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Contract bytecode check not applicable" },
               { idx: "L05", name: "Predatory Tax & Siphon Simulator", desc: "Dynamic Fee Hooks", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Swap tax simulation not applicable" },
               { idx: "L06", name: "Canonical Asset Impersonation Guard", desc: "Official Base Token Registry", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Token impersonation check not applicable" },
-              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "Rabby-Style 4-Byte EVM Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
-              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "CLEAN", pillCls: "pass", latency: "18ms", tele: "Recipient address has zero crime or sanction reports" }
+              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "4-Byte EVM Selector Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
+              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "Recipient address has zero crime or sanction reports" }
             ],
             verdictCls: "verdict-pass",
             verdictIcon: "fa-circle-check",
@@ -3913,23 +3855,22 @@
             targetText: "0x20556F0cfA3f93F0206faeb5452d2745e1423469 (Merchant Portfolio)",
             network: "Base Mainnet (Chain ID: 8453)",
             privacy: "100% Read-Only (Zero Private Keys)",
-            latency: "LATENCY: 120ms",
-            showRabby: false,
-            topology: [
+            latency: "SAMPLE DATA",
+                        topology: [
               { name: "Blockscout Base API v2", pip: "pip-green", status: "Retrieved Holdings" },
               { name: "Canonical Token Registry", pip: "pip-green", status: "4 Verified Assets" },
               { name: "GoPlus Token Security", pip: "pip-green", status: "0 Honeypots Flagged" },
               { name: "Discovery Coverage", pip: "pip-amber", status: "Indexed Assets Only" }
             ],
             layers: [
-              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "PASS", pillCls: "pass", latency: "10ms", tele: "Valid EOA address format" },
-              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "VERIFIED", pillCls: "pass", latency: "25ms", tele: "Discovered 4 canonical assets (WETH, USDC, cbBTC, DAI)" },
-              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "AIRGAPPED", pillCls: "airgap", latency: "30ms", tele: "Read-only query &bull; Zero private keys required" },
+              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "PASS", pillCls: "pass", latency: "DEMO", tele: "Valid EOA address format" },
+              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "VERIFIED", pillCls: "pass", latency: "DEMO", tele: "Discovered 4 canonical assets (WETH, USDC, cbBTC, DAI)" },
+              { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "AIRGAPPED", pillCls: "airgap", latency: "DEMO", tele: "Read-only query &bull; Zero private keys required" },
               { idx: "L04", name: "Contract Bytecode & Honeypot Detector", desc: "GoPlus Security Engine", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Contract bytecode check not applicable" },
               { idx: "L05", name: "Predatory Tax & Siphon Simulator", desc: "Dynamic Fee Hooks", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Swap tax simulation not applicable" },
               { idx: "L06", name: "Canonical Asset Impersonation Guard", desc: "Official Base Token Registry", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Token impersonation check not applicable" },
-              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "Rabby-Style 4-Byte EVM Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
-              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "CLEAN", pillCls: "pass", latency: "120ms", tele: "Address clean &bull; No mixer or drainer interactions" }
+              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "4-Byte EVM Selector Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
+              { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "Address clean &bull; No mixer or drainer interactions" }
             ],
             verdictCls: "verdict-pass",
             verdictIcon: "fa-circle-check",
@@ -4019,8 +3960,8 @@
         verdict: item.verdictCategory,
         statusHeadline: item.verdictHeadline,
         riskScore: item.verdictScore,
-        latency: item.latency,
-        layers: item.layers,
+        latency: isLive ? item.latency : "SAMPLE DATA",
+        layers: (item.layers || []).map(function(layer) { return Object.assign({}, layer, { latency: isLive ? (layer.latency || "—") : "DEMO" }); }),
         topology: item.topology,
         advisorySummary: item.verdictSummary,
         actionGuidance: item.guidanceText,
@@ -4036,7 +3977,6 @@
 
       const preview = document.getElementById('rabbyPreviewContainer');
       const topology = document.getElementById('topologyContainer');
-      if (preview) preview.style.display = 'none';
       if (topology) topology.style.display = 'block';
 
       const topologyNodes = document.getElementById('invTopologyNodes');
@@ -4061,7 +4001,7 @@
       matrix.replaceChildren();
       (item.layers || []).forEach(function(layer) {
         const row = document.createElement('div');
-        row.className = 'decloak-layer-row';
+        row.className = 'security-layer-row';
         const left = document.createElement('div');
         left.className = 'layer-left';
         const index = document.createElement('span');
@@ -4177,8 +4117,7 @@
         network: 'Base Mainnet (8453)',
         privacy: config.privacy || 'Read-only advisory',
         latency: typeof config.latency === 'number' ? config.latency + 'ms' : (config.latency || '—'),
-        showRabby: false,
-        topology: config.topology || [],
+                topology: config.topology || [],
         layers: config.layers || [],
         verdictCls: config.verdictCls,
         verdictIcon: config.verdictIcon,
@@ -4539,7 +4478,7 @@
       }
     }
 
-    // Modal: Incident Report (.json) Viewer (Decloak Feature)
+    // Modal: Incident Report (.json) Viewer (PayGuard Feature)
     function openThreatReportModal() {
       const modal = document.getElementById('reportModal');
       const body = document.getElementById('reportModalBody');
