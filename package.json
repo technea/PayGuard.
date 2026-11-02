@@ -29,9 +29,10 @@
   ],
   "scripts": {
     "test": "node --test test/*.test.mjs",
-    "build": "node scripts/build.mjs",
+    "build": "npm run build:css && node scripts/build.mjs",
     "demo": "node examples/url-sentinel-demo.mjs",
-    "start": "node server.mjs"
+    "start": "node server.mjs",
+    "build:css": "node scripts/build-tailwind.mjs"
   },
   "engines": {
     "node": ">=20"
