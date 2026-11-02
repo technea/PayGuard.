@@ -286,6 +286,30 @@ async function requestHandler(req, res) {
       return res.end();
     }
 
+    // Serve the Tailwind-generated utility stylesheet through the function
+    // because this deployment uses a catch-all Vercel Node route.
+    if (req.method === "GET" && parsed.pathname === "/assets/css/tailwind.css") {
+      const cssPath = new URL("./public/assets/css/tailwind.css", import.meta.url);
+      if (!existsSync(cssPath)) {
+        statusCode = 404;
+        res.writeHead(statusCode, {
+          "content-type": "text/plain; charset=utf-8",
+          "cache-control": "no-store",
+          "x-content-type-options": "nosniff"
+        });
+        return res.end("Tailwind stylesheet is not built. Run npm run build:css.");
+      }
+      const css = readFileSync(cssPath);
+      statusCode = 200;
+      res.writeHead(statusCode, {
+        "content-type": "text/css; charset=utf-8",
+        "content-length": css.length,
+        "cache-control": "public, max-age=31536000, immutable",
+        "x-content-type-options": "nosniff"
+      });
+      return res.end(css);
+    }
+
     const isBrowserRequest = (req.headers["accept"] || "").includes("text/html");
 
     // Documentation & Whitepaper & FAQ Viewer
