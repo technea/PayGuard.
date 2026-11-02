@@ -310,6 +310,29 @@ async function requestHandler(req, res) {
       return res.end(css);
     }
 
+    // Serve the custom PayGuard brand mark through the catch-all Vercel function.
+    if (req.method === "GET" && parsed.pathname === "/assets/payguard-mark.svg") {
+      const logoPath = new URL("./public/assets/payguard-mark.svg", import.meta.url);
+      if (!existsSync(logoPath)) {
+        statusCode = 404;
+        res.writeHead(statusCode, {
+          "content-type": "text/plain; charset=utf-8",
+          "cache-control": "no-store",
+          "x-content-type-options": "nosniff"
+        });
+        return res.end("Brand asset not found.");
+      }
+      const logo = readFileSync(logoPath);
+      statusCode = 200;
+      res.writeHead(statusCode, {
+        "content-type": "image/svg+xml; charset=utf-8",
+        "content-length": logo.length,
+        "cache-control": "public, max-age=3600",
+        "x-content-type-options": "nosniff"
+      });
+      return res.end(logo);
+    }
+
     const isBrowserRequest = (req.headers["accept"] || "").includes("text/html");
 
     // Documentation & Whitepaper & FAQ Viewer
