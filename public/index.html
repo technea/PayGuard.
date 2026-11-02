@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PayGuard — AI Agent Security & x402 Policy Guard</title>
-  <meta name="description" content="Production-ready security gateway and x402 policy guard for AI agents on the PayBox Marketplace.">
+  <title>PayGuard — Verify Before You Trust | Base Security Dashboard</title>
+  <meta name="description" content="PayGuard is a free, Base-first ecosystem security platform: identify phishing websites, fake tokens, impersonated projects, honeypot contracts, and malicious calldata.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -769,15 +769,24 @@
       <div>
         <div class="brand-title">PayGuard</div>
       </div>
-      <span class="brand-tag">Security Gateway</span>
+      <span class="brand-tag">Verify Before You Trust</span>
     </a>
+
+    <!-- Navigation Links -->
+    <nav class="top-nav-links" style="display: flex; align-items: center; gap: 1.25rem;">
+      <a href="/" style="color: var(--text-muted); text-decoration: none; font-size: 0.875rem; font-weight: 600;"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="/dashboard" style="color: var(--cyan); text-decoration: none; font-size: 0.875rem; font-weight: 600;"><i class="fa-solid fa-gauge-high"></i> Security Tools</a>
+      <a href="/whitepaper" style="color: var(--text-muted); text-decoration: none; font-size: 0.875rem; font-weight: 600;"><i class="fa-solid fa-file-contract"></i> Whitepaper</a>
+      <a href="/docs" style="color: var(--text-muted); text-decoration: none; font-size: 0.875rem; font-weight: 600;"><i class="fa-solid fa-book"></i> Technical Docs</a>
+      <a href="/faq" style="color: var(--text-muted); text-decoration: none; font-size: 0.875rem; font-weight: 600;"><i class="fa-solid fa-circle-question"></i> FAQ</a>
+    </nav>
 
     <div class="header-pills">
       <div class="live-status">
         <div class="pulse-dot"></div>
         <span id="service-status-text"><i class="fa-solid fa-circle-check" style="margin-right: 0.25rem;"></i> Active • Read-Only Mode</span>
       </div>
-      <div class="pill-secondary"><i class="fa-solid fa-bolt" style="color: var(--amber); margin-right: 0.35rem;"></i> x402 Protocol v2</div>
+      <div class="pill-secondary"><i class="fa-solid fa-shield-halved" style="color: var(--cyan); margin-right: 0.35rem;"></i> 7 MCP Tools Active</div>
     </div>
   </header>
 
@@ -847,6 +856,33 @@
           </div>
           <div class="metric-value" id="stat-uptime">0s</div>
           <div class="metric-sub"><i class="fa-solid fa-shield"></i> Zero memory leaks</div>
+        </div>
+      </div>
+
+            <!-- Mission Banner -->
+      <div class="glass-card" style="border-left: 4px solid var(--cyan); margin-bottom: 1.75rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap;">
+          <div style="max-width: 800px;">
+            <div style="font-size: 0.75rem; font-weight: 800; color: var(--cyan); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem;">
+              <i class="fa-solid fa-bullseye"></i> Platform Mission
+            </div>
+            <h2 style="font-size: 1.4rem; font-weight: 800; color: #ffffff; margin-bottom: 0.5rem;">
+              Verify Before You Trust
+            </h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0.75rem;">
+              Your first line of defense against phishing websites, fake tokens, impersonated projects, and suspicious smart contracts across the Base ecosystem. Remember:
+              <strong>HTTPS does not mean legitimate</strong>, <strong>verified contract source code does not mean safe</strong>, and <strong>token symbols alone cannot establish authenticity</strong>. Always inspect before connecting a wallet or signing.
+            </p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; font-size: 0.8rem;">
+              <span class="pill-secondary" style="color: var(--emerald); border-color: rgba(16, 185, 129, 0.3);"><i class="fa-solid fa-check"></i> 100% Free & Non-Custodial</span>
+              <span class="pill-secondary" style="color: var(--cyan); border-color: rgba(0, 240, 255, 0.3);"><i class="fa-solid fa-shield-virus"></i> Zero-SSRF In-Memory URL Parsing</span>
+              <span class="pill-secondary" style="color: var(--violet); border-color: rgba(129, 140, 248, 0.3);"><i class="fa-solid fa-robot"></i> 7 Native MCP Tools</span>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <a href="/whitepaper" class="btn" style="font-size: 0.8rem; padding: 0.5rem 1rem;"><i class="fa-solid fa-file-contract"></i> Read Whitepaper</a>
+            <a href="/faq" class="btn" style="font-size: 0.8rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.05);"><i class="fa-solid fa-circle-question"></i> View FAQ</a>
+          </div>
         </div>
       </div>
 
@@ -1446,12 +1482,14 @@
 
   <!-- Footer -->
   <footer>
-    <div><i class="fa-solid fa-shield-halved" style="color: var(--cyan); margin-right: 0.35rem;"></i> PayGuard v0.1.0 • Built for the PayBox Agent Marketplace • Zero External Runtime Dependencies</div>
+    <div><i class="fa-solid fa-shield-halved" style="color: var(--cyan); margin-right: 0.35rem;"></i> PayGuard v0.1.0 • Verify Before You Trust • Free Base Ecosystem Security Platform</div>
     <div class="footer-links">
-      <a href="/health" target="_blank"><i class="fa-solid fa-heart-pulse"></i> /health</a>
-      <a href="/metrics" target="_blank"><i class="fa-solid fa-chart-line"></i> /metrics</a>
-      <a href="/.well-known/x402-bazaar.json" target="_blank"><i class="fa-solid fa-store"></i> Bazaar Metadata</a>
-      <a href="https://github.com/technea/PayGuard." target="_blank"><i class="fa-brands fa-github"></i> GitHub Repo</a>
+      <a href="/"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="/whitepaper"><i class="fa-solid fa-file-contract"></i> Whitepaper</a>
+      <a href="/docs"><i class="fa-solid fa-book"></i> Technical Docs</a>
+      <a href="/faq"><i class="fa-solid fa-circle-question"></i> FAQ</a>
+      <a href="/health" target="_blank"><i class="fa-solid fa-heart-pulse"></i> Health</a>
+      <a href="https://github.com/technea/PayGuard" target="_blank"><i class="fa-brands fa-github"></i> GitHub</a>
     </div>
   </footer>
 

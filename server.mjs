@@ -12,6 +12,7 @@ import {
 import { BAZAAR_DISCOVERY_METADATA, build402Challenge, verifyPaymentProof } from "./paybox.mjs";
 
 import path from "node:path";
+import { renderDocPage } from "./scripts/render-docs.mjs";
 
 function loadDashboardHtml() {
   const candidates = [
@@ -48,6 +49,23 @@ function loadLandingHtml() {
   return null;
 }
 let cachedLandingHtml = loadLandingHtml();
+function loadDocsHtml() {
+  const candidates = [
+    new URL("./public/docs.html", import.meta.url),
+    new URL("../public/docs.html", import.meta.url),
+    path.join(process.cwd(), "public", "docs.html"),
+    path.join(process.cwd(), "docs.html")
+  ];
+  for (const candidate of candidates) {
+    try {
+      if (existsSync(candidate)) {
+        return readFileSync(candidate, "utf8");
+      }
+    } catch {}
+  }
+  return null;
+}
+let cachedDocsHtml = loadDocsHtml();
 
 const PORT = Number.parseInt(process.env.PORT || "8080", 10);
 const HOST = process.env.HOST;
@@ -108,6 +126,7 @@ function routeLabel(path) {
   if (path === "/api/address-security") return "address_security";
   if (path === "/api/scan-wallet-tokens") return "scan_wallet_tokens";
   if (path === "/api/capabilities") return "capabilities";
+  if (path === "/whitepaper" || path === "/faq" || path === "/docs" || path.startsWith("/docs/")) return "docs";
   if (path === "/health") return "health";
   if (path === "/.well-known/x402-bazaar.json" || path === "/api/bazaar") return "bazaar";
   return "other";
@@ -269,6 +288,29 @@ async function requestHandler(req, res) {
 
     const isBrowserRequest = (req.headers["accept"] || "").includes("text/html");
 
+    // Documentation & Whitepaper & FAQ Viewer
+    if (req.method === "GET" && (parsed.pathname === "/whitepaper" || parsed.pathname === "/faq" || parsed.pathname === "/docs" || parsed.pathname.startsWith("/docs/"))) {
+      statusCode = 200;
+      if (!cachedDocsHtml) {
+        cachedDocsHtml = loadDocsHtml();
+      }
+      let docSlug = "overview";
+      if (parsed.pathname === "/whitepaper") {
+        docSlug = "whitepaper";
+      } else if (parsed.pathname === "/faq") {
+        docSlug = "faq";
+      } else if (parsed.pathname.startsWith("/docs/")) {
+        docSlug = parsed.pathname.replace(/^\/docs\/?/, "") || "overview";
+      }
+      const responseHtml = renderDocPage(docSlug, cachedDocsHtml || "<!DOCTYPE html><html><head><title>PayGuard Documentation</title></head><body><div id='docViewer'>{{DOC_CONTENT}}</div></body></html>");
+      res.writeHead(statusCode, {
+        "content-type": "text/html; charset=utf-8",
+        "content-length": Buffer.byteLength(responseHtml),
+        "cache-control": "no-cache",
+        "access-control-allow-origin": "*"
+      });
+      return res.end(responseHtml);
+    }
     // Interactive Dashboard Operator Console
     if (req.method === "GET" && parsed.pathname === "/dashboard") {
       statusCode = 200;
@@ -306,10 +348,13 @@ async function requestHandler(req, res) {
       return sendJson(res, statusCode, {
         service: "payguard",
         version: "0.1.0",
-        description: "PayGuard security-focused x402 and URL Sentinel service for AI agents",
+        description: "PayGuard free Base-first ecosystem security platform — Verify Before You Trust",
         endpoints: {
           landing: "/",
           dashboard: "/dashboard",
+          docs: "/docs",
+          whitepaper: "/whitepaper",
+          faq: "/faq",
           health: "/health",
           analyzeUrl: "/api/analyze-url",
           checkPayment: "/api/check-payment",

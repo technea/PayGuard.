@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PayGuard — Documentation & Guides</title>
+  <meta name="description" content="Technical documentation, whitepaper, architecture guides, and FAQ for PayGuard: the Base ecosystem security platform.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg-dark: #070a12;
+      --bg-surface: #0f172a;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --cyan: #00f0ff;
+      --cyan-glow: rgba(0, 240, 255, 0.2);
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(16px);
+      background: rgba(7, 10, 18, 0.9);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.85rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: inherit;
+    }
+    .logo-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(99, 102, 241, 0.3));
+      border: 1px solid var(--cyan);
+      box-shadow: 0 0 12px var(--cyan-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      color: var(--cyan);
+    }
+    .brand-title {
+      font-weight: 800;
+      font-size: 1.2rem;
+      background: linear-gradient(to right, #ffffff, var(--cyan));
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      list-style: none;
+    }
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: var(--cyan);
+    }
+    .btn-tools {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(99, 102, 241, 0.25));
+      border: 1px solid var(--cyan);
+      color: #fff;
+      padding: 0.45rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .doc-layout {
+      max-width: 1360px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 2.5rem;
+      flex: 1;
+    }
+    aside {
+      position: sticky;
+      top: 5rem;
+      height: calc(100vh - 7rem);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding-right: 1rem;
+      border-right: 1px solid var(--border-subtle);
+    }
+    .sidebar-heading {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      margin: 1rem 0 0.4rem;
+    }
+    .doc-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.55rem 0.8rem;
+      border-radius: 8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+    .doc-nav-item:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .doc-nav-item.active {
+      color: var(--cyan);
+      background: rgba(0, 240, 255, 0.1);
+      border-left: 3px solid var(--cyan);
+      font-weight: 600;
+    }
+    main {
+      min-width: 0;
+      padding-bottom: 4rem;
+    }
+    .doc-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+    .doc-content h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+      color: #fff;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 0.8rem;
+    }
+    .doc-content h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-top: 2rem;
+      margin-bottom: 0.9rem;
+      color: #ffffff;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.4rem;
+    }
+    .doc-content h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-top: 1.5rem;
+      margin-bottom: 0.6rem;
+      color: #e2e8f0;
+    }
+    .doc-content p {
+      margin-bottom: 1.1rem;
+      color: #cbd5e1;
+      line-height: 1.7;
+    }
+    .doc-content ul, .doc-content ol {
+      margin-bottom: 1.25rem;
+      padding-left: 1.75rem;
+      color: #cbd5e1;
+    }
+    .doc-content li {
+      margin-bottom: 0.4rem;
+      line-height: 1.6;
+    }
+    .doc-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.9rem;
+      overflow-x: auto;
+      display: block;
+    }
+    .doc-content th, .doc-content td {
+      border: 1px solid var(--border-subtle);
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+    .doc-content th {
+      background: rgba(15, 23, 42, 0.8);
+      color: #fff;
+      font-weight: 700;
+    }
+    .doc-content tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .doc-content code {
+      font-family: var(--font-mono);
+      font-size: 0.875em;
+      background: rgba(0, 240, 255, 0.08);
+      color: var(--cyan);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 240, 255, 0.15);
+    }
+    .doc-content pre {
+      background: #030712;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin: 1.25rem 0;
+    }
+    .doc-content pre code {
+      background: transparent;
+      border: none;
+      color: #38bdf8;
+      padding: 0;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+    .doc-content blockquote {
+      border-left: 4px solid var(--cyan);
+      background: rgba(0, 240, 255, 0.05);
+      padding: 0.85rem 1.25rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.25rem 0;
+      color: #e2e8f0;
+    }
+    .doc-content a {
+      color: var(--cyan);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(0, 240, 255, 0.4);
+    }
+    .doc-content a:hover {
+      border-bottom-style: solid;
+    }
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      background: rgba(7, 10, 18, 0.8);
+      margin-top: auto;
+    }
+    @media (max-width: 900px) {
+      .doc-layout { grid-template-columns: 1fr; }
+      aside { display: none; }
+      .nav-links { display: none; }
+      .doc-content { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header>
+    <a href="/" class="brand">
+      <div class="logo-badge"><i class="fa-solid fa-shield-halved"></i></div>
+      <div class="brand-title">PayGuard</div>
+    </a>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link"><i class="fa-solid fa-house"></i> Home</a></li>
+        <li><a href="/dashboard" class="nav-link"><i class="fa-solid fa-gauge-high"></i> Security Tools</a></li>
+        <li><a href="/whitepaper" class="nav-link" id="nav-whitepaper"><i class="fa-solid fa-file-contract"></i> Whitepaper</a></li>
+        <li><a href="/docs" class="nav-link" id="nav-docs"><i class="fa-solid fa-book"></i> Technical Docs</a></li>
+        <li><a href="/faq" class="nav-link" id="nav-faq"><i class="fa-solid fa-circle-question"></i> FAQ</a></li>
+      </ul>
+    </nav>
+    <a href="/dashboard" class="btn-tools"><i class="fa-solid fa-sliders"></i> Launch Tools</a>
+  </header>
+
+  <div class="doc-layout">
+    <!-- Sidebar Navigation -->
+    <aside>
+      <div class="sidebar-heading">Core Documentation</div>
+      <a href="/docs" class="doc-nav-item" data-doc="index"><i class="fa-solid fa-book-open"></i> Overview</a>
+      <a href="/whitepaper" class="doc-nav-item" data-doc="whitepaper"><i class="fa-solid fa-file-contract"></i> Whitepaper</a>
+      <a href="/faq" class="doc-nav-item" data-doc="faq"><i class="fa-solid fa-circle-question"></i> FAQ</a>
+
+      <div class="sidebar-heading">Architecture & Tools</div>
+      <a href="/docs/architecture" class="doc-nav-item" data-doc="architecture"><i class="fa-solid fa-sitemap"></i> Architecture</a>
+      <a href="/docs/security-model" class="doc-nav-item" data-doc="security-model"><i class="fa-solid fa-shield-virus"></i> Security Model</a>
+      <a href="/docs/mcp-tools" class="doc-nav-item" data-doc="mcp-tools"><i class="fa-solid fa-robot"></i> 7 MCP Tools</a>
+      <a href="/docs/getting-started" class="doc-nav-item" data-doc="getting-started"><i class="fa-solid fa-rocket"></i> Getting Started</a>
+
+      <div class="sidebar-heading">Evaluation & Future</div>
+      <a href="/docs/limitations-roadmap" class="doc-nav-item" data-doc="limitations-roadmap"><i class="fa-solid fa-road"></i> Limitations & Roadmap</a>
+      <a href="/docs/judge-brief" class="doc-nav-item" data-doc="judge-brief"><i class="fa-solid fa-award"></i> Judge Brief</a>
+      <a href="/docs/demo-script" class="doc-nav-item" data-doc="demo-script"><i class="fa-solid fa-terminal"></i> Demo Script</a>
+    </aside>
+
+    <!-- Main Content Reader -->
+    <main>
+      <article class="doc-content" id="docViewer">
+        <!-- Markdown content rendered dynamically by client or server -->
+        {{DOC_CONTENT}}
+      </article>
+    </main>
+  </div>
+
+  <footer>
+    <div><i class="fa-solid fa-shield-halved" style="color: var(--cyan);"></i> PayGuard • Verify Before You Trust • Free Base Ecosystem Security Platform</div>
+    <div style="display:flex; gap:1.25rem;">
+      <a href="/dashboard" style="color:var(--text-muted); text-decoration:none;">Dashboard</a>
+      <a href="/docs" style="color:var(--text-muted); text-decoration:none;">Docs</a>
+      <a href="/faq" style="color:var(--text-muted); text-decoration:none;">FAQ</a>
+      <a href="https://github.com/technea/PayGuard" target="_blank" style="color:var(--text-muted); text-decoration:none;"><i class="fa-brands fa-github"></i> GitHub</a>
+    </div>
+  </footer>
+
+  <script>
+    // Highlight active link in sidebar and top nav
+    const path = window.location.pathname;
+    document.querySelectorAll('.doc-nav-item').forEach(el => {
+      const href = el.getAttribute('href');
+      if (path === href || (href !== '/docs' && path.startsWith(href))) {
+        el.classList.add('active');
+      }
+    });
+    if (path.includes('whitepaper')) {
+      document.getElementById('nav-whitepaper')?.classList.add('active');
+    } else if (path.includes('faq')) {
+      document.getElementById('nav-faq')?.classList.add('active');
+    } else if (path.includes('docs')) {
+      document.getElementById('nav-docs')?.classList.add('active');
+    }
+  </script>
+</body>
+</html>

@@ -2,7 +2,24 @@
 
 ## Overview
 
-PayGuard is designed as a **read-only advisory sentinel**, not a transaction executor or policy enforcement gateway. This document defines the security boundaries, threat model, privacy guarantees, and known limitations of the system.
+PayGuard is a **free, Base-first ecosystem security platform and advisory sentinel**, not a custodial wallet or transaction execution gateway. Its core mission is **"Verify Before You Trust."**
+
+This document formalizes PayGuard's security perimeter, foundational assumptions, threat model, privacy guarantees, and non-negotiable boundaries.
+
+---
+
+## Foundational Web3 Truths
+
+Traditional web security assumptions break down in Web3 environments. PayGuard is engineered around three non-negotiable realities:
+
+1. **HTTPS does not prove a website is legitimate.**
+   An HTTPS padlock only indicates an encrypted TLS connection. Any threat actor can register a phishing domain (such as `bases.org` or `claim-base.xyz`) and issue a free SSL certificate within seconds. HTTPS provides zero verification of business legitimacy or project authenticity.
+
+2. **Verified contract source code does not prove a token is official.**
+   "Verification" on Basescan or Etherscan merely confirms that the compiled bytecode corresponds to the submitted source text. Honeypot creators, rug-pull deployers, and fake token issuers regularly verify their Solidity code to trick visual inspectors. Verified code can still contain owner balance modification privileges, 100% sell taxes, or hidden mint backdoors.
+
+3. **A token name or symbol alone cannot establish authenticity.**
+   On EVM blockchains, token names and symbols are non-unique metadata strings. Anyone can deploy an ERC-20 contract named "USD Coin" with the symbol "USDC". Authenticity can only be established through cryptographic verification of the exact, immutable contract address against authoritative ecosystem registries.
 
 ---
 
@@ -10,29 +27,29 @@ PayGuard is designed as a **read-only advisory sentinel**, not a transaction exe
 
 ### 1. Inspect, Never Act
 PayGuard never:
-- Signs or broadcasts transactions
-- Requests or stores private keys, seed phrases, or mnemonics
-- Executes payments or transfers
-- Opens, fetches, or contacts the URL being analyzed
-- Stores sensitive user data beyond the in-process request lifecycle
+- Signs or broadcasts transactions (except in the opt-in `BaseSmartWalletClient` wrapper when explicitly requested by user code).
+- Requests, handles, or stores private keys, seed phrases, or mnemonics.
+- Executes payments or initiates transfers.
+- Opens, fetches, or pings user-supplied URLs (100% anti-SSRF).
+- Freezes, burns, or quarantines on-chain assets (it has zero administrative privileges).
 
 ### 2. Fail Closed
-Every error path in GoPlus integration returns `UNVERIFIED` — never `PASS`. A missing, unavailable, rate-limited, or malformed API response does **not** default to clearing an address or token as safe.
+Every external API integration (GoPlus, Blockscout, Base RPC) fails closed:
+- An upstream HTTP 500, 429 rate limit, network timeout, or unindexed asset returns `UNVERIFIED` — **never `PASS`**.
+- Missing data is never treated as proof of safety. Absence of evidence is not evidence of absence.
 
-### 3. Minimal External Surface
-The only outbound network calls PayGuard makes are:
-- GoPlus Token Security API (opt-in, when `payguard_check_token_security` is called)
-- GoPlus Address Security API (opt-in, when `payguard_check_address_security` is called)
-- Google Web Risk API (opt-in, only when `checkReputation: true` is passed to URL Sentinel and `GOOGLE_WEB_RISK_API_KEY` is set)
-
-All endpoints are fixed constants — no user-provided URLs are used for outbound API calls.
+### 3. Minimal External Surface & Zero SSRF
+- **In-Memory URL Parsing:** URL Sentinel uses the WHATWG URL parser locally. No outbound connection is ever made to the inspected host.
+- **Fixed Upstream Providers:** External network requests are restricted to hardcoded endpoints:
+  - GoPlus Security API (`api.gopluslabs.io`)
+  - Base Mainnet Public RPC (`mainnet.base.org`)
+  - Blockscout Base API v2 (`base.blockscout.com`)
+  - Google Web Risk API (`webrisk.googleapis.com` — opt-in only)
+- **Credential Redaction:** Sensitive query strings (passwords, tokens, bearer secrets) are redacted before any external reputation lookup.
 
 ### 4. Credential Isolation
-API keys (`GOOGLE_WEB_RISK_API_KEY`, `GOPLUS_API_KEY`) are:
-- Loaded from server-side environment variables only
-- Never included in tool output, JSON responses, or client-side bundles
-- Never accepted as tool input parameters
-- Sent as HTTP headers to fixed, trusted API endpoints only
+- Server-side API keys (`GOPLUS_API_KEY`, `GOOGLE_WEB_RISK_API_KEY`) remain strictly on the backend.
+- API keys are never exposed in JSON responses, MCP tool outputs, or client-side bundles.
 
 ---
 
@@ -40,170 +57,52 @@ API keys (`GOOGLE_WEB_RISK_API_KEY`, `GOPLUS_API_KEY`) are:
 
 ### In Scope
 
-| Threat | Mitigation |
-|--------|-----------|
-| Phishing URLs with homoglyph/lookalike domains | URL Sentinel Levenshtein + NFKC normalization checks |
-| Bidi control characters hiding malicious URLs | Bidi scan runs **before** WHATWG URL parser |
-| Full-width Unicode confusables in hostnames | NFKC normalization check on raw hostname |
-| Punycode IDN label spoofing | `xn--` label detection |
-| Embedded credentials in URLs (`user:pass@host`) | Credential check + redaction from displayed URL |
-| ERC-20 unlimited approval attacks (`uint256.max`) | `approve()` calldata decode + `UNLIMITED_ALLOWANCE` risk factor |
-| ERC-20 approval to unauthorized spender | `allowedSpenders` policy enforcement |
-| Transfer to unauthorized recipient | `allowedRecipients` policy enforcement |
-| Unknown/obfuscated EVM calldata | Unknown selectors return advisory `REVIEW` |
-| Honeypot token contracts | GoPlus `is_honeypot` evaluation → `BLOCK` |
-| High trading taxes / seller restrictions | GoPlus buy/sell tax evaluation |
-| Sanctioned or criminally flagged addresses | GoPlus `sanctioned`, `phishing_activities`, `cybercrime` → `BLOCK` |
-| x402 payment requirement manipulation | Intent policy comparison before signing |
-| Payment amount exceeding user intent | `maxAmountAtomic` policy check |
-| Payment to unauthorized recipient | `allowedPayTo` policy check |
-| Wrong network or token | `allowedNetworks`, `allowedAssets` policy checks |
-| Oversized API responses (potential DoS) | 64 KB hard limit on GoPlus responses |
-| API request hangs | 3-second hard timeout on all GoPlus requests |
-| GoPlus stale-cache false positives | Errors never cached; successful results cached 10 min |
+| Threat | Attack Vector | PayGuard Mitigation |
+|--------|--------------|---------------------|
+| **Base Phishing Domains** | Lookalikes like `bases.org` or `pаybox.sh` | Levenshtein distance check, Punycode deobfuscation, and NFKC confusable matching |
+| **Bidi Unicode Attacks** | Invisible right-to-left override characters (U+202E) hiding extensions | Pre-parser Unicode bidirectional control scan (fails closed with `BLOCK`) |
+| **Punycode Deception** | `xn--` IDN labels spoofing Latin characters | Punycode label identification and raw script validation |
+| **Unlimited Token Approvals** | dApps requesting `approve(spender, 2^256 - 1)` | Calldata inspector decodes allowance; flags `uint256.max` as `UNLIMITED_ALLOWANCE` |
+| **Honeypot Tokens** | Contract allowing buys but blocking sells | GoPlus `is_honeypot` and `cannot_sell_all` evaluation |
+| **Arbitrary Balance Modification** | Owner can arbitrarily edit holder balances | GoPlus `owner_change_balance` evaluation (flags `BLOCK / CRITICAL`) |
+| **Excessive Trading Taxes** | Hidden 50% or 99% buy/sell tax traps | GoPlus buy/sell tax threshold evaluation |
+| **Token Impersonation** | Lookalike contract copying canonical symbols (`USDC`, `VIRTUAL`) | `checkTokenImpersonation` compares contract address against Base canonical registry |
+| **Suspicious Counterparties** | Transfers to sanctioned or phishing addresses | GoPlus Address Security screening (flags `BLOCK / CRITICAL`) |
+| **x402 Intent Manipulation** | Rogue merchant demanding excess payment or unapproved assets | Strict pre-payment comparison against user-defined intent policy |
+| **SSRF Attacks** | Attacker supplying `http://169.254.169.254` or internal LAN IPs | URL Sentinel runs 100% in-memory; zero outbound network fetch |
+| **DoS via Giant Payloads** | Massive calldata or oversized API responses | 64 KB hard request ceiling and 3-second network timeouts |
 
 ### Out of Scope
 
-| Threat | Why |
-|--------|-----|
-| EIP-712 typed-data manipulation | Not yet implemented |
-| MEV / sandwich attacks | Chain-level analysis not performed |
-| Bytecode-level proxy upgrade risk | Only `is_proxy` flag evaluated, not slot analysis |
-| Social engineering beyond URL signals | No document or message content analysis |
-| Wallet compromise | PayGuard does not control key management |
-| Cross-chain replay attacks | Only Base Mainnet (8453) analyzed |
-| On-chain transaction simulation | Not performed |
-| Smart contract formal verification | Not in scope |
+| Threat | Why Out of Scope |
+|--------|------------------|
+| **Zero-Day Unindexed Scams** | Newly deployed contracts not yet in threat feeds return `UNVERIFIED`, not detected |
+| **EIP-712 Permit Signatures** | Offline permit signatures (`eth_signTypedData_v4`) not currently decoded |
+| **Cross-Chain Attacks** | GoPlus and RPC checks currently target Base Mainnet (Chain ID 8453) only |
+| **MEV & Sandwich Exploits** | Mempool transaction ordering and slippage attacks are out of scope |
+| **External Wallet Enforcement** | PayGuard cannot prevent a user from manually signing inside MetaMask or other third-party wallets |
+| **On-Chain State Freezing** | PayGuard cannot modify blockchain state, freeze tokens, or quarantine wallets |
 
 ---
 
-## URL Sentinel Privacy
+## Wallet Token Scanner Security Model
 
-The URL Sentinel performs analysis **entirely locally**:
+The Base Wallet Token Scanner (`payguard_scan_wallet_tokens`) is designed with explicit transparency regarding discovery coverage:
 
-- The submitted URL is parsed in-memory using the WHATWG URL API
-- The target host is **never contacted**
-- Query parameters, credentials, and fragments are **redacted** before any reputation check
-- If Google Web Risk is configured and `checkReputation: true` is passed, only the normalized origin + path (without query parameters) is sent to Google's fixed API endpoint
+### Two-Tier Discovery Architecture
 
-```json
-// Privacy metadata returned with every URL analysis
-"privacy": {
-  "urlOpened": false,
-  "externalLookupPerformed": false,
-  "queryParametersSentToReputationProvider": false,
-  "pathSegmentsRedactedForReputationProvider": true
-}
-```
+1. **Tier 1 — Full Indexer (`FULL_INDEXER`):**
+   Calls the public Blockscout API v2. When accessible, it discovers all arbitrary ERC-20 tokens held by the address.
+2. **Tier 2 — RPC Multicall Fallback (`REGISTRY_AND_CUSTOM_PARTIAL`):**
+   In automated environments where indexers trigger Cloudflare bot protection, PayGuard falls back to on-chain `eth_call` queries on Base Mainnet (`https://mainnet.base.org`).
+   **Boundary:** The fallback inspects the 7 curated Base canonical tokens (WETH, USDC, cbETH, VIRTUAL, DAI, USDbC, AERO) plus any caller-specified `customTokenAddresses`. It **cannot** discover arbitrary unsolicited tokens without an external indexer or explicit contract addresses.
 
-> [!WARNING]
-> Even with path redaction, URL paths may still contain user-identifiable information (session tokens, IDs). Enable `checkReputation: true` only when sharing the URL path with Google is appropriate for the context.
+The API response explicitly includes `discoveryMode` and an `advisoryNotice` so users and AI agents always know whether discovery was comprehensive or partial.
 
 ---
 
-## Pre-Signing Security Boundary
+## Disclosure Statement
 
-`requestTransaction()` in `src/smart-wallet.mjs` enforces a hard abort before `eth_sendTransaction` for any non-PASS verdict:
+PayGuard is an **advisory intelligence sentinel**. It delivers structured evidence to empower human users and autonomous AI agents to make informed decisions before interacting with smart contracts or visiting Web3 links.
 
-```
-Transaction candidate
-       ↓
-inspectCalldata(tx, policy)
-       ↓
-verdict === "PASS"? ──No──→ { aborted: true, verdict, reasons }
-       ↓ Yes                  ← Never reaches wallet
-eth_sendTransaction (wallet prompt)
-       ↓
-User approves/rejects in wallet UI
-```
-
-This boundary applies only to transactions initiated through `requestTransaction()`. It does not restrict:
-- Direct wallet calls from other code
-- Other EIP-1193 providers not connected through PayGuard
-- Transactions initiated outside PayGuard's scope
-
----
-
-## GoPlus Intelligence Limitations
-
-GoPlus intelligence is **advisory**, not authoritative:
-
-1. **Database coverage**: Not all tokens and addresses are indexed. Absence of a record returns `UNVERIFIED`, not `PASS`.
-2. **Indexing lag**: New scam tokens may not appear immediately in the GoPlus database.
-3. **Base Sepolia excluded**: Testnet (84532) is not supported. All testnet checks return `UNSUPPORTED_CHAIN`.
-4. **Free tier rate limits**: Without `GOPLUS_API_KEY`, requests are rate-limited. A `RATE_LIMITED` response returns `UNVERIFIED`.
-5. **Third-party dependency**: PayGuard does not control GoPlus data quality or availability. The security posture of the application must not depend solely on this intelligence.
-6. **Trust level**: GoPlus findings are one data point. They do not replace contract audits, formal verification, or community due diligence.
-
----
-
-## Input Validation
-
-All tools perform strict input validation before any processing:
-
-| Module | Validation |
-|--------|-----------|
-| `payguard_analyze_url` | Max 2048-char URL; rejects non-string, empty, or oversized input |
-| `payguard_check_payment_intent` | Max 64,000-char total input; strict JSON schema; integer-only amounts |
-| `payguard_inspect_calldata` | `to` must match `/^0x[0-9a-fA-F]{40}$/`; `data` must be valid hex; value must be parseable as BigInt |
-| `payguard_check_token_security` | Chain ID must be `8453`; contract address must match EVM format |
-| `payguard_check_address_security` | Chain ID must be `8453`; address must match EVM format |
-
-Malformed inputs return structured error responses — they never crash the MCP server.
-
----
-
-## SSRF Protection
-
-The URL Sentinel never opens submitted URLs. The only outbound calls are to fixed API endpoints:
-- `https://webrisk.googleapis.com/v1/uris:search` (Web Risk, opt-in)
-- `https://api.gopluslabs.io/api/v1/token_security/{chainId}` (GoPlus Token)
-- `https://api.gopluslabs.io/api/v1/address_security/{address}` (GoPlus Address)
-
-User-supplied URLs are **never used as fetch targets**. GoPlus endpoints are constructed from validated, normalized inputs using `encodeURIComponent()` — the user-supplied address or chain ID cannot alter the base endpoint.
-
----
-
-## Advisory Nature of Verdicts
-
-Every tool includes explicit communication that verdicts are advisory:
-
-- `PASS` = policy checks matched. It does not authenticate the merchant, verify contract bytecode, or guarantee a payment is safe.
-- `REVIEW` = suspicious signals. The calling agent or user must decide.
-- `BLOCK` = high or critical risk. Within PayGuard-controlled paths (`requestTransaction()`), this aborts signing automatically. Outside those paths, enforcement is the caller's responsibility.
-- `UNVERIFIED` = insufficient intelligence. Treat as unknown risk; do not proceed as if safe.
-
-> [!CAUTION]
-> Never treat a `PASS` verdict as a guarantee. PayGuard cannot verify merchant identity, contract bytecode correctness, or that a payment destination is legitimate.
-
----
-
-## API Key Security
-
-| Requirement | Implementation |
-|-------------|---------------|
-| Never hardcoded | All keys sourced from `process.env` only |
-| Never in dist bundles | Verified by `Select-String` on dist files |
-| Never in tool output | All tool response objects exclude key fields |
-| Never accepted as input | No tool schema includes an API key parameter |
-| Server-side only | Web Risk key read via `readWebRiskKey()` from env; GoPlus key from `process.env.GOPLUS_API_KEY` |
-| Sent over TLS only | All external API calls use HTTPS |
-
----
-
-## Rate Limiting and Resource Limits
-
-| Limit | Value | Purpose |
-|-------|-------|---------|
-| GoPlus request timeout | 3,000 ms | Prevent request hangs |
-| GoPlus response size | 64 KB | Prevent memory exhaustion from oversized payloads |
-| GoPlus cache TTL | 10 minutes | Reduce API load; balanced with freshness needs |
-| URL input length | 2,048 chars | Prevent memory/parse exhaustion |
-| Payment input size | 64,000 chars | Limit JSON parsing scope |
-| Payment alternatives | 32 maximum | Bounded policy iteration |
-| Trusted domains | 30 maximum | Bounded hostname comparison |
-
-The HTTP server (`server.mjs`) additionally implements:
-- Per-connection concurrency limits
-- Sliding-window rate limiting per IP
-- Prometheus metrics for observability
+PayGuard does **not** guarantee that an asset is risk-free, does **not** replace a comprehensive smart contract audit, and does **not** possess administrative custody over user funds.

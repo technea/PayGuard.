@@ -1,6 +1,6 @@
 # PayGuard MCP Tools Reference
 
-PayGuard exposes six Model Context Protocol (MCP) tools. All tools return structured JSON with a **verdict**, **riskLevel**, and **findings** or **checks** array. All tools are advisory — they do not execute payments, sign transactions, or block wallet operations outside of PayGuard-controlled paths.
+PayGuard exposes seven Model Context Protocol (MCP) tools. All tools return structured JSON with a **verdict**, **riskLevel**, and **findings** or **checks** array. All tools are advisory — they do not execute payments, sign transactions, or block wallet operations outside of PayGuard-controlled paths.
 
 ---
 
@@ -89,7 +89,7 @@ Validates an x402 payment requirement against an explicit user-supplied intent p
     { "id": "amount", "status": "PASS", "detail": "Amount 1000 ≤ maxAmountAtomic 2000" }
   ],
   "summary": "All policy checks passed for selected payment candidate.",
-  "acceptedCandidate": { ... }
+  "acceptedCandidate": { "network": "eip155:8453", "asset": "0xaaa...", "amount": "1000" }
 }
 ```
 
@@ -103,365 +103,211 @@ Analyzes a URL for phishing signals, Unicode/Bidi deception, homoglyph attacks, 
 
 ```json
 {
-  "url": "https://payb0x-support.xyz/wallet-recovery?seed=...",
+  "url": "https://paybox.com/checkout",
   "expectedDomain": "paybox.com",
-  "trustedDomains": ["paybox.com", "app.paybox.com"],
   "checkReputation": false
 }
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `url` | string (required) | URL or hostname to analyze (max 2048 chars) |
-| `expectedDomain` | string | User-known legitimate domain for comparison |
-| `trustedDomains` | string[] | Additional trusted domains (max 30) |
-| `checkReputation` | boolean | If `true` and `GOOGLE_WEB_RISK_API_KEY` is set, performs a Web Risk lookup |
+### Analysis Checks Performed
 
-### Checks Performed
-
-| Check ID | Severity | What it detects |
-|----------|----------|-----------------|
-| `unicode_bidi_override` | HIGH | U+061C, U+200E/F, U+202A–E, U+2066–9 in raw URL |
-| `embedded_credentials` | HIGH | `user:pass@host` URL pattern |
-| `trusted_domain_mismatch` | HIGH | Hostname doesn't match any trusted domain |
-| `possible_lookalike_domain` | HIGH | Edit distance ≤1 from a trusted domain |
-| `possible_paybox_impersonation` | HIGH | "paybox" in hostname but not official domain |
-| `unicode_compatibility_confusable` | HIGH | NFKC normalization changes hostname |
-| `wallet_secret_language` | HIGH | Seed/recovery/private-key terms in URL path |
-| `idn_punycode` | MEDIUM | `xn--` internationalized labels |
-| `unencrypted_http` | MEDIUM | Non-HTTPS scheme |
-| `nonstandard_port` | MEDIUM | Port ≠ 80/443 |
-| `ip_literal_host` | MEDIUM | IP address as hostname |
-| `shortened_url` | MEDIUM | URL shortening service domain |
-| `local_or_internal_hostname` | MEDIUM | localhost, .local, .internal |
-| `external_redirect_parameter` | LOW | External URL in query parameters |
-| `threat_intelligence_match` | CRITICAL | Google Web Risk threat confirmed |
-
-> [!IMPORTANT]
-> Bidi control character detection runs **before** the WHATWG URL parser. This ensures that characters which cause the parser to reject the URL (making it unparseable) are still caught and reported.
-
-### Example Response
-
-```json
-{
-  "verdict": "SUSPICIOUS",
-  "riskLevel": "HIGH",
-  "hostname": "payb0x-support.xyz",
-  "displayedUrl": "https://payb0x-support.xyz/wallet-recovery",
-  "summary": "One or more warning signs were detected.",
-  "recommendation": "Do not connect a wallet, sign, pay, or enter secrets until verified independently.",
-  "checks": [
-    {
-      "id": "trusted_domain_mismatch",
-      "severity": "high",
-      "status": "warning",
-      "detail": "The hostname does not match any independently supplied trusted domain."
-    },
-    {
-      "id": "possible_lookalike_domain",
-      "severity": "high",
-      "status": "warning",
-      "detail": "The hostname is one character away from trusted domain paybox.com."
-    },
-    {
-      "id": "wallet_secret_language",
-      "severity": "high",
-      "status": "warning",
-      "detail": "The URL contains terms often associated with wallet recovery..."
-    }
-  ],
-  "reputation": { "status": "NOT_REQUESTED", "threatTypes": [] },
-  "privacy": {
-    "urlOpened": false,
-    "externalLookupPerformed": false,
-    "queryParametersSentToReputationProvider": false,
-    "pathSegmentsRedactedForReputationProvider": true
-  },
-  "paymentExecuted": false,
-  "limitations": [...]
-}
-```
+| Check ID | Threat Detected | Risk if Fired |
+|----------|----------------|---------------|
+| `BIDI_CONTROL_CHARS` | Invisible Unicode direction-override characters hiding true URL path | CRITICAL / BLOCK |
+| `FULLWIDTH_CONFUSABLE` | Full-width Unicode characters that look like Latin | HIGH / REVIEW |
+| `HOMOGLYPH_DETECTED` | Cyrillic, Greek, or confusable scripts in hostname | HIGH / REVIEW |
+| `PUNYCODE_HOST` | IDN label (`xn--...`) | MEDIUM / REVIEW |
+| `CREDENTIAL_IN_URL` | Userinfo present (`user:pass@host`) | HIGH / REVIEW |
+| `DANGEROUS_PORT` | Non-standard port (e.g. 21, 23, 25, 6667) | HIGH / REVIEW |
+| `IP_ADDRESS_HOST` | Raw IP address used as hostname | MEDIUM / REVIEW |
+| `LOOKALIKE_DOMAIN` | Hostname close to `expectedDomain` (Levenshtein distance ≤ 2) | HIGH / REVIEW |
+| `DOMAIN_MISMATCH` | Hostname does not match `expectedDomain` | MEDIUM / REVIEW |
+| `HTTP_NOT_SECURE` | Non-HTTPS protocol | LOW / CAUTION |
+| `GOOGLE_WEB_RISK` | Threat match from Google Web Risk (opt-in) | CRITICAL / BLOCK |
 
 ---
 
 ## 3. `payguard_prepare_threat_report`
 
-Generates a privacy-conscious, redacted JSON draft threat report. Does not submit the report or notify any party automatically.
+Generates a privacy-conscious, redacted threat report draft for a suspicious URL. High-entropy path segments and query credentials are automatically scrubbed.
 
 ### Input Schema
 
-Same as `payguard_analyze_url` (runs the URL Sentinel analysis internally).
-
-### Example Response
-
 ```json
 {
-  "schemaVersion": "payguard-threat-report-v1",
-  "reportStatus": "DRAFT_NOT_SUBMITTED",
-  "createdAt": "2026-11-01T17:00:00.000Z",
-  "subject": {
-    "hostname": "payb0x-support.xyz",
-    "url": "https://payb0x-support.xyz/wallet-recovery"
-  },
-  "verdict": "SUSPICIOUS",
-  "riskLevel": "HIGH",
-  "summary": "One or more warning signs were detected.",
-  "findings": [...],
-  "reputation": { "status": "NOT_REQUESTED", "threatTypes": [] },
-  "submission": {
-    "status": "NOT_SUBMITTED",
-    "reason": "No verified PayBox threat-reporting endpoint is configured...",
-    "automaticNotificationSent": false
-  },
-  "safetyNotes": [
-    "URL query parameter values and embedded credentials are redacted.",
-    "Free-form notes are excluded to reduce accidental secret disclosure.",
-    "A report is an allegation, not proof of malicious intent."
-  ]
+  "url": "https://phish.example/login?token=SECRET123",
+  "expectedDomain": "example.com",
+  "userNotes": "Found in phishing email"
 }
 ```
 
-> [!NOTE]
-> Free-form user notes are intentionally excluded. Automated redaction cannot reliably detect all seed phrase and credential formats.
+### Output
+
+Returns a report draft marked `DRAFT_NOT_SUBMITTED`. Does not submit to any external endpoint.
 
 ---
 
 ## 4. `payguard_inspect_calldata`
 
-Decodes EVM transaction calldata and evaluates it for risk. Purely read-only — no network calls, no private keys.
+Decodes EVM transaction calldata for ERC-20 `approve`, `transfer`, and `transferFrom` methods. Evaluates allowances, spenders, and recipients against optional caller policies.
 
 ### Input Schema
 
 ```json
 {
-  "to": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+  "to": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   "value": "0",
-  "data": "0x095ea7b3000000000000000000000000deadbeefdeadbeefdeadbeefdeadbeefdeadbeefffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "data": "0x095ea7b30000000000000000000000001111111254fb6c44bac0bed2854e76f90643097dffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
   "policy": {
-    "allowedTargets": ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"],
-    "allowedSpenders": ["0xknownspender..."],
-    "allowedRecipients": ["0xrecipient..."],
-    "maxAllowance": "1000000000",
-    "maxTransferAmount": "500000000",
-    "maxNativeValue": "0"
+    "allowedSpenders": ["0x1111111254fb6c44bac0bed2854e76f90643097d"],
+    "allowedRecipients": ["0x2222222222222222222222222222222222222222"],
+    "allowUnlimitedApproval": false
   }
 }
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `to` | string (required) | Target contract address (0x hex, 20 bytes) |
-| `value` | string/number | Native ETH value in wei |
-| `data` | string | 0x-prefixed calldata hex |
-| `policy` | object | Optional security policy constraints |
+### Findings Evaluated
 
-### Supported ERC-20 Operations
-
-| Selector | Function | Decoded Fields |
-|----------|----------|---------------|
-| `0x095ea7b3` | `approve(address spender, uint256 amount)` | spender, rawAmount, isUnlimited |
-| `0xa9059cbb` | `transfer(address recipient, uint256 amount)` | recipient, amount |
-| `0x23b872dd` | `transferFrom(address from, address to, uint256 amount)` | from, to, amount |
-| `0x` (empty) | Native ETH transfer | nativeValue |
-| Any other | Unknown selector | advisory REVIEW |
-
-### Risk Factors
-
-| Code | Trigger | Verdict |
-|------|---------|---------|
-| `UNLIMITED_ALLOWANCE_UINT256_MAX` | `approve` with `2^256 - 1` | REVIEW |
-| `UNUSUALLY_LARGE_ALLOWANCE` | allowance > `2^255` | REVIEW |
-| `SPENDER_NOT_IN_ALLOWLIST` | spender not in `allowedSpenders` | BLOCK |
-| `RECIPIENT_NOT_IN_ALLOWLIST` | recipient not in `allowedRecipients` | BLOCK |
-| `TARGET_NOT_IN_ALLOWLIST` | `to` not in `allowedTargets` | BLOCK |
-| `ALLOWANCE_EXCEEDS_POLICY_MAX` | amount > `maxAllowance` | BLOCK |
-| `TRANSFER_EXCEEDS_POLICY_MAX` | amount > `maxTransferAmount` | BLOCK |
-| `NATIVE_VALUE_EXCEEDS_POLICY` | value > `maxNativeValue` | BLOCK |
-
-### Example Response (Unlimited Approval)
-
-```json
-{
-  "verdict": "REVIEW",
-  "riskLevel": "MEDIUM",
-  "operation": "ERC20_APPROVE",
-  "reasons": ["UNLIMITED_ALLOWANCE_UINT256_MAX"],
-  "checks": [
-    { "id": "target_address", "status": "PASS", "detail": "0xa0b8...6eb48" },
-    { "id": "native_value", "status": "PASS", "detail": "0" },
-    { "id": "allowance_size", "status": "WARN", "detail": "Spender is granted maximum possible token allowance (2^256 - 1)" }
-  ],
-  "details": {
-    "tokenContract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-    "spender": "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
-    "rawAmount": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
-    "isUnlimited": true,
-    "isUnusuallyLarge": true
-  }
-}
-```
+| Check ID | Severity | Condition |
+|----------|----------|-----------|
+| `UNLIMITED_ALLOWANCE` | HIGH / REVIEW | `approve` called with `uint256.max` |
+| `UNAUTHORIZED_SPENDER` | HIGH / BLOCK | Spender not in `allowedSpenders` list |
+| `UNAUTHORIZED_RECIPIENT` | HIGH / BLOCK | Recipient not in `allowedRecipients` list |
+| `UNKNOWN_SELECTOR` | MEDIUM / REVIEW | Function selector outside recognized ERC-20 set |
+| `TRUNCATED_CALLDATA` | CRITICAL / BLOCK | Byte length shorter than expected parameter count |
+| `NON_ZERO_NATIVE_VALUE` | HIGH / REVIEW | Native ETH sent alongside token approval/transfer |
 
 ---
 
 ## 5. `payguard_check_token_security`
 
-Queries GoPlus Token Security API for Base Mainnet token risk intelligence. Evaluates honeypot status, trading taxes, transfer restrictions, supply controls, and contract verification.
-
-> [!IMPORTANT]
-> Only Base Mainnet (chain ID 8453) is supported. Base Sepolia (84532) returns `UNVERIFIED / UNSUPPORTED_CHAIN`.
+Queries the GoPlus Security API for Base Mainnet (Chain ID 8453) token contract intelligence. Evaluates honeypot mechanics, buy/sell taxes, arbitrary owner balance privileges, and proxy implementation risks.
 
 ### Input Schema
 
 ```json
 {
-  "chainId": 8453,
-  "contractAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
-}
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `chainId` | number/string | Chain ID — only `8453` / `"eip155:8453"` supported |
-| `contractAddress` | string | 0x-prefixed 20-byte token contract address |
-
-### Evaluated Risk Indicators
-
-| GoPlus Field | Finding Code | Severity |
-|-------------|-------------|----------|
-| `is_honeypot` | `HONEYPOT_DETECTED` | critical |
-| `owner_change_balance` | `OWNER_CAN_CHANGE_BALANCE` | critical |
-| `cannot_buy` | `CANNOT_BUY` | high |
-| `cannot_sell_all` | `CANNOT_SELL_ALL` | high |
-| `buy_tax ≥ 25%` | `EXCESSIVE_BUY_TAX` | high |
-| `sell_tax ≥ 25%` | `EXCESSIVE_SELL_TAX` | high |
-| `buy_tax 5–25%` | `HIGH_BUY_TAX` | medium |
-| `sell_tax 5–25%` | `HIGH_SELL_TAX` | medium |
-| `slippage_modifiable` | `SLIPPAGE_MODIFIABLE` | medium |
-| `transfer_pausable` | `TRANSFER_PAUSABLE` | medium |
-| `is_mintable` | `MINTABLE_TOKEN` | medium |
-| `is_proxy` | `UPGRADEABLE_PROXY` | info |
-| `is_open_source = 0` | `CLOSED_SOURCE_BYTECODE` | medium |
-| `trust_list = 1` | `RECOGNIZED_TRUST_LIST` | info |
-
-### Error Codes
-
-| Code | Cause |
-|------|-------|
-| `UNSUPPORTED_CHAIN` | Chain ID ≠ 8453 |
-| `INVALID_CONTRACT_ADDRESS` | Address format invalid |
-| `REQUEST_TIMEOUT` | Exceeded 3s timeout |
-| `NETWORK_ERROR` | Network failure |
-| `RATE_LIMITED` | HTTP 429 |
-| `AUTH_FAILED` | HTTP 401/403 |
-| `UPSTREAM_ERROR` | HTTP 5xx |
-| `MALFORMED_JSON` | Unparseable response |
-| `OVERSIZED_RESPONSE` | Response > 64 KB |
-| `UNINDEXED_TOKEN` | Token not in GoPlus database |
-
-All errors return `UNVERIFIED` — never `PASS`.
-
-### Example Response
-
-```json
-{
-  "verdict": "BLOCK",
-  "riskLevel": "CRITICAL",
   "chainId": "8453",
-  "contractAddress": "0xdeadbeef...",
-  "tokenName": "FakeToken",
-  "tokenSymbol": "FAKE",
-  "findings": [
-    {
-      "code": "HONEYPOT_DETECTED",
-      "severity": "critical",
-      "message": "Token is identified as a honeypot; users cannot sell their tokens."
-    }
-  ],
-  "reasonCodes": ["HONEYPOT_DETECTED"],
-  "provider": "goplus",
-  "timestamp": 1730486400000,
-  "dataStatus": "AVAILABLE"
+  "contractAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
 }
 ```
+
+### Key Evaluated Indicators
+
+- `is_honeypot` → `BLOCK / CRITICAL`
+- `owner_change_balance` → `BLOCK / CRITICAL`
+- `cannot_sell_all` → `BLOCK / CRITICAL`
+- `buy_tax > 0.10` or `sell_tax > 0.10` → `BLOCK` or `REVIEW`
+- `transfer_pausable` → `REVIEW / MEDIUM`
+- `is_airdrop_scam` → `BLOCK / HIGH`
+- `is_open_source == "0"` → `REVIEW / MEDIUM` (unverified source code)
 
 ---
 
 ## 6. `payguard_check_address_security`
 
-Queries GoPlus Address Security API to check whether an EVM address is linked to phishing, theft, sanctions, money laundering, cybercrime, or other malicious activity.
-
-> [!IMPORTANT]
-> Only Base Mainnet (chain ID 8453) is supported. Base Sepolia (84532) returns `UNVERIFIED / UNSUPPORTED_CHAIN`.
+Queries the GoPlus Address Security API for Base Mainnet (Chain ID 8453) account intelligence. Checks for associations with phishing, sanctions, cybercrime, darkweb marketplaces, or mixer usage.
 
 ### Input Schema
 
 ```json
 {
-  "chainId": 8453,
-  "address": "0x1234567890abcdef1234567890abcdef12345678"
+  "chainId": "8453",
+  "address": "0x1234567890123456789012345678901234567890"
 }
 ```
 
-### Endpoint Format
+### Key Evaluated Indicators
 
+- `sanctioned` → `BLOCK / CRITICAL`
+- `phishing_activities` → `BLOCK / CRITICAL`
+- `stealing_attack` → `BLOCK / CRITICAL`
+- `cybercrime` / `financial_crime` → `BLOCK / HIGH`
+- `darkweb_transactions` → `REVIEW / MEDIUM`
+- `mixer` → `REVIEW / MEDIUM`
+
+---
+
+## 7. `payguard_scan_wallet_tokens`
+
+Automatically scans ERC-20 token holdings in a Base Mainnet (Chain ID 8453) wallet for honeypot mechanics, arbitrary balance alteration privileges, high trading taxes, and lookalike token impersonation.
+
+### Input Schema
+
+```json
+{
+  "walletAddress": "0x4200000000000000000000000000000000000006",
+  "customTokenAddresses": [
+    "0x50c5725949a6F0c72E6C4a641F24049A917DB0Cb"
+  ]
+}
 ```
-GET https://api.gopluslabs.io/api/v1/address_security/{address}?chain_id={chainId}
-```
 
-Note: the address is a **path segment**; chain_id is a **query parameter**. This differs from the Token Security endpoint.
+### Discovery Architecture
 
-### Evaluated Risk Indicators
+The scanner operates in two discovery tiers:
+1. **Tier 1 — Full Indexer (`FULL_INDEXER`):** Calls Blockscout Base API v2 (`GET https://base.blockscout.com/api/v2/addresses/{addr}/tokens?type=ERC-20`). If successful, retrieves all arbitrary ERC-20 tokens held by the address.
+2. **Tier 2 — On-Chain RPC Multicall Fallback (`REGISTRY_AND_CUSTOM_PARTIAL`):** When automated requests face indexer rate limits or Cloudflare bot challenges, PayGuard falls back to on-chain `eth_call` queries on Base Mainnet. The fallback checks the 7 canonical Base ecosystem tokens (WETH, USDC, cbETH, VIRTUAL, DAI, USDbC, AERO) plus any optional `customTokenAddresses` provided in the request.
 
-| GoPlus Field | Finding Code | Severity |
-|-------------|-------------|----------|
-| `phishing_activities` | `PHISHING_ACTIVITIES` | critical |
-| `stealing_attack` | `STEALING_ATTACK` | critical |
-| `sanctioned` | `SANCTIONED_ADDRESS` | critical |
-| `number_of_malicious_contracts_created ≥ 3` | `MALICIOUS_CONTRACTS_CREATED` | critical |
-| `blacklist_doubt` | `BLACKLIST_SUSPICION` | high |
-| `honeypot_related_address` | `HONEYPOT_AFFILIATE` | high |
-| `fake_token` | `FAKE_TOKEN_ISSUER` | high |
-| `cybercrime` | `CYBERCRIME_INVOLVEMENT` | high |
-| `money_laundering` | `MONEY_LAUNDERING` | high |
-| `financial_crime` | `FINANCIAL_CRIME` | high |
-| `blackmail_activities` | `BLACKMAIL_ACTIVITIES` | high |
-| `number_of_malicious_contracts_created 1–2` | `MALICIOUS_CONTRACTS_CREATED` | high |
-| `darkweb_transactions` | `DARKWEB_TRANSACTIONS` | medium |
-| `mixer` | `MIXER_USAGE` | medium |
-| `fake_kyc` | `FAKE_KYC` | medium |
-| `gas_abuse` | `GAS_ABUSE` | medium |
-| `malicious_mining_activities` | `MALICIOUS_MINING` | medium |
+### Token Impersonation Detection
+
+The tool verifies whether the contract address matches official canonical deployments. If a contract presents a well-known symbol (e.g. `USDC` or `VIRTUAL`) but its contract address differs from the canonical registry, it is flagged as:
+- `isImpersonation: true`
+- `securityStatus: "HIGH RISK"`
+- `detectedIndicators`: `["TOKEN_LOOKALIKE_IMPERSONATION"]`
 
 ### Example Response
 
 ```json
 {
-  "verdict": "BLOCK",
-  "riskLevel": "CRITICAL",
-  "chainId": "8453",
-  "address": "0xdeadbeef...",
-  "findings": [
+  "status": "SUCCESS",
+  "walletAddress": "0x4200000000000000000000000000000000000006",
+  "discoveryMode": "REGISTRY_AND_CUSTOM_PARTIAL",
+  "advisoryNotice": "Notice: Token holdings were discovered via on-chain RPC fallback checking 7 curated Base canonical tokens plus custom token addresses. Discovery is partial.",
+  "tokensScannedCount": 2,
+  "highRiskCount": 1,
+  "suspiciousCount": 0,
+  "tokens": [
     {
-      "code": "PHISHING_ACTIVITIES",
-      "severity": "critical",
-      "message": "Address is flagged for involvement in phishing attacks."
+      "contractAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "name": "USD Coin",
+      "symbol": "USDC",
+      "decimals": 6,
+      "balance": "5000000",
+      "isVerifiedOfficial": true,
+      "isImpersonation": false,
+      "securityStatus": "CLEAR",
+      "riskScore": 0,
+      "recommendedAction": "Normal interaction permitted based on available threat intelligence.",
+      "detectedIndicators": []
     },
     {
-      "code": "SANCTIONED_ADDRESS",
-      "severity": "critical",
-      "message": "Address is present on government or regulatory sanctions lists."
+      "contractAddress": "0x50c5725949a6F0c72E6C4a641F24049A917DB0Cb",
+      "name": "Dai Stablecoin",
+      "symbol": "DAI",
+      "decimals": 18,
+      "balance": "1000000000000000000",
+      "isVerifiedOfficial": true,
+      "isImpersonation": false,
+      "securityStatus": "HIGH RISK",
+      "riskScore": 85,
+      "recommendedAction": "Do not trade, approve, or interact with this token.",
+      "detectedIndicators": [
+        {
+          "label": "Owner can arbitrarily modify balances",
+          "severity": "CRITICAL",
+          "detail": "The contract owner or privileged address can adjust holder balances directly."
+        }
+      ]
     }
   ],
-  "reasonCodes": ["PHISHING_ACTIVITIES", "SANCTIONED_ADDRESS"],
-  "provider": "goplus",
-  "timestamp": 1730486400000,
-  "dataStatus": "AVAILABLE"
+  "evaluatedAt": "2026-11-02T10:30:00.000Z"
 }
 ```
 
 ---
 
-## Caching Behavior (Tools 5 & 6)
+## Caching Behavior (Tools 5, 6 & 7)
 
 | Behavior | Detail |
 |----------|--------|
@@ -481,7 +327,7 @@ PayGuard implements [MCP protocol version 2024-11-05](https://spec.modelcontextp
 
 **Supported methods:**
 - `initialize` — returns server info and capabilities
-- `tools/list` — returns all 6 tool descriptors with JSON Schema input schemas
+- `tools/list` — returns all 7 tool descriptors with JSON Schema input schemas
 - `tools/call` — invokes a tool by name with arguments
 - `ping` — health check
 

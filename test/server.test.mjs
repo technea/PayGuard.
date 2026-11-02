@@ -228,6 +228,22 @@ test("POST /api/address-security rejects malformed address input fail-closed", a
   assert.equal(data.dataStatus, "MALFORMED_INPUT");
 });
 
+test("GET /whitepaper and /faq serve browser-readable documentation", async () => {
+  const resWp = await fetch(baseUrl + "/whitepaper");
+  assert.equal(resWp.status, 200);
+  const textWp = await resWp.text();
+  assert.ok(textWp.includes("PayGuard Technical Whitepaper"));
+
+  const resFaq = await fetch(baseUrl + "/faq");
+  assert.equal(resFaq.status, 200);
+  const textFaq = await resFaq.text();
+  assert.ok(textFaq.includes("Frequently Asked Questions"));
+
+  const resDocs = await fetch(baseUrl + "/docs/mcp-tools");
+  assert.equal(resDocs.status, 200);
+  const textDocs = await resDocs.text();
+  assert.ok(textDocs.includes("PayGuard MCP Tools Reference"));
+});
 test("server rate limiting rejects excessive requests with HTTP 429", async () => {
   // Rapid burst of requests to trigger rate limiting
   let got429 = false;
