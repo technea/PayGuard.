@@ -3049,10 +3049,10 @@
             verdictIcon: "fa-circle-check",
             verdictCategory: "EXPECTED_DOMAIN_MATCH",
             verdictHeadline: "VERIFIED OFFICIAL",
-            verdictScore: "RISK: 0/100",
+            verdictScore: "IDENTITY: MATCH",
             verdictSummary: "The requested domain exactly matches the authoritative Base ecosystem registry (base.org). All characters are ASCII Latin [U+0061..U+007A]. Zero lookalike spoofing detected.",
             guidanceCls: "guidance-pass",
-            guidanceText: "Safe to proceed. Destination matches verified official Base ecosystem infrastructure."
+            guidanceText: "Exact domain match with the curated Base registry. This verifies domain identity only; it does not guarantee the page, contract, or transaction is safe."
           },
           2: {
             targetType: "URL OBJECT",
@@ -3217,12 +3217,12 @@
             ],
             verdictCls: "verdict-pass",
             verdictIcon: "fa-circle-check",
-            verdictCategory: "CANONICAL_TOKEN_SAFE",
-            verdictHeadline: "VERIFIED SAFE",
+            verdictCategory: "CANONICAL_TOKEN_MATCH",
+            verdictHeadline: "CANONICAL TOKEN MATCH",
             verdictScore: "RISK: 0/100",
-            verdictSummary: "Contract source verified on Base Mainnet. 0% taxes, unrestricted transfers, no hidden mint functions, and matches canonical WETH address.",
+            verdictSummary: "The supplied address matches the curated canonical WETH reference. Sample provider telemetry reports no listed risk flags; this is not a guarantee of contract behavior or transaction safety.",
             guidanceCls: "guidance-pass",
-            guidanceText: "Safe for swap, transfer, or AI agent payment proof validation."
+            guidanceText: "Canonical reference match only. Verify the dApp, spender, token behavior, and transaction details independently before signing."
           },
           2: {
             targetType: "ERC-20 CONTRACT",
@@ -3369,12 +3369,12 @@
             ],
             verdictCls: "verdict-pass",
             verdictIcon: "fa-circle-check",
-            verdictCategory: "STANDARD_CALLDATA_VERIFIED",
-            verdictHeadline: "STANDARD CALLDATA",
-            verdictScore: "RISK: 0/100",
+            verdictCategory: "STANDARD_CALLDATA_DECODED",
+            verdictHeadline: "STANDARD TRANSFER DECODED",
+            verdictScore: "RISK: NOT SCORED",
             verdictSummary: "Transaction decodes to a standard transfer(address,uint256) with bounded amount (10 USDC). Recipient has no known sanctions or cybercrime associations.",
             guidanceCls: "guidance-pass",
-            guidanceText: "Safe to proceed if transaction recipient matches your intended counterparty."
+            guidanceText: "Standard transfer calldata decoded with a bounded amount. Confirm the token, recipient, amount, and dApp context independently before signing."
           },
           3: {
             targetType: "BASE WALLET AUDIT",
@@ -3401,12 +3401,12 @@
             ],
             verdictCls: "verdict-pass",
             verdictIcon: "fa-circle-check",
-            verdictCategory: "WALLET_PORTFOLIO_HEALTHY",
-            verdictHeadline: "PORTFOLIO HEALTHY",
-            verdictScore: "RISK: 0/100",
+            verdictCategory: "CANONICAL_ASSET_REFERENCES_MATCH",
+            verdictHeadline: "ASSET REFERENCES MATCH",
+            verdictScore: "RISK: PARTIAL COVERAGE",
             verdictSummary: "Discovered ERC-20 assets match official Base ecosystem contracts (WETH, USDC, cbBTC, DAI). Zero honeypots or malicious airdrops detected.",
             guidanceCls: "guidance-pass",
-            guidanceText: "Portfolio healthy. Unindexed private tokens can be audited by contract address."
+            guidanceText: "No provider flags are shown for the indexed assets in this sample. Unindexed assets and transaction approvals are outside this result; this is not a complete wallet safety assessment."
           }
         }
       }
@@ -3621,7 +3621,7 @@
         targetType: "LIVE URL TARGET",
         targetText: apiData.displayedUrl || rawUrl,
         network: "Base Mainnet (Chain ID: 8453)",
-        privacy: apiData.privacy && apiData.privacy.pathSegmentsRedactedForReputationProvider ? "Sanitized (Params Redacted)" : "100% In-Memory (Zero Fetch)",
+        privacy: apiData.privacy && apiData.privacy.pathSegmentsRedactedForReputationProvider ? "Sanitized (Params Redacted)" : "URL Lexer In-Memory; Provider Checks Separate",
         latency: "LIVE: 36ms",
         showRabby: false,
         topology: [
