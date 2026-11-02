@@ -490,13 +490,26 @@ async function requestHandler(req, res) {
     let extraHeaders = {};
     if (paymentHeader) {
       const paymentRes = await verifyPaymentProof(paymentHeader, req.url);
-      if (!paymentRes.valid && requireX402) {
+      const liveSettlementVerified = paymentRes.valid === true &&
+        paymentRes.mode === "live_facilitator" &&
+        paymentRes.settlement?.settled === true &&
+        paymentRes.settlement?.simulated === false;
+
+      // A mock/simulated proof is never sufficient to unlock an x402-protected route.
+      if (requireX402 && !liveSettlementVerified) {
         statusCode = 402;
-        return sendJson(res, statusCode, { error: "Payment verification failed", reason: paymentRes.reason });
+        return sendJson(res, statusCode, {
+          error: "Live payment settlement is required.",
+          reason: paymentRes.reason || "Mock or simulated payment proofs cannot satisfy PAYGUARD_REQUIRE_X402."
+        });
       }
-      if (paymentRes.valid) {
+
+      if (liveSettlementVerified) {
         extraHeaders["x-payment-verified"] = "true";
-        extraHeaders["x-payment-mode"] = paymentRes.mode || "mock_simulation";
+        extraHeaders["x-payment-mode"] = "live_facilitator";
+      } else if (paymentRes.mode === "mock_simulation") {
+        // Keep simulation visible without implying that a payment was verified or settled.
+        extraHeaders["x-payment-mode"] = "mock_simulation";
       }
     }
 
