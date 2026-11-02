@@ -2778,7 +2778,7 @@
             <input type="text" id="cockpitTargetInput" class="scanner-target-input" placeholder="Paste a URL, token address, wallet address or calldata..." value="https://base.org/bridge">
             <div class="scanner-actions-group">
               <button class="btn btn-cyan" id="btnLiveScan" onclick="executeCockpitScan()">
-                <i class="fa-solid fa-crosshairs"></i> <span id="scanBtnLabel">Scan Target Now</span>
+                <i class="fa-solid fa-crosshairs"></i> <span id="scanBtnLabel">Check website</span>
               </button>
               <button class="btn btn-surface" id="btnRunSim" onclick="triggerInvestigationSimulation()" title="Re-run 8-layer pipeline scan">
                 <i class="fa-solid fa-play"></i> <span id="simBtnLabel">Simulate Pipeline (Demo)</span>
@@ -2830,7 +2830,7 @@
             </div>
 
             <div class="entity-field">
-              <span class="entity-label">Inspected Target Identifier</span>
+              <span class="entity-label">Target</span>
               <div class="entity-val highlight-target" id="invTargetVal">
                 <span id="invTargetText">https://base.org/bridge</span>
                 <div class="laser-line" id="invLaser"></div>
@@ -2838,7 +2838,7 @@
             </div>
 
             <div class="entity-field">
-              <span class="entity-label">Network &amp; Execution Scope</span>
+              <span class="entity-label">Network</span>
               <div class="entity-val" id="invNetworkVal">Base Mainnet (Chain ID: 8453)</div>
             </div>
 
@@ -2872,25 +2872,25 @@
           <div class="inv-panel">
             <div class="inv-panel-header">
               <span class="inv-panel-title"><i class="fa-solid fa-gavel" style="color:var(--emerald)"></i> 3. Advisory Verdict</span>
-              <span class="inv-panel-badge" id="invVerdictCategory">EVALUATED</span>
+              <span class="inv-panel-badge" id="invVerdictCategory">SAMPLE OUTPUT</span>
             </div>
 
-            <div class="verdict-card verdict-threat" id="invVerdictCard">
+            <div class="verdict-card verdict-warn" id="invVerdictCard">
               <div class="verdict-header-row">
                 <div class="verdict-headline" id="invVerdictHeadline">
                   <i class="fa-solid fa-triangle-exclamation"></i>
-                  <span id="invVerdictText">HIGH RISK THREAT</span>
+                  <span id="invVerdictText">SAMPLE RESULT</span>
                 </div>
                 <span class="verdict-score-badge" id="invVerdictScore">SAMPLE SCORE</span>
               </div>
               <div class="verdict-summary-text" id="invVerdictSummary">
-                Domain mimics official Base ecosystem infrastructure (base.org) but is not in the authoritative Base registry.
+                Select a sample or submit a target to view a security result.
               </div>
             </div>
 
-            <div class="guidance-box guidance-threat" id="invGuidanceBox">
+            <div class="guidance-box guidance-warn" id="invGuidanceBox">
               <strong style="display:block; margin-bottom:0.25rem;">Action Guidance:</strong>
-              <span id="invGuidanceText">DO NOT PROCEED. Do not enter credentials or connect wallet.</span>
+              <span id="invGuidanceText">Example outputs are demo data. Submit a target for a live check.</span>
             </div>
 
             <button class="btn-export-report" onclick="openThreatReportModal()">
@@ -3111,7 +3111,7 @@
           </p>
           <div class="reality-defense-tag">
             <strong>PayGuard check:</strong>
-            Inspects contract bytecode logic, dynamic transfer restrictions, and GoPlus honeypot telemetry on Base Mainnet.
+            Uses GoPlus token-security data to report known honeypot, tax and transfer-risk indicators.
           </div>
         </div>
 
@@ -3149,7 +3149,7 @@
             <i class="fa-solid fa-chevron-down"></i>
           </button>
           <div class="faq-content">
-            <strong>Never.</strong> PayGuard is strictly read-only and non-custodial. It never asks for, stores, or handles private keys, seed phrases, or wallet signature permissions. All URL parsing, token scans, and calldata decodings occur in-memory without requesting signing authority.
+            <strong>Never.</strong> PayGuard is strictly read-only and non-custodial. It never asks for, stores, or handles private keys, seed phrases, or wallet signature permissions. URL checks parse the supplied target without opening the page. Token and wallet checks may query security providers such as GoPlus or Blockscout. Calldata decoding is read-only. PayGuard does not request a seed phrase, private key or transaction signature.
           </div>
         </div>
 
@@ -3179,7 +3179,7 @@
             <i class="fa-solid fa-chevron-down"></i>
           </button>
           <div class="faq-content">
-            You enter any public Base wallet address. PayGuard queries the public Blockscout Base v2 API and canonical registries in read-only mode to discover ERC-20 holdings, then runs GoPlus token security evaluations on each discovered contract to flag honeypots, exorbitant taxes, and impersonators.
+            PayGuard uses Blockscout Base data when available and checks supported token contracts with GoPlus. Discovery can be partial when the indexer is unavailable; the result shows that limitation.
           </div>
         </div>
 
@@ -3255,12 +3255,12 @@
       </div>
 
       <div class="footer-col">
-        <h5>Security Standards</h5>
+        <h5>Security scope</h5>
         <ul class="footer-links">
-          <li><span style="color:var(--text-secondary);"><i class="fa-solid fa-lock" style="color:var(--emerald)"></i> Zero Key Custody</span></li>
+          <li><span style="color:var(--text-secondary);"><i class="fa-solid fa-lock" style="color:var(--emerald)"></i> No private-key custody</span></li>
           <li><span style="color:var(--text-secondary);"><i class="fa-solid fa-network-wired" style="color:var(--cyan)"></i> Base Mainnet (8453)</span></li>
-          <li><span style="color:var(--text-secondary);"><i class="fa-solid fa-robot" style="color:var(--violet)"></i> 7 Native MCP Tools</span></li>
-          <li><span style="color:var(--emerald);"><i class="fa-solid fa-circle-check"></i> 155/155 Tests Passing</span></li>
+          <li><span style="color:var(--text-secondary);"><i class="fa-solid fa-robot" style="color:var(--violet)"></i> 7 MCP tools</span></li>
+          <li><span style="color:var(--text-secondary);"><i class="fa-solid fa-eye" style="color:var(--cyan)"></i> Advisory checks only</span></li>
         </ul>
       </div>
     </div>
@@ -3975,7 +3975,6 @@
       document.getElementById('invPrivacyVal').textContent = item.privacy || 'Read-only advisory';
       document.getElementById('invLatency').textContent = isLive ? (item.latency || 'LIVE RESULT') : 'SAMPLE DATA';
 
-      const preview = document.getElementById('rabbyPreviewContainer');
       const topology = document.getElementById('topologyContainer');
       if (topology) topology.style.display = 'block';
 
