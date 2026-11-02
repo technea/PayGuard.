@@ -1,9 +1,9 @@
 {
-  "name": "payguard-paybox-plugin",
+  "name": "payguard",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "PayBox-oriented URL phishing checks, x402 payment-intent policy checks, and privacy-conscious threat-report drafts",
+  "description": "Free, Base-first ecosystem security platform - phishing detection, token security, address screening, and calldata inspection for users and AI agents",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",

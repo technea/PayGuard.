@@ -516,6 +516,25 @@ const URL_SENTINEL_NAME = "payguard_analyze_url";
 const THREAT_REPORT_NAME = "payguard_prepare_threat_report";
 const MAX_URL_INPUT = 4096;
 const PAYBOX_OFFICIAL_DOMAINS = ["paybox.sh", "app.paybox.sh", "docs.paybox.sh", "developer.paybox.sh", "api.paybox.sh"];
+const BASE_OFFICIAL_DOMAINS = Object.freeze([
+  "base.org",
+  "bridge.base.org",
+  "docs.base.org",
+  "developer.base.org",
+  "api.base.org",
+  "learn.base.org",
+  "status.base.org",
+  "ecosystem.base.org",
+  "builder.base.org",
+  "coinbase.com",
+  "wallet.coinbase.com",
+  "basescan.org",
+  "sepolia.basescan.org",
+  "aerodrome.finance",
+  "app.uniswap.org",
+  "virtuals.io",
+  "app.virtuals.io"
+]);
 
 const BIDI_CONTROL_CHARS = /[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/;
 
@@ -831,6 +850,31 @@ async function analyzeUrlSecurity(input, options = {}) {
     }
   }
 
+  const isOfficialBase = BASE_OFFICIAL_DOMAINS.some(d => hostnameMatches(host, d));
+  if (isOfficialBase) {
+    addUrlCheck("verified_official_base_domain", "info", "The hostname is a verified, authentic Base ecosystem domain (" + host + ") recorded in the authoritative Base project registry.", "pass");
+  }
+
+  // Detect impersonation / typosquatting of Base official infrastructure
+  const flattenedHostForBase = host.replace(/[.-]/g, "");
+  const isBaseLookalike = !isOfficialBase && (
+    editDistanceAtMostOne(host, "base.org") <= 1 ||
+    host === "bases.org" ||
+    host === "base-org.xyz" ||
+    host.endsWith(".bases.org") ||
+    (flattenedHostForBase.includes("baseorg") && !host.endsWith(".base.org")) ||
+    (flattenedHostForBase.includes("basescan") && !host.endsWith("basescan.org")) ||
+    ((flattenedHostForBase.includes("basebridge") || flattenedHostForBase.includes("claimbase") || flattenedHostForBase.includes("airdropbase")) && !isOfficialBase)
+  );
+
+  if (isBaseLookalike) {
+    addUrlCheck(
+      "base_ecosystem_impersonation",
+      "high",
+      "The hostname mimics or typosquats official Base infrastructure (such as base.org or basescan.org), but is NOT on the verified official domain registry. This is a common phishing/drainer attack vector. Verify through official channels before connecting.",
+      "fail"
+    );
+  }
   const officialPayboxHost = PAYBOX_OFFICIAL_DOMAINS.includes(host);
   const flattenedHost = host.replace(/[.-]/g, "");
   if (flattenedHost.includes("paybox") && !officialPayboxHost) {
@@ -910,6 +954,10 @@ async function analyzeUrlSecurity(input, options = {}) {
     verdict = "NO_KNOWN_THREAT"; riskLevel = "LOW";
     summary = "The configured reputation lookup found no matching threat record. This does not prove the site is genuine.";
     recommendation = "Verify the domain independently before connecting a wallet, approving a transaction, or entering sensitive information.";
+  } else if (isOfficialBase && !highSignal && mediumCount === 0) {
+    verdict = "EXPECTED_DOMAIN_MATCH"; riskLevel = "LOW";
+    summary = "The URL is an exact match for an authoritative Base ecosystem official domain (" + host + "). No deceptive signals detected.";
+    recommendation = "Verified official Base infrastructure. Standard operational care applies.";
   } else if (trustedMatched) {
     verdict = "EXPECTED_DOMAIN_MATCH"; riskLevel = "LOW";
     summary = "The URL matches a separately supplied trusted domain and no heuristic warning was found. This is not a guarantee that the page or payment request is safe.";
@@ -920,8 +968,21 @@ async function analyzeUrlSecurity(input, options = {}) {
     recommendation = "Verify the exact domain independently. Never enter a seed phrase, private key, or recovery phrase on a website.";
   }
 
+  let statusCategory;
+  if (isOfficialBase && !highSignal && mediumCount === 0) {
+    statusCategory = "VERIFIED OFFICIAL";
+  } else if (reputation.status === "MATCH" || highSignal || isBaseLookalike) {
+    statusCategory = "HIGH RISK";
+  } else if (verdict === "SUSPICIOUS" || verdict === "CAUTION") {
+    statusCategory = "SUSPICIOUS";
+  } else if (verdict === "NO_KNOWN_THREAT" || verdict === "EXPECTED_DOMAIN_MATCH") {
+    statusCategory = "NO KNOWN ISSUES FOUND";
+  } else {
+    statusCategory = "UNVERIFIED";
+  }
+
   return {
-    verdict, riskLevel, hostname: host, displayedUrl: shownUrl, summary, checks, reputation,
+    verdict, riskLevel, statusCategory, isOfficialBaseProject: isOfficialBase, isBaseImpersonation: isBaseLookalike, hostname: host, displayedUrl: shownUrl, summary, checks, reputation,
     recommendation,
     privacy: {
       urlOpened: false,

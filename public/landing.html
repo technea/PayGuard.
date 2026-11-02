@@ -2774,7 +2774,7 @@
             </div>
             <div class="scenario-tabs">
               <button class="scenario-tab active" onclick="loadScenario(1, this)">
-                <i class="fa-solid fa-store"></i> 1. Legitimate PayBox
+                <i class="fa-solid fa-circle-check"></i> 1. Official Base Domain
               </button>
               <button class="scenario-tab" onclick="loadScenario(2, this)">
                 <i class="fa-solid fa-mask"></i> 2. Homoglyph Phishing
@@ -2804,7 +2804,7 @@
 
               <div class="agent-field scanning-laser-box" id="urlLaserContainer">
                 <label>Target Checkout URL</label>
-                <div class="field-value" id="scenarioUrl" style="color:var(--cyan)">https://paybox.sh/api/v1/checkout</div>
+                <div class="field-value" id="scenarioUrl" style="color:var(--cyan)">https://base.org/bridge</div>
                 <div class="laser-line"></div>
               </div>
 
@@ -2910,7 +2910,7 @@
                 <div class="plain-english-box">
                   <strong>What this means for the user:</strong>
                   <span id="scenarioPlainDesc">
-                    The requested checkout domain exactly matches verified PayBox infrastructure. Amount (0.001 USDC) is well within the user's $1.00 safety ceiling. No Cyrillic or lookalike character spoofing detected.
+                    The requested domain exactly matches verified official Base ecosystem infrastructure (base.org). Amount (0.001 USDC) is well within the user's $1.00 safety ceiling. No Cyrillic or lookalike character spoofing detected.
                   </span>
                 </div>
 
@@ -2988,11 +2988,11 @@
                 </div>
                 <div class="submodule-pill">
                   <span class="submodule-title"><i class="fa-solid fa-tags"></i> Suffix & Sibling Spoofs</span>
-                  <span class="submodule-detail">Blocks "paybox.sh.attacker.com"</span>
+                  <span class="submodule-detail">Blocks "base.org.attacker.com"</span>
                 </div>
                 <div class="submodule-pill">
                   <span class="submodule-title"><i class="fa-solid fa-masks-car"></i> Brand Impersonation Rules</span>
-                  <span class="submodule-detail">Flags evilpaybox, fake-paybox</span>
+                  <span class="submodule-detail">Flags bases.org, fake-base, base-airdrop</span>
                 </div>
               </div>
             </div>
@@ -3104,7 +3104,7 @@
           <p>
             The calling AI agent or payment wallet receives an HTTP 402 challenge with payment requirements and forwards the payload to PayGuard.
           </p>
-          <div class="step-mini-code">POST /api/analyze-url<br>{"url": "https://paybox.sh/..."}</div>
+          <div class="step-mini-code">POST /api/analyze-url<br>{"url": "https://bases.org/..."}</div>
         </div>
 
         <!-- Step 2 -->
@@ -3154,7 +3154,7 @@
 
       <div class="lab-box">
         <div class="lab-input-group">
-          <input type="text" id="labUrlInput" class="lab-input" placeholder="Enter target URL (e.g. https://evilpaybox.sh/login/wallet-reset)" value="https://evilpaybox.sh/verify-wallet/reset-token-secret9999">
+          <input type="text" id="labUrlInput" class="lab-input" placeholder="Enter target URL (e.g. https://bases.org/verify-wallet/reset)" value="https://bases.org/verify-wallet/reset-token-secret9999">
           <button class="btn btn-glow" id="labScanBtn" onclick="runLiveScan()">
             <i class="fa-solid fa-magnifying-glass"></i> Scan URL
           </button>
@@ -3162,16 +3162,16 @@
 
         <div class="lab-presets">
           <span class="preset-label">Quick Presets:</span>
-          <button class="preset-chip" onclick="setLabPreset('https://paybox.sh/api/v1/checkout', 'paybox.sh')">
-            <i class="fa-solid fa-check" style="color:var(--emerald)"></i> Legitimate PayBox
+          <button class="preset-chip" onclick="setLabPreset('https://base.org/bridge', 'base.org')">
+            <i class="fa-solid fa-check" style="color:var(--emerald)"></i> Official Base Domain
           </button>
-          <button class="preset-chip chip-bad" onclick="setLabPreset('https://evilpaybox.sh/verify-wallet/reset-token-secret9999', 'paybox.sh')">
+          <button class="preset-chip chip-bad" onclick="setLabPreset('https://bases.org/verify-wallet/reset-token-secret9999', 'base.org')">
             <i class="fa-solid fa-triangle-exclamation" style="color:var(--rose)"></i> Phishing Impersonator
           </button>
-          <button class="preset-chip chip-bad" onclick="setLabPreset('https://xn--pybox-7qa.sh/checkout', 'paybox.sh')">
+          <button class="preset-chip chip-bad" onclick="setLabPreset('https://xn--bse-qla.org/bridge', 'base.org')">
             <i class="fa-solid fa-font" style="color:var(--amber)"></i> Cyrillic Lookalike (pаybox.sh)
           </button>
-          <button class="preset-chip chip-bad" onclick="setLabPreset('https://paybox.sh.attacker-domain.com/login', 'paybox.sh')">
+          <button class="preset-chip chip-bad" onclick="setLabPreset('https://base.org.attacker-domain.com/login', 'base.org')">
             <i class="fa-solid fa-tags" style="color:var(--rose)"></i> Suffix Spoof
           </button>
           <button class="preset-chip" onclick="setLabPreset('https://shop.example/pay?user_key=sk_live_secret99887766', 'shop.example')">
@@ -3225,7 +3225,7 @@
           <div class="feature-icon-box"><i class="fa-solid fa-coins"></i></div>
           <h4>x402 Protocol v2 Native</h4>
           <p>
-            Built from the ground up for the x402 open payment protocol and PayBox Bazaar discovery schemas, enforcing atomic payment compliance on Base Sepolia.
+            Engineered for pre-signing security across the Base blockchain ecosystem, enforcing strict domain verification, token honeypot detection, and calldata inspection.
           </p>
         </div>
 
@@ -3404,7 +3404,7 @@
           <span class="brand-title" style="font-size:1.15rem;">PayGuard</span>
         </div>
         <p style="color:var(--text-dim); line-height:1.65; max-width:320px;">
-          Production-grade, zero-custody security gateway and x402 policy guard for autonomous AI agents on the PayBox Marketplace.
+          Free, zero-custody ecosystem security platform and pre-signing guard for Base ecosystem users and autonomous AI agents.
         </p>
       </div>
 
@@ -3546,7 +3546,7 @@
 
     const SIM_CONTENT = {
       safe: {
-        domain: "paybox.sh",
+        domain: "base.org",
         tokens: ["h","t","t","p","s",":","/","/","p","a","y","b","o","x",".","s","h"],
         amount: "1,000 units (0.001 USDC)",
         network: "eip155:84532",
@@ -3571,7 +3571,7 @@
           },
           3: {
             title: "Homoglyph & Punycode Deobfuscation",
-            body: "The domain 'paybox.sh' is parsed into unicode code points. All characters are ASCII Latin [U+0061..U+007A]. No Cyrillic, Greek, or Arabic lookalike spoofing detected. Domain matches verified PayBox infrastructure.",
+            body: "The domain 'base.org' is parsed into unicode code points. All characters are ASCII Latin [U+0061..U+007A]. No Cyrillic, Greek, or Arabic lookalike spoofing detected. Domain matches verified official Base infrastructure.",
             callout: "Lookalike characters that trick LLM visual embeddings or human eyes are dissected at the binary code point level.",
             chips: ["Punycode: None", "Script: Latin ASCII", "Spoof Risk: 0.0%"],
             time: "18.20 ms",
@@ -3606,9 +3606,9 @@
         stations: {
           1: {
             title: "Agent Intercepts Deceptive Link",
-            body: "The agent received a payment checkout link from an untrusted web page. To human eyes and multimodal LLMs, 'pаybox.sh' appears identical to the official PayBox domain.",
+            body: "The agent received a payment checkout link from an untrusted web page. To human eyes and multimodal LLMs, 'pаybox.sh' appears identical to the official Base domain.",
             callout: "Phishing attackers use lookalikes to trick autonomous bots into sending payments to attacker-owned wallets.",
-            chips: ["Raw String: https://pаybox.sh/pay", "Apparent Target: PayBox"],
+            chips: ["Raw String: https://bаse.org/bridge", "Apparent Target: Base"],
             time: "0.00 ms",
             mem: "3.8 KB",
             status: "pass"
@@ -3652,7 +3652,7 @@
         }
       },
       drain: {
-        domain: "paybox.sh",
+        domain: "base.org",
         tokens: ["h","t","t","p","s",":","/","/","p","a","y","b","o","x",".","s","h"],
         amount: "500,000,000 units ($500.00 USDC)",
         network: "eip155:84532",
@@ -3677,7 +3677,7 @@
           },
           3: {
             title: "Domain Verification: PASS",
-            body: "The domain 'paybox.sh' is verified legitimate with no lookalikes or suffix attacks. The threat is in the payment requirements, not the domain.",
+            body: "The domain 'base.org' is verified legitimate with no lookalikes or suffix attacks. The threat is in the payment requirements, not the domain.",
             callout: "PayGuard doesn't just check domain names; it inspects the cryptographic payment requirements as well.",
             chips: ["Domain: VERIFIED", "Phishing: NO"],
             time: "16.40 ms",
@@ -3856,7 +3856,7 @@
     const SCENARIOS = {
       1: {
         agent: "AutonomousTradingAgent_v2",
-        url: "https://paybox.sh/api/v1/checkout",
+        url: "https://base.org/bridge",
         network: "eip155:84532 · USDC (Base Sepolia)",
         amount: "1,000 atomic units ($0.001 USDC)",
         latency: "38ms",
@@ -3873,7 +3873,7 @@
           color: "var(--emerald)",
           text: "PASS · SAFE TO SIGN",
           risk: "Risk Level: NONE (0/100)",
-          plain: "The requested checkout domain exactly matches verified PayBox infrastructure. Amount (0.001 USDC) is well within the user's $1.00 safety ceiling. No Cyrillic or lookalike character spoofing detected.",
+          plain: "The requested checkout domain exactly matches verified official Base infrastructure (base.org). Amount (0.001 USDC) is well within the user's $1.00 safety ceiling. No Cyrillic or lookalike character spoofing detected.",
           guidance: {
             bg: "rgba(16, 185, 129, 0.1)",
             border: "rgba(16, 185, 129, 0.25)",
@@ -3884,7 +3884,7 @@
       },
       2: {
         agent: "WebResearchAssistant_v4",
-        url: "https://evilpaybox.sh/verify-wallet/reset-token-secret9999",
+        url: "https://bases.org/verify-wallet/reset-token-secret9999",
         network: "eip155:84532 · USDC (Base Sepolia)",
         amount: "1,000 atomic units ($0.001 USDC)",
         latency: "44ms",
@@ -3901,7 +3901,7 @@
           color: "var(--rose)",
           text: "BLOCK · BRAND IMPERSONATION",
           risk: "Risk Level: HIGH (95/100)",
-          plain: "Domain 'evilpaybox.sh' mimics official PayBox branding but does not match expected domain 'paybox.sh'. High likelihood of a phishing credential trap designed to deceive autonomous agents.",
+          plain: "Domain 'bases.org' typosquats official Base infrastructure (base.org). High likelihood of a phishing credential trap designed to deceive autonomous agents.",
           guidance: {
             bg: "rgba(244, 63, 94, 0.1)",
             border: "rgba(244, 63, 94, 0.25)",
@@ -3912,7 +3912,7 @@
       },
       3: {
         agent: "DatasetPurchasingAgent_v1",
-        url: "https://paybox.sh/api/v1/checkout",
+        url: "https://base.org/bridge",
         network: "eip155:84532 · USDC (Base Sepolia)",
         amount: "500,000,000 atomic units ($500.00 USDC)",
         latency: "32ms",
@@ -4043,7 +4043,7 @@
       runLiveScan(expectedDomain);
     }
 
-    async function runLiveScan(expectedDomain = 'paybox.sh') {
+    async function runLiveScan(expectedDomain = 'base.org') {
       const urlInput = document.getElementById('labUrlInput').value.trim();
       const resultBox = document.getElementById('liveLabResult');
       const scanBtn = document.getElementById('labScanBtn');

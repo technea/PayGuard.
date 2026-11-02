@@ -210,6 +210,19 @@ test('Adversarial: Unicode homoglyph and IDN punycode are flagged', async () => 
   assert.ok(['CAUTION', 'SUSPICIOUS'].includes(unicodeResult.verdict));
 });
 
+test("Official Base domain verification correctly identifies official base.org and flags lookalikes", async () => {
+  const official = await analyzeUrlSecurity({ url: "https://base.org" });
+  assert.equal(official.verdict, "EXPECTED_DOMAIN_MATCH");
+  assert.equal(official.statusCategory, "VERIFIED OFFICIAL");
+  assert.equal(official.isOfficialBaseProject, true);
+  assert.ok(official.checks.some(c => c.id === "verified_official_base_domain"));
+
+  const lookalike = await analyzeUrlSecurity({ url: "https://bases.org" });
+  assert.equal(lookalike.verdict, "SUSPICIOUS");
+  assert.equal(lookalike.statusCategory, "HIGH RISK");
+  assert.equal(lookalike.isBaseImpersonation, true);
+  assert.ok(lookalike.checks.some(c => c.id === "base_ecosystem_impersonation"));
+});
 test('Adversarial: sensitive path segments (reset tokens, invite codes) are redacted in reputation query and display', async () => {
   let calledUrl = '';
   const result = await analyzeUrlSecurity(
