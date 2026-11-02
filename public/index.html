@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/assets/css/tailwind.css">
   <style>
     :root {
       --bg-dark: #070a12;
@@ -746,9 +747,14 @@
     }
 
     @media (max-width: 768px) {
-      header { padding: 0.75rem 1rem; }
+      header { padding: 0.75rem 1rem; gap: .65rem; }
       main { padding: 1.25rem 1rem; }
-      .header-pills { display: none; }
+      .top-nav-links { display: none !important; }
+      .header-pills { display: flex; gap: .4rem; }
+      .header-pills > .live-status,
+      .header-pills > .pill-secondary { display: none; }
+      #wallet-connect-btn { padding: .35rem .55rem; font-size: .72rem; }
+      #wallet-network-badge { font-size: .65rem; }
       .tab-btn { min-width: 120px; font-size: 0.8rem; }
     }
 
@@ -789,9 +795,48 @@
       background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.4);
       color: var(--rose);
     }
-</style>
+ 
+    #wallet-network-badge { cursor: pointer; user-select: none; }
+    #wallet-network-badge[role="button"]:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+    }
+    .wallet-connect-status {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 200;
+      width: min(390px, calc(100vw - 2rem));
+      padding: .9rem 1rem;
+      border: 1px solid rgba(0,240,255,.28);
+      border-radius: 12px;
+      background: rgba(5,10,24,.96);
+      color: #cbd5e1;
+      box-shadow: 0 16px 50px rgba(0,0,0,.5);
+      font-size: .82rem;
+      line-height: 1.55;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(10px);
+      transition: opacity .2s ease, transform .2s ease, visibility .2s ease;
+      backdrop-filter: blur(16px);
+    }
+    .wallet-connect-status.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .wallet-connect-status.error { border-color: rgba(244,63,94,.5); }
+    .wallet-connect-status.success { border-color: rgba(16,185,129,.45); }
+    .wallet-connect-status strong { display: block; margin-bottom: .15rem; color: #f8fafc; }
+    @media (prefers-reduced-motion: reduce) {
+      .wallet-connect-status { transition: none; }
+    }
+
+  </style>
 </head>
 <body>
+  <div id="wallet-connect-status" class="wallet-connect-status" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <!-- Header -->
   <header>
@@ -825,7 +870,7 @@
     </div>
   </header>
 
-  <main>
+  <main class="min-h-screen">
     <!-- Navigation Tabs -->
     <nav class="tab-nav">
       <button class="tab-btn active" onclick="switchTab('overview')">
@@ -2651,89 +2696,286 @@
       }).join('');
     }
 
-    // ── Wallet Connection (EIP-1193 / window.ethereum) ─────────────────────
-    const BASE_CHAIN_ID = '0x2105'; // 8453 decimal
+    // ── Wallet Connection (EIP-1193 + EIP-6963 discovery) ──────────────────
+    const BASE_CHAIN_ID = '0x2105'; // Base Mainnet, 8453 decimal
     let _walletConnected = false;
+    let _walletAddress = null;
+    let _walletProvider = null;
+    let _walletProviderLabel = 'Injected wallet';
+    const _announcedWalletProviders = new Map();
+    const _boundWalletProviders = new WeakSet();
+
+    window.addEventListener('eip6963:announceProvider', (event) => {
+      const detail = event && event.detail;
+      if (!detail || !detail.provider || typeof detail.provider.request !== 'function') return;
+      const key = detail.info && (detail.info.rdns || detail.info.uuid);
+      if (key) _announcedWalletProviders.set(key, detail);
+    });
+    // Request wallet announcements without asking for account access.
+    window.dispatchEvent(new Event('eip6963:requestProvider'));
+
+    function listWalletProviders() {
+      const candidates = [];
+      _announcedWalletProviders.forEach((detail) => {
+        candidates.push({
+          provider: detail.provider,
+          name: (detail.info && detail.info.name) || 'Browser wallet',
+          rdns: (detail.info && detail.info.rdns) || ''
+        });
+      });
+      const injected = window.ethereum;
+      if (injected && Array.isArray(injected.providers)) {
+        injected.providers.forEach((provider) => candidates.push({ provider, name: '', rdns: '' }));
+      }
+      if (injected && typeof injected.request === 'function') {
+        candidates.push({ provider: injected, name: '', rdns: '' });
+      }
+      if (window.coinbaseWalletExtension && typeof window.coinbaseWalletExtension.request === 'function') {
+        candidates.push({ provider: window.coinbaseWalletExtension, name: 'Coinbase Wallet', rdns: 'com.coinbase.wallet' });
+      }
+      const seen = new Set();
+      return candidates.filter((item) => {
+        if (!item.provider || seen.has(item.provider)) return false;
+        seen.add(item.provider);
+        return true;
+      });
+    }
+
+    function chooseWalletProvider() {
+      const candidates = listWalletProviders();
+      if (!candidates.length) return null;
+      const rank = (item) => {
+        const identity = (item.name + ' ' + item.rdns).toLowerCase();
+        if (identity.includes('rabby') || item.provider.isRabby) return 0;
+        if (identity.includes('metamask') || item.provider.isMetaMask) return 1;
+        if (identity.includes('coinbase') || item.provider.isCoinbaseWallet) return 2;
+        return 3;
+      };
+      candidates.sort((a, b) => rank(a) - rank(b));
+      return candidates[0];
+    }
+
+    function walletStatus(title, message, kind) {
+      const box = document.getElementById('wallet-connect-status');
+      if (!box) return;
+      box.className = 'wallet-connect-status visible' + (kind ? ' ' + kind : '');
+      box.replaceChildren();
+      const heading = document.createElement('strong');
+      heading.textContent = title;
+      const detail = document.createElement('span');
+      detail.textContent = message;
+      box.append(heading, detail);
+      window.clearTimeout(walletStatus._timer);
+      walletStatus._timer = window.setTimeout(() => {
+        box.classList.remove('visible');
+      }, kind === 'error' ? 9000 : 4800);
+    }
+
+    function walletErrorMessage(error) {
+      const code = error && error.code;
+      const message = String((error && error.message) || '');
+      if (/phish|deceptive|blocklist|unsafe site|security warning|malicious site/i.test(message)) {
+        return {
+          title: 'Wallet security warning',
+          message: 'Your wallet provider has flagged this website origin. The connection was not continued. Do not bypass the warning; verify the exact domain and request a provider review only if you confirm it is a false positive.'
+        };
+      }
+      if (code === 4001) return { title: 'Connection cancelled', message: 'The wallet request was rejected. No transaction or signature was requested.' };
+      if (code === -32002) return { title: 'Wallet request already pending', message: 'Open your wallet extension and finish or reject the pending request first.' };
+      if (code === 4100) return { title: 'Wallet permission denied', message: 'Review this website in your wallet’s connected-sites or permissions settings.' };
+      if (code === 4900 || code === 4901) return { title: 'Wallet disconnected', message: 'The wallet provider is currently disconnected. Unlock it and try again.' };
+      return { title: 'Wallet connection failed', message: message ? message.slice(0, 240) : 'The wallet provider did not complete the connection request.' };
+    }
+
+    function updateWalletNetworkBadge(chainId) {
+      const badge = document.getElementById('wallet-network-badge');
+      if (!badge) return;
+      badge.classList.add('visible');
+      badge.setAttribute('role', 'button');
+      badge.setAttribute('tabindex', '0');
+      badge.setAttribute('aria-label', chainId && chainId.toLowerCase() === BASE_CHAIN_ID ? 'Connected to Base Mainnet' : 'Switch wallet network to Base Mainnet');
+      if (chainId && chainId.toLowerCase() === BASE_CHAIN_ID) {
+        badge.innerHTML = '<i class="fa-solid fa-circle-nodes" aria-hidden="true"></i> Base Mainnet';
+        badge.classList.remove('wrong-network');
+      } else {
+        badge.textContent = '⚠ Switch to Base';
+        badge.classList.add('wrong-network');
+      }
+    }
+
+    async function walletSwitchToBase() {
+      if (!_walletProvider || !_walletConnected) return;
+      try {
+        await _walletProvider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: BASE_CHAIN_ID }]
+        });
+        const chainId = await _walletProvider.request({ method: 'eth_chainId' });
+        updateWalletNetworkBadge(chainId);
+        if (chainId.toLowerCase() === BASE_CHAIN_ID) {
+          walletStatus('Base Mainnet connected', 'Wallet is on Base. PayGuard remains advisory and never signs transactions for you.', 'success');
+        }
+      } catch (error) {
+        if (error && error.code === 4902) {
+          try {
+            await _walletProvider.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: BASE_CHAIN_ID,
+                chainName: 'Base',
+                nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+                rpcUrls: ['https://mainnet.base.org'],
+                blockExplorerUrls: ['https://basescan.org']
+              }]
+            });
+            const chainId = await _walletProvider.request({ method: 'eth_chainId' });
+            updateWalletNetworkBadge(chainId);
+            return;
+          } catch (addError) {
+            const issue = walletErrorMessage(addError);
+            walletStatus(issue.title, issue.message, 'error');
+            return;
+          }
+        }
+        const issue = walletErrorMessage(error);
+        walletStatus(issue.title, issue.message, 'error');
+      }
+    }
+
+    function bindWalletProvider(provider) {
+      if (!provider || typeof provider.on !== 'function' || _boundWalletProviders.has(provider)) return;
+      _boundWalletProviders.add(provider);
+      provider.on('accountsChanged', (accounts) => {
+        if (!Array.isArray(accounts) || accounts.length === 0) {
+          walletDisconnect();
+          walletStatus('Wallet disconnected', 'No account is currently shared with PayGuard.');
+          return;
+        }
+        walletOnConnected(accounts[0], provider);
+      });
+      provider.on('chainChanged', (chainId) => {
+        updateWalletNetworkBadge(String(chainId));
+      });
+      provider.on('disconnect', () => {
+        walletDisconnect();
+        walletStatus('Wallet provider disconnected', 'Reconnect your wallet when its network connection is restored.', 'error');
+      });
+    }
 
     async function walletConnect() {
       if (_walletConnected) {
         walletDisconnect();
+        walletStatus('Disconnected in PayGuard', 'This clears the local app connection. To revoke site permissions, use your wallet’s connected-sites settings.');
         return;
       }
-      if (!window.ethereum) {
-        alert('No wallet detected.\n\nInstall Coinbase Wallet or MetaMask, then reload this page.\n\nPayGuard never requests seed phrases or private keys.');
+      const selected = chooseWalletProvider();
+      if (!selected || !selected.provider) {
+        walletStatus('No injected wallet found', 'Install or enable MetaMask, Rabby, or Coinbase Wallet extension, then reload this page. Mobile wallet in-app browsers may also inject a provider.', 'error');
         return;
       }
+
+      _walletProvider = selected.provider;
+      _walletProviderLabel = selected.name || (selected.provider.isRabby ? 'Rabby' : selected.provider.isCoinbaseWallet ? 'Coinbase Wallet' : selected.provider.isMetaMask ? 'MetaMask' : 'Injected wallet');
+      bindWalletProvider(_walletProvider);
+
+      const button = document.getElementById('wallet-connect-btn');
+      const label = document.getElementById('wallet-btn-label');
+      if (button) button.disabled = true;
+      if (label) label.textContent = 'Connecting…';
+      walletStatus('Opening ' + _walletProviderLabel, 'Approve only the account-connection request inside your wallet. PayGuard will not request a seed phrase, private key, transaction, or signature.');
+
       try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        if (!accounts || accounts.length === 0) return;
-        await walletOnConnected(accounts[0]);
-      } catch (err) {
-        if (err.code === 4001) {
-          // User rejected
-          console.info('Wallet connection rejected by user.');
-        } else {
-          console.error('Wallet connect error:', err);
+        // This is the only account-permission request and runs only after a user click.
+        const accounts = await _walletProvider.request({ method: 'eth_requestAccounts' });
+        if (!Array.isArray(accounts) || accounts.length === 0) {
+          walletDisconnect();
+          walletStatus('No account shared', 'Your wallet did not share an account with this website.', 'error');
+          return;
         }
+        await walletOnConnected(accounts[0], _walletProvider);
+      } catch (error) {
+        const issue = walletErrorMessage(error);
+        walletDisconnect();
+        walletStatus(issue.title, issue.message, 'error');
+        console.warn('PayGuard wallet connection did not complete:', error && error.code ? error.code : 'provider error');
+      } finally {
+        if (button) button.disabled = false;
       }
     }
 
-    async function walletOnConnected(address) {
+    async function walletOnConnected(address, provider) {
+      if (!/^0x[0-9a-fA-F]{40}$/.test(String(address || ''))) {
+        walletDisconnect();
+        walletStatus('Invalid wallet account', 'The selected provider returned an invalid EVM account address.', 'error');
+        return;
+      }
       _walletConnected = true;
+      _walletAddress = address;
+      if (provider) _walletProvider = provider;
+
       const btn = document.getElementById('wallet-connect-btn');
       const label = document.getElementById('wallet-btn-label');
-      const networkBadge = document.getElementById('wallet-network-badge');
-
       const short = address.slice(0, 6) + '…' + address.slice(-4);
-      label.textContent = short;
-      btn.classList.add('connected');
-      btn.title = 'Click to disconnect — ' + address;
-
-      // Check / prompt network switch
-      const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-      if (chainId !== BASE_CHAIN_ID) {
-        networkBadge.textContent = '⚠ Wrong Network';
-        networkBadge.classList.add('visible', 'wrong-network');
-        try {
-          await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: BASE_CHAIN_ID }]
-          });
-          networkBadge.textContent = '⬡ Base Mainnet';
-          networkBadge.classList.remove('wrong-network');
-        } catch (_) { /* user declined switch – leave badge showing wrong-network */ }
-      } else {
-        networkBadge.innerHTML = '<i class="fa-solid fa-circle-nodes"></i> Base Mainnet';
-        networkBadge.classList.add('visible');
-        networkBadge.classList.remove('wrong-network');
+      if (label) label.textContent = short;
+      if (btn) {
+        btn.classList.add('connected');
+        btn.title = _walletProviderLabel + ' connected: ' + address + '. Click to clear the local PayGuard connection.';
       }
 
-      // Auto-populate wallet scanner address field
+      try {
+        const chainId = await _walletProvider.request({ method: 'eth_chainId' });
+        updateWalletNetworkBadge(String(chainId));
+        if (String(chainId).toLowerCase() !== BASE_CHAIN_ID) {
+          walletStatus('Wallet connected · wrong network', 'Your account is connected, but this dashboard targets Base Mainnet. Select “Switch to Base” in the header when you are ready.', 'error');
+        } else {
+          walletStatus(_walletProviderLabel + ' connected', 'Base Mainnet detected. PayGuard is read-only and will never sign a transaction for you.', 'success');
+        }
+      } catch (error) {
+        walletStatus('Wallet connected · network unknown', 'Account access succeeded, but the provider could not confirm the active chain. Treat network-specific results as unavailable.', 'error');
+      }
+
       const scannerInput = document.getElementById('scanner-wallet-address');
-      if (scannerInput && !scannerInput.value.trim()) {
-        scannerInput.value = address;
-      }
+      if (scannerInput) scannerInput.value = address;
     }
 
     function walletDisconnect() {
       _walletConnected = false;
+      _walletAddress = null;
       const btn = document.getElementById('wallet-connect-btn');
       const label = document.getElementById('wallet-btn-label');
       const networkBadge = document.getElementById('wallet-network-badge');
-      label.textContent = 'Connect Wallet';
-      btn.classList.remove('connected');
-      btn.title = '';
-      networkBadge.classList.remove('visible', 'wrong-network');
+      if (label) label.textContent = 'Connect Wallet';
+      if (btn) {
+        btn.classList.remove('connected');
+        btn.title = '';
+      }
+      if (networkBadge) {
+        networkBadge.classList.remove('visible', 'wrong-network');
+        networkBadge.removeAttribute('role');
+        networkBadge.removeAttribute('tabindex');
+      }
     }
 
-    // Listen for account/chain changes
-    if (window.ethereum) {
-      window.ethereum.on('accountsChanged', (accounts) => {
-        if (accounts.length === 0) { walletDisconnect(); }
-        else { walletOnConnected(accounts[0]); }
+    const walletNetworkBadge = document.getElementById('wallet-network-badge');
+    if (walletNetworkBadge) {
+      walletNetworkBadge.addEventListener('click', walletSwitchToBase);
+      walletNetworkBadge.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          walletSwitchToBase();
+        }
       });
-      window.ethereum.on('chainChanged', () => { window.location.reload(); });
     }
+
+    // Provider discovery and event listeners do not request wallet access.
+    window.setTimeout(() => {
+      const selected = chooseWalletProvider();
+      if (selected && selected.provider) {
+        _walletProvider = selected.provider;
+        _walletProviderLabel = selected.name || (selected.provider.isRabby ? 'Rabby' : selected.provider.isCoinbaseWallet ? 'Coinbase Wallet' : selected.provider.isMetaMask ? 'MetaMask' : 'Injected wallet');
+        bindWalletProvider(_walletProvider);
+      }
+    }, 250);
 
 </script>
 </body>
