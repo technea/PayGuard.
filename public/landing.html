@@ -3945,45 +3945,71 @@
     };
 
     function switchInvestigationPillar(pillarKey) {
+      if (!PILLAR_DATA[pillarKey]) return;
       currentPillar = pillarKey;
-      currentScenarioId = currentPillar === 'url' ? 2 : 1;
-
-      document.querySelectorAll('.inv-tab-btn').forEach(function(b) { b.classList.remove('active'); });
-      if (pillarKey === 'url') document.getElementById('tabBtnUrl').classList.add('active');
-      if (pillarKey === 'token') document.getElementById('tabBtnToken').classList.add('active');
-      if (pillarKey === 'wallet') document.getElementById('tabBtnWallet').classList.add('active');
-
+      currentScenarioId = pillarKey === 'url' ? 1 : (pillarKey === 'wallet' ? 3 : 1);
+      document.querySelectorAll('.inv-tab-btn').forEach(function(button) {
+        button.classList.remove('active');
+        button.setAttribute('aria-pressed', 'false');
+      });
+      const activeButton = document.getElementById(pillarKey === 'url' ? 'tabBtnUrl' : pillarKey === 'token' ? 'tabBtnToken' : 'tabBtnWallet');
+      if (activeButton) {
+        activeButton.classList.add('active');
+        activeButton.setAttribute('aria-pressed', 'true');
+      }
+      const scenario = PILLAR_DATA[pillarKey].scenarios.find(function(item) { return item.id === currentScenarioId; });
+      const primary = document.getElementById('cockpitTargetInput');
+      const context = document.getElementById('scannerTargetInput');
+      if (primary && scenario) primary.value = scenario.targetVal || '';
+      if (context) context.value = scenario && scenario.contractAddress ? scenario.contractAddress : '0x833589fCD6eDb6E08f4c7C32d4F71b54bdA02913';
+      updateScannerControls();
       renderScenarios();
       renderInvestigationView();
     }
 
     function renderScenarios() {
-      const p = PILLAR_DATA[currentPillar];
+      const pillar = PILLAR_DATA[currentPillar];
       const bar = document.getElementById('scenarioBarContainer');
-      const pillsHtml = p.scenarios.map(function(s) {
-        const isActive = s.id === currentScenarioId ? 'active' : '';
-        return '<button class="scenario-pill ' + isActive + '" onclick="selectScenario(' + s.id + ')">' +
-          '<i class="fa-solid ' + s.icon + '" style="color:' + s.iconColor + '"></i> ' + s.label +
+      if (!bar) return;
+      const pillsHtml = pillar.scenarios.map(function(scenario) {
+        const isActive = scenario.id === currentScenarioId ? 'active' : '';
+        return '<button type="button" class="scenario-pill ' + isActive + '" onclick="selectScenario(' + scenario.id + ')">' +
+          '<i class="fa-solid ' + scenario.icon + '" aria-hidden="true" style="color:' + scenario.iconColor + '"></i> ' + scenario.label +
         '</button>';
       }).join('');
-
-      bar.innerHTML = '<span class="inv-scenario-label"><i class="fa-solid fa-crosshairs"></i> Examples (demo):</span>' + pillsHtml;
+      bar.innerHTML = '<span class="inv-scenario-label">Examples (demo):</span>' + pillsHtml;
     }
 
     function selectScenario(id) {
       currentScenarioId = id;
-      const s = PILLAR_DATA[currentPillar].scenarios.find(function(x) { return x.id === id; });
-      if (s && s.targetVal) {
-        document.getElementById('cockpitTargetInput').value = s.targetVal;
-      }
+      const scenario = PILLAR_DATA[currentPillar].scenarios.find(function(item) { return item.id === id; });
+      const primary = document.getElementById('cockpitTargetInput');
+      const context = document.getElementById('scannerTargetInput');
+      if (scenario && primary) primary.value = scenario.targetVal || '';
+      if (context) context.value = scenario && scenario.contractAddress ? scenario.contractAddress : '0x833589fCD6eDb6E08f4c7C32d4F71b54bdA02913';
+      updateScannerControls();
       renderScenarios();
       renderInvestigationView();
+    }
+
+    function updateScannerControls() {
+      const input = document.getElementById('cockpitTargetInput');
+      const row = document.getElementById('scannerTargetRow');
+      const label = document.getElementById('scanBtnLabel');
+      if (!input) return;
+      const value = input.value.trim();
+      const isCalldata = currentPillar === 'wallet' && /^0x[0-9a-fA-F]{10,}$/.test(value) && !/^0x[0-9a-fA-F]{40}$/.test(value);
+      if (row) row.hidden = !isCalldata;
+      if (label) label.textContent = currentPillar === 'url' ? 'Check website' : currentPillar === 'token' ? 'Check token' : isCalldata ? 'Inspect calldata' : 'Scan wallet';
+      input.placeholder = currentPillar === 'url' ? 'Paste a website URL or hostname...' :
+        currentPillar === 'token' ? 'Paste a Base token contract address...' :
+        'Paste a Base wallet address or transaction calldata...';
     }
 
     function renderInvestigationView(customData) {
       const item = customData || PILLAR_DATA[currentPillar].data[currentScenarioId];
       if (!item) return;
-
+      const isLive = item.isLiveResult === true;
       activeIncidentReport = {
         reportId: 'payguard-inc-8453-' + Date.now().toString(36),
         timestamp: new Date().toISOString(),
@@ -4004,64 +4030,83 @@
 
       document.getElementById('invTargetType').textContent = item.targetType;
       document.getElementById('invTargetText').textContent = item.targetText;
-      document.getElementById('invNetworkVal').textContent = item.network;
-      document.getElementById('invPrivacyVal').textContent = item.privacy;
-      document.getElementById('invLatency').textContent = item.isLiveResult ? (item.latency || 'LIVE RESULT') : 'SAMPLE DATA';
+      document.getElementById('invNetworkVal').textContent = item.network || 'Base Mainnet (8453)';
+      document.getElementById('invPrivacyVal').textContent = item.privacy || 'Read-only advisory';
+      document.getElementById('invLatency').textContent = isLive ? (item.latency || 'LIVE RESULT') : 'SAMPLE DATA';
 
-      // Column 1: Connected Entities or Rabby Preview
-      const rabbyContainer = document.getElementById('rabbyPreviewContainer');
-      const topoContainer = document.getElementById('topologyContainer');
+      const preview = document.getElementById('rabbyPreviewContainer');
+      const topology = document.getElementById('topologyContainer');
+      if (preview) preview.style.display = 'none';
+      if (topology) topology.style.display = 'block';
 
-      if (item.showRabby && item.rabby) {
-        rabbyContainer.style.display = 'block';
-        topoContainer.style.display = 'none';
-        document.getElementById('rabbyMethod').textContent = item.rabby.method;
-        document.getElementById('rabbySpender').textContent = item.rabby.spender;
-        document.getElementById('rabbyAllowance').textContent = item.rabby.allowance;
-        document.getElementById('rabbyImpact').textContent = item.rabby.impact;
-        const rCard = document.getElementById('rabbySimCard');
-        rCard.className = 'rabby-sim-preview ' + (item.rabby.safe ? 'safe' : '');
-      } else {
-        rabbyContainer.style.display = 'none';
-        topoContainer.style.display = 'block';
-        const topoNodesEl = document.getElementById('invTopologyNodes');
-        topoNodesEl.innerHTML = item.topology.map(function(t) {
-          return '<div class="topology-row">' +
-            '<span class="topology-node-name"><span class="pip-indicator ' + t.pip + '"></span> ' + t.name + '</span>' +
-            '<span style="color:var(--text-primary); font-weight:600;">' + t.status + '</span>' +
-          '</div>';
-        }).join('');
-      }
+      const topologyNodes = document.getElementById('invTopologyNodes');
+      topologyNodes.replaceChildren();
+      (item.topology || []).forEach(function(node) {
+        const row = document.createElement('div');
+        row.className = 'topology-row';
+        const name = document.createElement('span');
+        name.className = 'topology-node-name';
+        const pip = document.createElement('span');
+        pip.className = 'pip-indicator ' + (node.pip || 'pip-amber');
+        name.append(pip, document.createTextNode(' ' + String(node.name || 'Evidence source')));
+        const status = document.createElement('span');
+        status.style.color = 'var(--text-primary)';
+        status.style.fontWeight = '600';
+        status.textContent = String(node.status || 'Unknown');
+        row.append(name, status);
+        topologyNodes.append(row);
+      });
 
-      // Column 2: The 8-Layer Analysis Matrix (Decloak Benchmark)
-      const matrixEl = document.getElementById('invLayerMatrix');
-      matrixEl.innerHTML = item.layers.map(function(l) {
-        return '<div class="decloak-layer-row">' +
-          '<div class="layer-left">' +
-            '<span class="layer-index">' + l.idx + '</span>' +
-            '<div class="layer-text-wrap">' +
-              '<div class="layer-name">' + l.name + '</div>' +
-              '<div class="layer-telemetry">' + l.tele + '</div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="layer-right">' +
-            '<span class="layer-latency">' + l.latency + '</span>' +
-            '<span class="layer-pill ' + l.pillCls + '">' + l.pill + '</span>' +
-          '</div>' +
-        '</div>';
-      }).join('');
+      const matrix = document.getElementById('invLayerMatrix');
+      matrix.replaceChildren();
+      (item.layers || []).forEach(function(layer) {
+        const row = document.createElement('div');
+        row.className = 'decloak-layer-row';
+        const left = document.createElement('div');
+        left.className = 'layer-left';
+        const index = document.createElement('span');
+        index.className = 'layer-index';
+        index.textContent = String(layer.idx || '');
+        const wrap = document.createElement('div');
+        wrap.className = 'layer-text-wrap';
+        const name = document.createElement('div');
+        name.className = 'layer-name';
+        name.textContent = String(layer.name || 'Security check');
+        const telemetry = document.createElement('div');
+        telemetry.className = 'layer-telemetry';
+        telemetry.textContent = String(layer.tele || '');
+        wrap.append(name, telemetry);
+        left.append(index, wrap);
+        const right = document.createElement('div');
+        right.className = 'layer-right';
+        const latency = document.createElement('span');
+        latency.className = 'layer-latency';
+        latency.textContent = isLive ? String(layer.latency || '—') : 'DEMO';
+        const pill = document.createElement('span');
+        pill.className = 'layer-pill ' + String(layer.pillCls || 'unverified');
+        pill.textContent = String(layer.pill || 'NOT CHECKED');
+        right.append(latency, pill);
+        row.append(left, right);
+        matrix.append(row);
+      });
 
-      // Column 3: Advisory Security Verdict
-      const vCard = document.getElementById('invVerdictCard');
-      vCard.className = 'verdict-card ' + item.verdictCls;
+      const verdictCard = document.getElementById('invVerdictCard');
+      verdictCard.className = 'verdict-card ' + item.verdictCls;
       document.getElementById('invVerdictCategory').textContent = item.verdictCategory;
-      document.getElementById('invVerdictHeadline').innerHTML = '<i class="fa-solid ' + item.verdictIcon + '"></i> ' + item.verdictHeadline;
+      const headline = document.getElementById('invVerdictHeadline');
+      headline.replaceChildren();
+      const icon = document.createElement('i');
+      icon.className = 'fa-solid ' + String(item.verdictIcon || 'fa-circle-info');
+      icon.setAttribute('aria-hidden', 'true');
+      const headlineText = document.createElement('span');
+      headlineText.id = 'invVerdictText';
+      headlineText.textContent = String(item.verdictHeadline || 'UNVERIFIED');
+      headline.append(icon, headlineText);
       document.getElementById('invVerdictScore').textContent = item.verdictScore;
       document.getElementById('invVerdictSummary').textContent = item.verdictSummary;
 
-      // Guidance Box
-      const gBox = document.getElementById('invGuidanceBox');
-      gBox.className = 'guidance-box ' + item.guidanceCls;
+      const guidance = document.getElementById('invGuidanceBox');
+      guidance.className = 'guidance-box ' + item.guidanceCls;
       document.getElementById('invGuidanceText').textContent = item.guidanceText;
     }
 
@@ -4327,7 +4372,9 @@
       targets.forEach(function(target) { observer.observe(target); });
     })();
 
-    // Initialize investigation center on page load
+    const cockpitTargetInput = document.getElementById('cockpitTargetInput');
+    if (cockpitTargetInput) cockpitTargetInput.addEventListener('input', updateScannerControls);
+    updateScannerControls();
     renderScenarios();
     renderInvestigationView();
   </script>
