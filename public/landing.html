@@ -3128,12 +3128,12 @@
             topology: [
               { name: "Inbound Client Request", pip: "pip-green", status: "Airgapped In-Memory" },
               { name: "Subdomain Hierarchy Parser", pip: "pip-rose", status: "Suffix Spoofing Detected" },
-              { name: "Authoritative Base Registry", pip: "pip-rose", status: "Target: attacker-domain.com" },
+              { name: "Authoritative Base Registry", pip: "pip-rose", status: "Target: attacker.invalid" },
               { name: "SSRF Airgap Isolation", pip: "pip-green", status: "0 Outbound Sockets" }
             ],
             layers: [
-              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "SUFFIX SPOOF", pillCls: "threat", latency: "14ms", tele: "base.org placed as subdomain of attacker-domain.com" },
-              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "UNVERIFIED", pillCls: "threat", latency: "19ms", tele: "Registered domain is attacker-domain.com" },
+              { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: "SUFFIX SPOOF", pillCls: "threat", latency: "14ms", tele: "base.org placed as subdomain of attacker.invalid" },
+              { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: "UNVERIFIED", pillCls: "threat", latency: "19ms", tele: "Registered domain is attacker.invalid" },
               { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: "CLEAN", pillCls: "pass", latency: "23ms", tele: "Path sanitized" },
               { idx: "L04", name: "Contract Bytecode & Honeypot Detector", desc: "GoPlus Security Engine", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Contract bytecode check not applicable" },
               { idx: "L05", name: "Predatory Tax & Siphon Simulator", desc: "Dynamic Fee Hooks", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Swap tax simulation not applicable" },
@@ -3146,7 +3146,7 @@
             verdictCategory: "SUFFIX_SPOOF_PHISHING",
             verdictHeadline: "SUFFIX SPOOF DETECTED",
             verdictScore: "RISK: 92/100",
-            verdictSummary: "Attacker places 'base.org' as a subdomain label before an external root domain. Real destination is attacker-domain.com.",
+            verdictSummary: "Attacker places 'base.org' as a subdomain label before an external root domain. Real destination is attacker.invalid.",
             guidanceCls: "guidance-threat",
             guidanceText: "DO NOT PROCEED. Phishing deception misrepresenting itself as official Base infrastructure."
           },
