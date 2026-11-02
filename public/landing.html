@@ -2405,6 +2405,154 @@
       .nav-link::after, .mobile-nav-link, .mobile-menu-toggle { transition: none !important; }
     }
 
+
+    .video-card-container { width: min(100%, 960px); margin: 1.5rem auto 0; background: #020611; border-color: rgba(148,163,184,.16); box-shadow: 0 22px 70px rgba(0,0,0,.32); }
+    .video-frame-wrapper { width: 100%; min-height: 180px; background: radial-gradient(ellipse at 50% 48%, rgba(0,240,255,.09), transparent 43%), linear-gradient(145deg, #050b1a, #02050d 68%); aspect-ratio: 16 / 9; }
+    .video-frame-wrapper::before { background: linear-gradient(135deg, rgba(0,212,255,.035), transparent 60%), linear-gradient(rgba(148,163,184,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.045) 1px, transparent 1px); background-size: auto, 32px 32px, 32px 32px; mask-image: radial-gradient(ellipse at center, black 12%, transparent 82%); }
+    .video-hold-frame { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; }
+    .video-hold-orbit { position: absolute; width: clamp(90px, 16vw, 170px); aspect-ratio: 1; border: 1px solid rgba(0,240,255,.22); border-radius: 50%; box-shadow: 0 0 38px rgba(0,240,255,.06), inset 0 0 28px rgba(0,240,255,.04); }
+    .video-hold-orbit-one { animation: pg-video-orbit 18s linear infinite; }
+    .video-hold-orbit-two { width: clamp(130px, 23vw, 250px); border-style: dashed; border-color: rgba(129,140,248,.24); animation: pg-video-orbit 30s linear infinite reverse; }
+    .video-hold-core { position: relative; z-index: 1; width: 54px; height: 54px; display: grid; place-items: center; border: 1px solid rgba(0,240,255,.4); border-radius: 16px; background: rgba(0,240,255,.08); color: #67e8f9; font-size: 1.25rem; box-shadow: 0 0 34px rgba(0,240,255,.12); }
+    .pg-video-player { position: absolute; inset: 0; width: 100%; height: 100%; background: #020611; object-fit: contain; }
+    .pg-video-player:not([hidden]) { display: block; z-index: 2; }
+    @keyframes pg-video-orbit { to { transform: rotate(360deg); } }
+    .scanner-context-field { display: grid; grid-template-columns: minmax(0,1fr); gap: .4rem; margin: .75rem 0 0; }
+    .scanner-context-field[hidden] { display: none; }
+    .scanner-context-field label { color: var(--text-secondary); font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+    .scanner-context-field small { color: var(--text-dim); font-size: .68rem; line-height: 1.45; }
+    .scanner-context-input { width: 100%; min-width: 0; min-height: 44px; padding: .7rem .85rem; border: 1px solid var(--border-medium); border-radius: 7px; outline: none; background: var(--bg-terminal); color: #f8fafc; font: .8rem var(--font-mono); }
+    .scanner-context-input:focus-visible { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,240,255,.1); }
+    .inv-container-card, .inv-topbar, .inv-tab-nav, .decloak-scanner-box, .inv-workflow-track, .inv-footer-notice { min-width: 0; }
+    .inv-tabs-group, .inv-panel, .layer-text-wrap { min-width: 0; }
+    .inv-tab-btn { min-height: 42px; }
+    .scanner-target-input { min-width: 0; width: 100%; }
+    .scanner-actions-group { min-width: 0; flex-wrap: wrap; }
+    .scanner-actions-group .btn { flex: 1 1 150px; min-height: 44px; }
+    .inv-panel-header { gap: .65rem; flex-wrap: wrap; }
+    .entity-val, .rabby-sim-val, .layer-telemetry, .verdict-summary-text, .guidance-box { overflow-wrap: anywhere; word-break: break-word; }
+    .topology-row { gap: .35rem .8rem; flex-wrap: wrap; }
+    .topology-row > :last-child { margin-left: auto; overflow-wrap: anywhere; text-align: right; }
+    .decloak-layer-row { min-width: 0; }
+    .pillar-card, .reality-box, .agent-card, .cta-banner { min-width: 0; }
+    .pillar-point span { min-width: 0; overflow-wrap: anywhere; }
+    html { scroll-padding-top: 84px; }
+    section[id] { scroll-margin-top: 88px; }
+    @media (max-width: 960px) {
+      .inv-tab-nav { align-items: stretch; }
+      .inv-tabs-group { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); width: 100%; }
+      .inv-tab-btn { justify-content: flex-start; text-align: left; }
+      .inv-run-action { width: 100%; }
+      .inv-run-action .btn { min-height: 42px; }
+      .inv-stage-grid { grid-template-columns: minmax(0,1fr); }
+      .inv-panel { padding: 1.15rem; }
+      .pillars-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .realities-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .realities-grid .reality-box:last-child { grid-column: 1 / -1; }
+    }
+    @media (max-width: 640px) {
+      .container { padding-left: 1rem; padding-right: 1rem; }
+      .hero-section { padding: 2.2rem 0 1.8rem; }
+      .hero-status-pill { max-width: 100%; display: inline-flex; flex-wrap: wrap; justify-content: center; gap: .4rem .55rem; padding: .45rem .7rem; font-size: .62rem; line-height: 1.45; }
+      .hero-title { max-width: 100%; font-size: clamp(2.15rem, 10vw, 3rem); line-height: 1.08; letter-spacing: -.045em; margin-bottom: 1rem; }
+      .capability-sequence-box { width: 100%; min-height: 0; padding: .75rem .85rem; font-size: .76rem; gap: .45rem; }
+      .seq-prompt-wrapper { flex-wrap: wrap; gap: .35rem; }
+      .seq-text-container { min-width: 0; max-width: 100%; }
+      .seq-module-tag { white-space: normal; font-size: .6rem; }
+      .hero-desc { max-width: 38rem; font-size: .96rem; line-height: 1.6; margin-bottom: 1.4rem; }
+      .pg-architecture-visual { margin: 1.25rem auto 1rem; padding: .85rem; gap: .9rem; border-radius: 14px; }
+      .pg-visual-title { font-size: 1.55rem; }
+      .pg-visual-description { font-size: .82rem; }
+      .pg-network-stage { min-height: 290px; }
+      .pg-map-node-one { top: 9%; left: 1.5%; }
+      .pg-map-node-two { top: 9%; right: 1.5%; }
+      .pg-map-node-three { bottom: 16%; left: 1.5%; }
+      .pg-map-node-four { bottom: 16%; right: 1.5%; }
+      .pg-map-core { width: 86px; height: 86px; top: 48%; }
+      .pg-map-node { min-width: 100px; max-width: 43%; }
+      .pg-map-node strong { font-size: .47rem; }
+      .pg-map-node small { font-size: .41rem; }
+      .pg-map-caption { left: .45rem; right: .45rem; font-size: .42rem; }
+      .pg-visual-footnote { font-size: .57rem; }
+      .hero-cta-group { display: grid; grid-template-columns: 1fr; gap: .65rem; margin: 1.4rem 0; }
+      .hero-cta-group .btn { width: 100%; min-height: 46px; }
+      .guarantees-bar { justify-content: flex-start; padding: .85rem; gap: .65rem 1rem; font-size: .69rem; }
+      .guarantee-item { font-size: .69rem; }
+      .section-header { margin-bottom: 1.65rem; padding: 0 .1rem; }
+      .section-title { font-size: clamp(1.65rem, 7.5vw, 2.2rem); line-height: 1.14; }
+      .section-subtitle { font-size: .9rem; line-height: 1.55; }
+      #investigation-center, #security-pillars, #agent-security, #web3-realities, #faq, #explainer-video { padding-top: 2.25rem; padding-bottom: 2.5rem; }
+      .inv-container-card { border-radius: 9px; }
+      .inv-topbar { padding: .75rem .85rem; }
+      .inv-meta-left { font-size: .65rem; gap: .45rem; }
+      .inv-status-chip { font-size: .6rem; white-space: normal; }
+      .inv-tab-nav, .decloak-scanner-box { padding: .8rem; }
+      .inv-tabs-group { grid-template-columns: 1fr; }
+      .inv-tab-btn { font-size: .76rem; padding: .65rem .75rem; }
+      .scanner-input-row { display: flex; flex-direction: column; gap: .65rem; }
+      .scanner-target-input { min-height: 46px; font-size: .75rem; padding: .7rem .8rem; }
+      .scanner-actions-group { display: grid; grid-template-columns: 1fr; gap: .55rem; }
+      .scanner-actions-group .btn { width: 100%; }
+      .inv-scenario-bar { align-items: stretch; }
+      .inv-scenario-label { width: 100%; }
+      .scenario-pill { min-height: 38px; font-size: .69rem; }
+      .inv-workflow-track { grid-template-columns: 1fr 1fr; gap: .4rem; padding: .7rem .8rem; }
+      .workflow-step { padding: .35rem .25rem; font-size: .62rem; line-height: 1.35; }
+      .step-num { flex: 0 0 19px; }
+      .inv-panel { padding: .95rem .85rem; }
+      .inv-panel-header { align-items: flex-start; margin-bottom: .8rem; }
+      .inv-panel-title { font-size: .67rem; line-height: 1.45; }
+      .inv-panel-badge { font-size: .6rem; }
+      .entity-val { font-size: .72rem; }
+      .topology-box { font-size: .65rem; }
+      .topology-row { align-items: flex-start; flex-direction: column; gap: .15rem; }
+      .topology-row > :last-child { margin-left: 1rem; text-align: left; }
+      .decloak-layer-row { padding: .65rem .55rem; gap: .45rem; }
+      .layer-index { flex: 0 0 auto; }
+      .layer-pill, .layer-latency { font-size: .58rem; }
+      .layer-telemetry { font-size: .68rem; line-height: 1.45; }
+      .verdict-card { padding: .85rem; }
+      .verdict-headline { font-size: .92rem; }
+      .verdict-score-badge { font-size: .63rem; }
+      .guidance-box { padding: .8rem; font-size: .75rem; }
+      .inv-footer-notice { flex-direction: column; align-items: flex-start; gap: .55rem; padding: .8rem; font-size: .67rem; line-height: 1.5; }
+      .pillars-grid, .realities-grid { grid-template-columns: 1fr; gap: .9rem; }
+      .realities-grid .reality-box:last-child { grid-column: auto; }
+      .pillar-card, .reality-box { padding: 1.15rem; }
+      .pillar-title { font-size: 1.1rem; }
+      .pillar-desc, .reality-body { font-size: .83rem; }
+      .agent-card { padding: 1.15rem; gap: 1.1rem; }
+      .agent-card h3 { font-size: 1.35rem !important; }
+      .agent-card p { font-size: .85rem !important; }
+      .mcp-tag-pill { max-width: 100%; white-space: normal; font-size: .65rem; }
+      .video-card-container { margin-top: 1rem; border-radius: 9px; }
+      .video-frame-wrapper { min-height: 160px; }
+      .cta-banner { margin: 1.4rem 0 2.6rem; padding: 1.8rem 1rem; }
+      .cta-title { font-size: 1.65rem; }
+      .cta-desc { font-size: .9rem; }
+      .site-footer { padding: 2.6rem 0 1.4rem; }
+      .footer-grid { padding: 0 1rem; gap: 1.65rem; margin-bottom: 1.8rem; }
+      .footer-bottom { padding: 1.2rem 1rem 0; flex-direction: column; align-items: flex-start; font-size: .63rem; }
+      .report-modal-backdrop { padding: .7rem; }
+      .report-modal-card { max-height: 92vh; }
+      .report-modal-header, .report-modal-footer { padding: .75rem .85rem; gap: .55rem; }
+      .report-modal-footer { flex-wrap: wrap; }
+      .report-modal-body { padding: .85rem; font-size: .65rem; overflow-wrap: anywhere; }
+    }
+    @media (max-width: 380px) {
+      .nav-container { padding-left: .65rem; padding-right: .65rem; }
+      .brand-title { font-size: 1rem; }
+      .brand-badge { display: none; }
+      .mobile-menu-toggle { min-width: 70px; }
+      .container { padding-left: .75rem; padding-right: .75rem; }
+      .pg-map-node { min-width: 90px; }
+      .pg-map-node strong { font-size: .43rem; }
+      .pg-map-node small { font-size: .38rem; }
+      .pg-map-core { width: 78px; height: 78px; }
+      .dune-ribbon-content { padding-left: .75rem; padding-right: .75rem; }
+    }
+    @media (prefers-reduced-motion: reduce) { .video-hold-orbit { animation: none !important; } }
+
   </style>
 </head>
 <body>
@@ -2500,7 +2648,6 @@
       <div class="dune-ribbon-item"><i class="fa-solid fa-coins emerald-val"></i> <span>TOKEN AUDIT:</span> <strong>GoPlus API on Base (8453)</strong></div>
       <div class="dune-ribbon-item"><i class="fa-solid fa-lock cyan-val"></i> <span>CUSTODY:</span> <strong>0 Private Keys (Read-Only Advisory)</strong></div>
       <div class="dune-ribbon-item"><i class="fa-solid fa-robot emerald-val"></i> <span>AI FLEET:</span> <strong>7 Native MCP Tools</strong></div>
-      <div class="dune-ribbon-item"><i class="fa-solid fa-circle-check cyan-val"></i> <span>TEST SUITE:</span> <strong>155 Automated Tests Passing</strong></div>
     </div>
   </aside>
 
@@ -2510,11 +2657,11 @@
       <div class="container">
         <div class="hero-status-pill">
           <span class="sec-dot"></span>
-          <span>SYSTEM READY</span>
+          <span>BASE MAINNET SECURITY</span>
           <span style="color:var(--border-medium)">|</span>
           <span>BASE MAINNET (8453)</span>
           <span style="color:var(--border-medium)">|</span>
-          <span>NON-CUSTODIAL PRE-SIGNING ADVISORY</span>
+          <span>READ-ONLY SECURITY CHECKS</span>
         </div>
 
         <h1 class="hero-title">
@@ -2534,18 +2681,18 @@
         </div>
 
         <p class="hero-desc">
-          The deterministic, non-custodial security platform protecting Web3 traders and autonomous AI agents across the Base ecosystem. Exposing phishing lookalikes, honeypot contracts, and wallet risks before you authorize a signature.
+          Check websites, Base tokens, wallet addresses and transaction data before you connect or sign.
         </p>
 
         <div class="pg-architecture-visual relative mx-auto grid w-full max-w-5xl grid-cols-1 items-center gap-5 overflow-hidden rounded-2xl border border-cyan-300/20 bg-slate-950/75 p-4 text-left shadow-2xl md:grid-cols-[0.88fr_1.12fr] md:p-6" aria-label="Illustrative PayGuard security architecture">
           <div class="pg-visual-copy relative z-10">
             <span class="pg-visual-kicker">BASE SECURITY PIPELINE <span> / 8453</span></span>
-            <h2 class="pg-visual-title">Signals before signatures.</h2>
-            <p class="pg-visual-description">A layered inspection path for websites, token contracts and transaction calldata. Each result is tied to the checks that actually ran.</p>
+            <h2 class="pg-visual-title">Check before you connect.</h2>
+            <p class="pg-visual-description">One place to check a website, token contract, wallet or transaction.</p>
             <div class="pg-flow-list">
-              <div class="pg-flow-item"><span class="pg-flow-index" aria-hidden="true">01</span><span><strong>Identify</strong><small>Normalize domains, addresses and payloads</small></span><i class="fa-solid fa-arrow-right"></i></div>
-              <div class="pg-flow-item"><span class="pg-flow-index" aria-hidden="true">02</span><span><strong>Cross-check</strong><small>Compare canonical references and threat signals</small></span><i class="fa-solid fa-arrow-right"></i></div>
-              <div class="pg-flow-item"><span class="pg-flow-index" aria-hidden="true">03</span><span><strong>Explain</strong><small>Return evidence, coverage and an advisory verdict</small></span><i class="fa-solid fa-arrow-right"></i></div>
+              <div class="pg-flow-item"><span class="pg-flow-index" aria-hidden="true">01</span><span><strong>Parse</strong><small>Read the URL, address or transaction data</small></span><i class="fa-solid fa-arrow-right"></i></div>
+              <div class="pg-flow-item"><span class="pg-flow-index" aria-hidden="true">02</span><span><strong>Check</strong><small>Compare registry and security signals</small></span><i class="fa-solid fa-arrow-right"></i></div>
+              <div class="pg-flow-item"><span class="pg-flow-index" aria-hidden="true">03</span><span><strong>Review</strong><small>See findings and what was not checked</small></span><i class="fa-solid fa-arrow-right"></i></div>
             </div>
           </div>
           <div class="pg-network-stage relative min-h-[250px] overflow-hidden rounded-xl border border-white/10 bg-slate-900/40 md:min-h-[300px]" aria-hidden="true">
@@ -2583,23 +2730,17 @@
 
         <div class="hero-cta-group">
           <a href="#investigation-center" class="btn btn-cyan">
-            <i class="fa-solid fa-magnifying-glass-chart"></i> Explore 8-Layer Cockpit
+            <i class="fa-solid fa-magnifying-glass-chart"></i> Check a target
           </a>
           <a href="/dashboard" class="btn btn-surface">
             <i class="fa-solid fa-gauge-high"></i> Open Dashboard
-          </a>
-          <a href="/whitepaper" class="btn btn-surface">
-            <i class="fa-solid fa-file-contract"></i> Read Whitepaper
-          </a>
-          <a href="/docs" class="btn btn-surface">
-            <i class="fa-solid fa-book"></i> Technical Docs
           </a>
         </div>
 
         <div class="guarantees-bar">
           <div class="guarantee-item"><i class="fa-solid fa-lock"></i> Zero Private Key Custody</div>
-          <div class="guarantee-item"><i class="fa-solid fa-shield-halved"></i> In-Memory URL Lexical Parser</div>
-          <div class="guarantee-item"><i class="fa-solid fa-circle-check"></i> 17 Curated Base Official Domains</div>
+          <div class="guarantee-item"><i class="fa-solid fa-shield-halved"></i> URL target is never opened</div>
+          <div class="guarantee-item"><i class="fa-solid fa-circle-check"></i> 17 curated Base domains</div>
           <div class="guarantee-item"><i class="fa-solid fa-coins"></i> GoPlus Token &amp; Tax Screening</div>
           <div class="guarantee-item"><i class="fa-solid fa-microchip"></i> 7 Native MCP Tools</div>
         </div>
@@ -2610,9 +2751,9 @@
     <section id="investigation-center" class="container">
       <div class="section-header">
         <span class="sec-eyebrow"><i class="fa-solid fa-desktop"></i> Security Operations Center</span>
-        <h2 class="section-title">The PayGuard 8-Layer Pre-Signing Cockpit</h2>
+        <h2 class="section-title">Check a website, token or transaction</h2>
         <p class="section-subtitle">
-          Benchmarked against modern layer-based security scanning (Decloak) and Web3 pre-signing simulation (Rabby). Inspect real live URLs, contract bytecode, and calldata approvals across 8 parallel security layers.
+          Run a URL check, screen a token contract or inspect calldata. Each result shows which checks ran and which were unavailable or not applicable.
         </p>
       </div>
 
@@ -2625,11 +2766,11 @@
               <span class="inv-dot yellow"></span>
               <span class="inv-dot green"></span>
             </div>
-            <span class="inv-title">PAYGUARD_SENTINEL_v0.1.0 // 8-LAYER PRE-SIGNING INVESTIGATION ENGINE</span>
+            <span class="inv-title">PAYGUARD // SECURITY CHECK</span>
           </div>
           <div class="inv-status-chip">
             <i class="fa-solid fa-network-wired"></i>
-            <span>BASE MAINNET (8453) &bull; ZERO-SSRF URL LEXER</span>
+            <span>BASE MAINNET (8453) &bull; READ-ONLY ADVISORY</span>
           </div>
         </div>
 
@@ -2637,13 +2778,13 @@
         <div class="inv-tab-nav">
           <div class="inv-tabs-group">
             <button class="inv-tab-btn active" id="tabBtnUrl" onclick="switchInvestigationPillar('url')">
-              <i class="fa-solid fa-globe"></i> A. Website &amp; Domain Security
+              <i class="fa-solid fa-globe"></i> Website &amp; Domain
             </button>
             <button class="inv-tab-btn" id="tabBtnToken" onclick="switchInvestigationPillar('token')">
-              <i class="fa-solid fa-coins"></i> B. Token &amp; Contract Security
+              <i class="fa-solid fa-coins"></i> Token &amp; Contract
             </button>
             <button class="inv-tab-btn" id="tabBtnWallet" onclick="switchInvestigationPillar('wallet')">
-              <i class="fa-solid fa-wallet"></i> C. Calldata &amp; Approvals (Rabby Pre-Sign)
+              <i class="fa-solid fa-wallet"></i> Transaction &amp; Wallet
             </button>
           </div>
 
@@ -2657,7 +2798,7 @@
         <!-- Unified Interactive Scanner Input Bar (Decloak Benchmark) -->
         <div class="decloak-scanner-box">
           <div class="scanner-input-row">
-            <input type="text" id="cockpitTargetInput" class="scanner-target-input" placeholder="Enter target URL, contract address, or EVM calldata..." value="https://bases.invalid/account/session?access_token=DEMO-ONLY">
+            <input type="text" id="cockpitTargetInput" class="scanner-target-input" placeholder="Paste a URL, token address, wallet address or calldata..." value="https://base.org/bridge">
             <div class="scanner-actions-group">
               <button class="btn btn-cyan" id="btnLiveScan" onclick="executeCockpitScan()">
                 <i class="fa-solid fa-crosshairs"></i> <span id="scanBtnLabel">Scan Target Now</span>
@@ -2678,19 +2819,19 @@
         <div class="inv-workflow-track">
           <div class="workflow-step done" id="wfStep1">
             <span class="step-num"><i class="fa-solid fa-check"></i></span>
-            <span>1. Ingest &amp; Airgap Lexer</span>
+            <span>1. Parse target</span>
           </div>
           <div class="workflow-step active" id="wfStep2">
             <span class="step-num">2</span>
-            <span>2. Registry Cross-Ref</span>
+            <span>2. Check identity</span>
           </div>
           <div class="workflow-step" id="wfStep3">
             <span class="step-num">3</span>
-            <span>3. Threat Heuristics</span>
+            <span>3. Review risks</span>
           </div>
           <div class="workflow-step" id="wfStep4">
             <span class="step-num">4</span>
-            <span>4. Pre-Sign Verdict</span>
+            <span>4. Advisory result</span>
           </div>
         </div>
 
@@ -2706,7 +2847,7 @@
             <div class="entity-field">
               <span class="entity-label">Inspected Target Identifier</span>
               <div class="entity-val highlight-target" id="invTargetVal">
-                <span id="invTargetText">https://bases.invalid/account/session</span>
+                <span id="invTargetText">https://base.org/bridge</span>
                 <div class="laser-line" id="invLaser"></div>
               </div>
             </div>
@@ -2718,7 +2859,7 @@
 
             <div class="entity-field">
               <span class="entity-label">SSRF Airgap &amp; Privacy State</span>
-              <div class="entity-val" id="invPrivacyVal" style="color:var(--emerald)">100% In-Memory (Zero Outbound Fetch)</div>
+              <div class="entity-val" id="invPrivacyVal" style="color:var(--emerald)">URL target is not opened</div>
             </div>
 
             <!-- Conditional Display: Rabby-Style Simulation Preview OR Connected Entities Graph -->
@@ -2734,7 +2875,7 @@
 
             <!-- Connected Entities Topology Box (Firedome + Deck.gl) -->
             <div class="topology-box" id="topologyContainer">
-              <div class="topology-title"><i class="fa-solid fa-circle-nodes" style="color:var(--cyan)"></i> Verification Entity Topology</div>
+              <div class="topology-title"><i class="fa-solid fa-circle-nodes" style="color:var(--cyan)"></i> Evidence sources</div>
               <div class="topology-nodes" id="invTopologyNodes">
                 <!-- Dynamically populated -->
               </div>
@@ -2744,7 +2885,7 @@
           <!-- Col 2: The 8-Layer Security Analysis Matrix (Decloak Benchmark) -->
           <div class="inv-panel">
             <div class="inv-panel-header">
-              <span class="inv-panel-title"><i class="fa-solid fa-layer-group" style="color:var(--cyan)"></i> 2. 8-Layer Security Matrix</span>
+              <span class="inv-panel-title"><i class="fa-solid fa-layer-group" style="color:var(--cyan)"></i> 2. Security checks</span>
               <span class="inv-panel-badge" id="invLatency">LATENCY: 38ms</span>
             </div>
 
@@ -2792,39 +2933,20 @@
       </div>
     </section>
 
-    <!-- EXPLAINER VIDEO PLACEHOLDER -->
+    <!-- PRODUCT WALKTHROUGH VIDEO SLOT -->
     <section id="explainer-video" class="container">
       <div class="section-header">
-        <span class="sec-eyebrow"><i class="fa-solid fa-film"></i> Architectural Overview</span>
-        <h2 class="section-title">See PayGuard in Action</h2>
-        <p class="section-subtitle">
-          A full walkthrough of the 8-layer pre-signing analysis pipeline, MCP tool fleet, and live threat response — coming soon.
-        </p>
+        <span class="sec-eyebrow"><i class="fa-solid fa-film"></i> Product Walkthrough</span>
+        <h2 class="section-title">PayGuard walkthrough</h2>
       </div>
-
       <div class="video-card-container">
-        <div class="video-topbar">
-          <span class="video-topbar-dot red"></span>
-          <span class="video-topbar-dot yellow"></span>
-          <span class="video-topbar-dot green"></span>
-          <span class="video-topbar-title">PAYGUARD_EXPLAINER_v0.1.0 // 4K ARCHITECTURAL DEMO</span>
-          <span class="video-duration-pill">03:45</span>
-        </div>
-
-        <!-- iframe goes here once video is recorded: id="explainerVideoFrame" -->
         <div class="video-frame-wrapper" id="explainerVideoFrame">
-          <div class="video-coming-soon">
-            <div class="video-play-btn" title="Explainer video coming soon">
-              <i class="fa-solid fa-play"></i>
-            </div>
-            <div class="video-coming-soon-label">Explainer Video — Coming Soon</div>
+          <video id="payguardExplainerVideo" class="pg-video-player" controls playsinline preload="metadata" hidden aria-label="PayGuard product walkthrough"></video>
+          <div class="video-hold-frame" aria-hidden="true">
+            <span class="video-hold-orbit video-hold-orbit-one"></span>
+            <span class="video-hold-orbit video-hold-orbit-two"></span>
+            <span class="video-hold-core"><i class="fa-solid fa-shield-halved"></i></span>
           </div>
-        </div>
-
-        <div class="video-meta-bar">
-          <div><span>TOPICS:</span> URL Lexer · Token Audit · Calldata Decode · Wallet Risk · x402 Payments</div>
-          <div><span>ENGINE:</span> PayGuard MCP v1 · Base Mainnet (8453) · 7 Native Tools</div>
-          <div><span>FORMAT:</span> 4K / 16:9 / No Audio Required</div>
         </div>
       </div>
     </section>
@@ -2833,9 +2955,9 @@
     <section id="security-pillars" class="container">
       <div class="section-header">
         <span class="sec-eyebrow"><i class="fa-solid fa-shield-halved"></i> Core Architecture</span>
-        <h2 class="section-title">Three Pillars of Ecosystem Security</h2>
+        <h2 class="section-title">What PayGuard checks</h2>
         <p class="section-subtitle">
-          Deterministic pre-signing security across the Base blockchain. In-memory inspection with zero private key custody.
+          Three checks cover the main risks before a Web3 interaction.
         </p>
       </div>
 
@@ -2850,24 +2972,24 @@
           </div>
           <h3 class="pillar-title">Website &amp; Domain Security</h3>
           <p class="pillar-desc">
-            Deterministic URL verification that checks inbound links against the authoritative Base Official Domain Registry before an attacker can mislead a user or autonomous AI agent.
+            Checks Base-related domains for lookalikes, Unicode tricks and suspicious URL patterns. The supplied page is not opened.
           </p>
           <ul class="pillar-points">
             <li class="pillar-point">
               <i class="fa-solid fa-check"></i>
-              <span><strong>17 Verified Official Domains:</strong> Registry verification for base.org, basescan.org, aerodrome.finance, and core ecosystem services.</span>
+              <span><strong>Domain registry:</strong> Compares hostnames with 17 curated Base ecosystem domains.</span>
             </li>
             <li class="pillar-point">
               <i class="fa-solid fa-check"></i>
-              <span><strong>Cyrillic &amp; Homoglyph Lexer:</strong> Punycode deobfuscation catches lookalike character spoofs invisible to human eyes and multimodal LLMs.</span>
+              <span><strong>Lookalike detection:</strong> Checks Unicode and Punycode hostnames.</span>
             </li>
             <li class="pillar-point">
               <i class="fa-solid fa-check"></i>
-              <span><strong>100% In-Memory SSRF Airgap:</strong> Zero outbound network fetching. Attackers cannot probe internal subnets or fingerprint agent IPs.</span>
+              <span><strong>No page fetch:</strong> URL analysis does not open the supplied website.</span>
             </li>
             <li class="pillar-point">
               <i class="fa-solid fa-check"></i>
-              <span><strong>Privacy-Preserving Redaction:</strong> High-entropy reset tokens, bearer credentials, and query secrets sanitized automatically.</span>
+              <span><strong>URL redaction:</strong> Removes sensitive URL values from displayed reports.</span>
             </li>
           </ul>
         </div>
@@ -2882,24 +3004,24 @@
           </div>
           <h3 class="pillar-title">Token &amp; Smart Contract Security</h3>
           <p class="pillar-desc">
-            Real-time screening of smart contracts and ERC-20 assets on Base Mainnet (8453) powered by GoPlus intelligence and automated EVM bytecode analysis.
+            Screens Base token contracts with GoPlus security data.
           </p>
           <ul class="pillar-points">
             <li class="pillar-point">
               <i class="fa-solid fa-check"></i>
-              <span><strong>Honeypot Contract Detection:</strong> Exposes hidden transfer restrictions, transfer blacklists, and anti-sell backdoors before swapping.</span>
+              <span><strong>Honeypot signals:</strong> Shows provider-reported sell and transfer risks.</span>
             </li>
             <li class="pillar-point">
               <i class="fa-solid fa-check"></i>
-              <span><strong>Predatory Tax Screening:</strong> Detects 99% sell tax siphon traps, hidden owner privileges, and proxy implementation risks.</span>
+              <span><strong>Tax and controls:</strong> Reviews reported tax levels and privileged controls.</span>
             </li>
             <li class="pillar-point">
               <i class="fa-solid fa-check"></i>
-              <span><strong>Calldata Function Decoder:</strong> Inspects EVM 4-byte selectors, decoding unverified spender approvals and signature permits.</span>
+              <span><strong>Calldata inspection:</strong> Decodes common ERC-20 transfer and approval calls.</span>
             </li>
             <li class="pillar-point">
               <i class="fa-solid fa-check"></i>
-              <span><strong>Sanctions &amp; Drainer Screening:</strong> Cross-checks counterparty addresses against phishing lists, theft wallets, and OFAC sanctions.</span>
+              <span><strong>Address screening:</strong> Checks available phishing, theft and sanctions indicators.</span>
             </li>
           </ul>
         </div>
@@ -2914,24 +3036,24 @@
           </div>
           <h3 class="pillar-title">Base Wallet Security</h3>
           <p class="pillar-desc">
-            Automatic, read-only token discovery and portfolio threat screening for any public Base wallet address without requiring signature permissions or private keys.
+            Scans supported Base wallet token holdings using public data. Discovery coverage depends on the available indexer and RPC services.
           </p>
           <ul class="pillar-points">
             <li class="pillar-point">
               <i class="fa-solid fa-check"></i>
-              <span><strong>Automatic Token Discovery:</strong> Read-only retrieval of ERC-20 token holdings via Blockscout Base v2 API and canonical registries.</span>
+              <span><strong>Token discovery:</strong> Uses Blockscout when available, with a curated-token fallback.</span>
             </li>
             <li class="pillar-point">
               <i class="fa-solid fa-check"></i>
-              <span><strong>Token Impersonation Sentinel:</strong> Detects fraudulent tokens mimicking official Base assets (e.g., fake USDC, spoofed WETH).</span>
+              <span><strong>Impersonation checks:</strong> Compares asset addresses with supported canonical tokens.</span>
             </li>
             <li class="pillar-point">
               <i class="fa-solid fa-check"></i>
-              <span><strong>Zero-Custody Boundary:</strong> PayGuard never requests seed phrases, private keys, or transaction signing permissions.</span>
+              <span><strong>Read-only:</strong> No seed phrase, private key or signing permission is requested.</span>
             </li>
             <li class="pillar-point">
               <i class="fa-solid fa-check"></i>
-              <span><strong>Portfolio Risk Breakdown:</strong> Highlights unsolicited scam airdrops and high-risk contracts held in wallet.</span>
+              <span><strong>Findings:</strong> Groups provider flags and unverified assets.</span>
             </li>
           </ul>
         </div>
@@ -2946,14 +3068,14 @@
             <i class="fa-solid fa-robot"></i> Model Context Protocol &bull; AI Agent Fleet Guard
           </div>
           <h3 style="font-size: 1.85rem; font-weight: 800; color: #ffffff; margin-bottom: 0.85rem; letter-spacing: -0.02em;">
-            Built for Humans. Essential for AI Agents.
+            Security tools for people and agents
           </h3>
           <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">
-            Autonomous agents browse links, call APIs, and execute payments without human visual confirmation. PayGuard bridges this gap by exposing 7 native Model Context Protocol (MCP) tools that intercept attacks before transactions are signed.
+            AI agents can call PayGuard’s 7 MCP tools to check URLs, tokens, addresses, calldata and payment rules. PayGuard returns advisory results; the agent must decide what to do next.
           </p>
           <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
             <a href="/docs/mcp-tools" class="btn btn-surface">
-              <i class="fa-solid fa-microchip"></i> Explore 7 MCP Tools
+              <i class="fa-solid fa-microchip"></i> View MCP tools
             </a>
             <a href="/docs" class="btn btn-surface">
               <i class="fa-solid fa-book"></i> Agent Integration Guide
@@ -2982,9 +3104,9 @@
     <section id="web3-realities" class="container">
       <div class="section-header">
         <span class="sec-eyebrow" style="color: var(--amber); border-color: rgba(245, 158, 11, 0.3); background: var(--amber-muted);"><i class="fa-solid fa-triangle-exclamation"></i> Critical Realities of Web3</span>
-        <h2 class="section-title">Why Traditional Security Assumptions Fail</h2>
+        <h2 class="section-title">What to check before you trust</h2>
         <p class="section-subtitle">
-          Phishers and scam token deployers exploit false senses of security. PayGuard is engineered around three non-negotiable realities:
+          Three things to check before trusting a Web3 interaction.
         </p>
       </div>
 
@@ -2996,10 +3118,10 @@
             <h3 class="reality-name">HTTPS &ne; Legitimate Website</h3>
           </div>
           <p class="reality-body">
-            A valid SSL padlock certificate proves only that the connection is encrypted &mdash; not that the entity on the other end is genuine. Phishing sites obtain automated SSL certificates in under two minutes.
+            HTTPS encrypts a connection. It does not prove that a website is the official one.
           </p>
           <div class="reality-defense-tag">
-            <strong>PAYGUARD DEFENSE:</strong>
+            <strong>PayGuard check:</strong>
             Evaluates domain identity against authoritative Base ecosystem registries and flags typosquats (e.g. <code>bases.invalid</code> vs <code>base.org</code>).
           </div>
         </div>
@@ -3011,10 +3133,10 @@
             <h3 class="reality-name">Verified Source &ne; Safe Contract</h3>
           </div>
           <p class="reality-body">
-            Verified Solidity source code on block explorers simply means the code matches bytecode &mdash; not that it is safe. Malicious contracts regularly feature verified code hiding 99% sell taxes and transfer locks.
+            Verified source code does not prove that a contract is safe to use.
           </p>
           <div class="reality-defense-tag">
-            <strong>PAYGUARD DEFENSE:</strong>
+            <strong>PayGuard check:</strong>
             Inspects contract bytecode logic, dynamic transfer restrictions, and GoPlus honeypot telemetry on Base Mainnet.
           </div>
         </div>
@@ -3026,10 +3148,10 @@
             <h3 class="reality-name">Token Symbol &ne; Authenticity</h3>
           </div>
           <p class="reality-body">
-            ERC-20 token names and ticker symbols are completely unreserved in EVM architecture. Anyone can deploy a token named "USDC" or "cbBTC" to deceive traders and automated trading agents.
+            Token names and symbols can be copied. Check the contract address, not just the ticker.
           </p>
           <div class="reality-defense-tag">
-            <strong>PAYGUARD DEFENSE:</strong>
+            <strong>PayGuard check:</strong>
             Compares contract addresses against the canonical Base token registry to identify impersonator tokens in wallets.
           </div>
         </div>
@@ -3042,7 +3164,7 @@
         <span class="sec-eyebrow"><i class="fa-solid fa-circle-question"></i> FAQ</span>
         <h2 class="section-title">Frequently Asked Questions</h2>
         <p class="section-subtitle">
-          Technical specifications, zero-custody guarantees, and Base ecosystem integration details.
+          Simple answers about PayGuard’s checks and limits.
         </p>
       </div>
 
@@ -3104,7 +3226,7 @@
       <div class="cta-banner">
         <h2 class="cta-title">Verify Before You Trust.</h2>
         <p class="cta-desc">
-          Inspect URLs, audit Base wallet portfolios, and decode transaction calldata with PayGuard's free, zero-custody security suite.
+          Check a website, review a Base token or inspect transaction data before you interact.
         </p>
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
           <a href="/dashboard" class="btn btn-cyan">
@@ -3132,7 +3254,7 @@
           <span class="brand-title" style="font-size:1.1rem;">PayGuard</span>
         </div>
         <p style="color:var(--text-muted); line-height:1.65; max-width:320px; font-size:0.85rem;">
-          Free, zero-custody ecosystem security platform and pre-signing advisory guard for Base ecosystem users and autonomous AI agents.
+          Free, read-only security checks for Base ecosystem users and AI agents.
         </p>
       </div>
 
@@ -3411,7 +3533,7 @@
     // (Direct Decloak 8-Layer Analysis + Rabby Pre-Signing Benchmark)
     // =========================================================
     let currentPillar = 'url';
-    let currentScenarioId = 2; // Default to typosquat for high visual contrast
+    let currentScenarioId = 1; // Start with the official-domain example
     let activeIncidentReport = null;
 
     const PILLAR_DATA = {
@@ -3837,7 +3959,7 @@
         '</button>';
       }).join('');
 
-      bar.innerHTML = '<span class="inv-scenario-label"><i class="fa-solid fa-crosshairs"></i> Sample Scenarios (Demo):</span>' + pillsHtml;
+      bar.innerHTML = '<span class="inv-scenario-label"><i class="fa-solid fa-crosshairs"></i> Examples (demo):</span>' + pillsHtml;
     }
 
     function selectScenario(id) {
