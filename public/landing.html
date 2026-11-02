@@ -4149,99 +4149,394 @@
       }, 950);
     }
 
-    // Execute Live Cockpit Scan (POST /api/analyze-url when in URL mode)
-    async function executeCockpitScan() {
-      const inputVal = document.getElementById('cockpitTargetInput').value.trim();
-      const scanBtn = document.getElementById('btnLiveScan');
-      const scanLabel = document.getElementById('scanBtnLabel');
+    function setLivePipelineState(state) {
+      const steps = [
+        document.getElementById('wfStep1'),
+        document.getElementById('wfStep2'),
+        document.getElementById('wfStep3'),
+        document.getElementById('wfStep4')
+      ];
+      if (!steps.every(Boolean)) return;
+      steps.forEach(function(step, index) {
+        step.className = 'workflow-step' +
+          (state === 'done' ? ' done' : (state === 'running' && index === 1 ? ' active' : ''));
+      });
+      const laser = document.getElementById('invLaser');
+      if (laser) laser.style.animation = state === 'running' ? 'laserSweep 0.65s infinite' : 'laserSweep 2.2s infinite ease-in-out';
+    }
 
+    function makeLayer(idx, name, pill, tone, tele) {
+      return { idx: idx, name: name, desc: '', pill: pill, pillCls: tone, latency: '—', tele: tele };
+    }
+
+    function liveResultItem(config) {
+      return {
+        isLiveResult: true,
+        targetType: config.targetType,
+        targetText: config.targetText,
+        network: 'Base Mainnet (8453)',
+        privacy: config.privacy || 'Read-only advisory',
+        latency: typeof config.latency === 'number' ? config.latency + 'ms' : (config.latency || '—'),
+        showRabby: false,
+        topology: config.topology || [],
+        layers: config.layers || [],
+        verdictCls: config.verdictCls,
+        verdictIcon: config.verdictIcon,
+        verdictCategory: config.verdictCategory,
+        verdictHeadline: config.verdictHeadline,
+        verdictScore: config.verdictScore,
+        verdictSummary: config.verdictSummary,
+        guidanceCls: config.guidanceCls,
+        guidanceText: config.guidanceText
+      };
+    }
+
+    async function postCockpitJson(path, payload, timeoutMs) {
+      const controller = new AbortController();
+      const timer = window.setTimeout(function() { controller.abort(); }, timeoutMs || 15000);
+      try {
+        const response = await fetch(path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+        let data;
+        try { data = await response.json(); }
+        catch { throw new Error('The security API returned an unreadable response.'); }
+        if (!response.ok) throw new Error(data && data.error ? data.error : 'The security API returned HTTP ' + response.status + '.');
+        return data;
+      } catch (error) {
+        if (error && error.name === 'AbortError') throw new Error('The security request timed out. No verdict was produced.');
+        throw error;
+      } finally {
+        window.clearTimeout(timer);
+      }
+    }
+
+    function mapUrlResultToCockpit(data, rawUrl, elapsedMs) {
+      const checks = Array.isArray(data.checks) ? data.checks : [];
+      const ids = checks.map(function(check) { return String(check.id || '').toLowerCase(); });
+      const has = function(pattern) { return ids.some(function(id) { return pattern.test(id); }); };
+      const official = data.isOfficialBaseProject === true;
+      const flagged = data.statusCategory === 'HIGH RISK' || data.isBaseImpersonation === true;
+      const secret = has(/secret|credential|embedded/);
+      const unicode = has(/unicode|punycode|homoglyph|lookalike|confusable|bidi/);
+      const reputation = data.reputation || { status: 'NOT_REQUESTED', threatTypes: [] };
+      const reputationMatch = reputation.status === 'MATCH' || (reputation.threatTypes || []).length > 0;
+      const reputationUnavailable = reputation.status === 'UNAVAILABLE' || reputation.status === 'NOT_CONFIGURED';
+      const highRisk = flagged || data.verdict === 'KNOWN_MALICIOUS' || data.verdict === 'SUSPICIOUS';
+      const layers = [
+        makeLayer('L01', 'URL and Unicode parsing', unicode ? 'FLAGGED' : 'PARSED', unicode ? 'threat' : 'pass',
+          unicode ? 'A Unicode, Punycode or lookalike warning appears in the URL findings.' : 'URL syntax and hostname parsing completed. No Unicode warning was returned.'),
+        makeLayer('L02', 'Base domain registry', official ? 'VERIFIED OFFICIAL' : (flagged ? 'LOOKALIKE SIGNAL' : 'UNVERIFIED'),
+          official ? 'pass' : (flagged ? 'threat' : 'unverified'),
+          official ? 'Exact hostname match with a curated Base ecosystem domain.' : 'This hostname was not verified as an official Base ecosystem domain.'),
+        makeLayer('L03', 'Credential and URL redaction', secret ? 'WARNING' : 'CHECKED', secret ? 'warn' : 'pass',
+          secret ? 'The URL contains credential or wallet-secret indicators. Sensitive values are redacted in reports.' : 'The URL text was checked for credential indicators.'),
+        makeLayer('L04', 'Token contract security', 'NOT CHECKED', 'unverified', 'No token contract was supplied.'),
+        makeLayer('L05', 'Token tax and transfer risks', 'NOT CHECKED', 'unverified', 'Token tax checks do not apply to this URL request.'),
+        makeLayer('L06', 'Canonical token identity', 'NOT CHECKED', 'unverified', 'No token contract was supplied.'),
+        makeLayer('L07', 'Transaction calldata', 'NOT CHECKED', 'unverified', 'No transaction calldata was supplied.'),
+        makeLayer('L08', 'URL reputation provider', reputationMatch ? 'THREAT MATCH' : reputationUnavailable ? 'UNAVAILABLE' : reputation.status === 'NO_MATCH' ? 'NO MATCH' : 'NOT REQUESTED',
+          reputationMatch ? 'threat' : reputationUnavailable ? 'warn' : 'unverified',
+          reputationMatch ? 'The configured reputation provider reported a threat match.' :
+            reputation.status === 'NO_MATCH' ? 'No matching record was returned. This does not prove the site is legitimate.' :
+            reputationUnavailable ? 'The reputation provider did not complete this lookup.' : 'External reputation lookup was not requested.')
+      ];
+      return liveResultItem({
+        targetType: 'LIVE URL CHECK',
+        targetText: data.displayedUrl || rawUrl,
+        latency: elapsedMs,
+        privacy: data.privacy && data.privacy.pathSegmentsRedactedForReputationProvider ? 'Sensitive URL values redacted' : 'URL target is not opened',
+        topology: [
+          { name: 'URL parser', pip: 'pip-green', status: 'Completed' },
+          { name: 'Base registry', pip: official ? 'pip-green' : (flagged ? 'pip-rose' : 'pip-amber'), status: official ? 'Exact match' : 'Not verified' },
+          { name: 'Reputation provider', pip: reputationMatch ? 'pip-rose' : (reputationUnavailable ? 'pip-amber' : 'pip-green'), status: reputation.status || 'Not requested' }
+        ],
+        layers: layers,
+        verdictCls: highRisk ? 'verdict-threat' : ((data.verdict === 'CAUTION' || data.verdict === 'UNVERIFIED') ? 'verdict-warn' : 'verdict-pass'),
+        verdictIcon: highRisk ? 'fa-triangle-exclamation' : 'fa-circle-info',
+        verdictCategory: data.verdict || 'UNVERIFIED',
+        verdictHeadline: data.statusCategory || data.verdict || 'UNVERIFIED',
+        verdictScore: 'RISK: ' + (data.riskLevel || 'UNKNOWN'),
+        verdictSummary: data.summary || 'The URL check returned no summary.',
+        guidanceCls: highRisk ? 'guidance-threat' : 'guidance-warn',
+        guidanceText: data.recommendation || 'Verify the exact domain independently before connecting a wallet.'
+      });
+    }
+
+    function mapTokenResultToCockpit(data, address, elapsedMs) {
+      const findings = Array.isArray(data.findings) ? data.findings : [];
+      const codes = findings.map(function(item) { return String(item.code || '').toLowerCase(); });
+      const has = function(pattern) { return codes.some(function(code) { return pattern.test(code); }); };
+      const complete = ['PASS', 'REVIEW', 'BLOCK'].includes(data.verdict);
+      const highRisk = data.verdict === 'BLOCK';
+      const review = data.verdict === 'REVIEW';
+      const taxFinding = has(/tax|sell|buy|transfer|honeypot|blacklist/);
+      const tokenName = [data.tokenName, data.tokenSymbol].filter(Boolean).join(' · ');
+      const tokenTone = highRisk ? 'threat' : review ? 'warn' : complete ? 'pass' : 'unverified';
+      const layers = [
+        makeLayer('L01', 'Contract address format', 'VALID ADDRESS', 'pass', 'The API accepted the supplied EVM contract address.'),
+        makeLayer('L02', 'Canonical token identity', 'NOT CHECKED', 'unverified', 'This endpoint screens token risks; curated symbol-to-address checks are part of the wallet scanner.'),
+        makeLayer('L03', 'Private key handling', 'READ ONLY', 'pass', 'The request does not require wallet credentials or signing permissions.'),
+        makeLayer('L04', 'GoPlus token security', complete ? data.verdict : (data.dataStatus || 'UNVERIFIED'), tokenTone,
+          findings.length ? findings.map(function(item) { return item.message; }).join(' ') : (complete ? 'No token findings were returned by the configured provider.' : 'Provider data is unavailable or incomplete.')),
+        makeLayer('L05', 'Tax and transfer indicators', taxFinding ? 'FINDINGS RETURNED' : (complete ? 'NO FINDING RETURNED' : 'UNVERIFIED'),
+          taxFinding ? tokenTone : (complete ? 'pass' : 'unverified'),
+          taxFinding ? 'Review provider findings for tax, sell, transfer or honeypot signals.' : 'No matching tax or transfer finding was returned in this provider response.'),
+        makeLayer('L06', 'Token impersonation registry', 'NOT CHECKED', 'unverified', 'Canonical symbol-to-address comparison is not part of this endpoint.'),
+        makeLayer('L07', 'Transaction calldata', 'NOT CHECKED', 'unverified', 'No transaction data was supplied.'),
+        makeLayer('L08', 'Address reputation', 'NOT CHECKED', 'unverified', 'This endpoint does not run the separate address reputation request.')
+      ];
+      const tone = highRisk ? 'verdict-threat' : review ? 'verdict-warn' : complete ? 'verdict-pass' : 'verdict-warn';
+      return liveResultItem({
+        targetType: 'LIVE TOKEN CHECK',
+        targetText: tokenName ? address + ' · ' + tokenName : address,
+        latency: elapsedMs,
+        privacy: 'Read-only GoPlus token security request',
+        topology: [
+          { name: 'Token Security API', pip: complete ? (highRisk ? 'pip-rose' : review ? 'pip-amber' : 'pip-green') : 'pip-amber', status: data.dataStatus || data.verdict || 'Unverified' },
+          { name: 'Provider findings', pip: findings.length ? (highRisk ? 'pip-rose' : 'pip-amber') : 'pip-green', status: findings.length + ' returned' },
+          { name: 'Canonical asset comparison', pip: 'pip-amber', status: 'Not run by this endpoint' }
+        ],
+        layers: layers,
+        verdictCls: tone,
+        verdictIcon: highRisk ? 'fa-triangle-exclamation' : 'fa-circle-info',
+        verdictCategory: data.verdict || 'UNVERIFIED',
+        verdictHeadline: highRisk ? 'HIGH RISK' : review ? 'REVIEW REQUIRED' : complete ? 'PROVIDER CHECK COMPLETE' : 'UNVERIFIED',
+        verdictScore: 'RISK: ' + (data.riskLevel || 'UNKNOWN'),
+        verdictSummary: findings.length ? findings.map(function(item) { return item.message; }).join(' ') : (complete ? 'The provider returned no listed risk findings. This is not a guarantee that the contract is safe.' : 'The provider did not return a complete security result.'),
+        guidanceCls: highRisk ? 'guidance-threat' : 'guidance-warn',
+        guidanceText: highRisk ? 'Avoid interacting with this token until its findings are independently understood.' : review ? 'Review each provider finding before using this token.' : complete ? 'No listed provider finding was returned. This does not assess the dApp, spender or transaction.' : 'Treat this token as unverified until the provider request can be completed.'
+      });
+    }
+
+    function mapCalldataResultToCockpit(data, rawData, tokenAddress, elapsedMs) {
+      const details = data.details || {};
+      const operation = data.operation || 'UNKNOWN_OPERATION';
+      const supported = ['ERC20_APPROVE', 'ERC20_TRANSFER', 'ERC20_TRANSFER_FROM', 'NATIVE_TRANSFER'].includes(operation);
+      const highRisk = data.verdict === 'BLOCK';
+      const review = data.verdict === 'REVIEW';
+      const tone = highRisk ? 'threat' : review ? 'warn' : supported ? 'pass' : 'unverified';
+      const amount = details.rawAmount || details.amount || 'Not decoded';
+      const counterparty = details.spender || details.recipient || details.to || 'Not decoded';
+      const methods = {
+        ERC20_APPROVE: 'approve(address,uint256)',
+        ERC20_TRANSFER: 'transfer(address,uint256)',
+        ERC20_TRANSFER_FROM: 'transferFrom(address,address,uint256)',
+        NATIVE_TRANSFER: 'Native transfer'
+      };
+      const layers = [
+        makeLayer('L01', 'Calldata format', supported ? 'DECODED' : 'REVIEW', supported ? 'pass' : 'warn',
+          supported ? 'The payload matches a supported operation.' : 'The payload was not decoded as a supported standard operation.'),
+        makeLayer('L02', 'Canonical token identity', 'NOT CHECKED', 'unverified', 'The decoder does not verify the token contract against the canonical registry.'),
+        makeLayer('L03', 'Private key handling', 'READ ONLY', 'pass', 'The inspector only reads and decodes the supplied transaction data.'),
+        makeLayer('L04', 'Contract bytecode security', 'NOT CHECKED', 'unverified', 'This endpoint does not inspect target contract bytecode.'),
+        makeLayer('L05', 'Token tax and transfer behavior', 'NOT CHECKED', 'unverified', 'The decoder does not simulate contract execution or token taxes.'),
+        makeLayer('L06', 'Recipient identity', 'NOT CHECKED', 'unverified', 'The counterparty is decoded but its identity is not verified.'),
+        makeLayer('L07', 'Function and approval decoding', data.verdict || 'UNVERIFIED', tone,
+          (data.reasons || []).join(' ') || (methods[operation] || operation) + ' decoded.'),
+        makeLayer('L08', 'Address reputation', 'NOT CHECKED', 'unverified', 'A separate address check is required for available reputation signals.')
+      ];
+      const guidance = operation === 'ERC20_APPROVE'
+        ? (details.isUnlimited ? 'This approval requests the maximum token allowance. Verify the spender independently and consider a smaller allowance.' : 'Check the token, spender and allowance amount before signing.')
+        : operation === 'ERC20_TRANSFER' || operation === 'ERC20_TRANSFER_FROM'
+          ? 'Confirm the token contract, recipient and amount. The decoder does not establish that the recipient is trustworthy.'
+          : 'Review the target contract and native value. The decoder does not simulate execution.';
+      const reasons = (data.reasons || []).join(' ');
+      return liveResultItem({
+        targetType: 'LIVE CALLDATA CHECK',
+        targetText: tokenAddress + ' · ' + operation,
+        latency: elapsedMs,
+        privacy: 'Decoded locally; no wallet access or signing',
+        topology: [
+          { name: 'Transaction target', pip: 'pip-green', status: tokenAddress },
+          { name: 'Decoded method', pip: highRisk ? 'pip-rose' : review ? 'pip-amber' : 'pip-green', status: methods[operation] || operation },
+          { name: 'Decoded counterparty', pip: 'pip-amber', status: counterparty },
+          { name: 'Decoded amount / allowance', pip: 'pip-amber', status: amount }
+        ],
+        layers: layers,
+        verdictCls: highRisk ? 'verdict-threat' : review ? 'verdict-warn' : supported ? 'verdict-pass' : 'verdict-warn',
+        verdictIcon: highRisk ? 'fa-triangle-exclamation' : 'fa-code',
+        verdictCategory: data.verdict || 'UNVERIFIED',
+        verdictHeadline: highRisk ? 'REVIEW BEFORE SIGNING' : review ? 'PARTIAL DECODE' : supported ? 'CALL DECODED' : 'UNVERIFIED',
+        verdictScore: 'RISK: ' + (data.riskLevel || 'UNKNOWN'),
+        verdictSummary: (reasons || (methods[operation] || operation) + ' decoded.') + ' Decoding is not a simulation and does not guarantee contract behavior.',
+        guidanceCls: highRisk ? 'guidance-threat' : 'guidance-warn',
+        guidanceText: guidance + ' PayGuard does not submit or block transactions.'
+      });
+    }
+
+    function mapWalletResultToCockpit(data, address, elapsedMs) {
+      const summary = data.summary || {};
+      const tokens = Array.isArray(data.tokens) ? data.tokens : [];
+      const highCount = Number(summary.highRiskCount || 0);
+      const suspiciousCount = Number(summary.suspiciousCount || 0);
+      const unverifiedCount = Number(summary.unverifiedCount || 0);
+      const partial = data.discoveryMode !== 'FULL_INDEXER';
+      const impersonations = tokens.filter(function(token) { return token.isImpersonation; }).length;
+      const highRisk = highCount > 0;
+      const review = suspiciousCount > 0;
+      const tokenList = tokens.slice(0, 8).map(function(token) { return token.symbol + ': ' + token.securityStatus; }).join(' · ');
+      const hasTaxFinding = tokens.some(function(token) {
+        return (token.findings || []).some(function(finding) {
+          return /tax|sell|transfer|honeypot/i.test(String(finding.code || '') + ' ' + String(finding.message || ''));
+        });
+      });
+      const hasCoverageGap = partial || unverifiedCount > 0 || data.status !== 'SUCCESS';
+      const layers = [
+        makeLayer('L01', 'Wallet address format', 'VALID ADDRESS', 'pass', 'The wallet address was accepted by the Base scanner.'),
+        makeLayer('L02', 'Token discovery coverage', partial ? 'PARTIAL' : 'INDEXED', partial ? 'warn' : 'pass', data.advisoryNotice || data.discoveryMode || 'Discovery coverage not stated.'),
+        makeLayer('L03', 'Private key handling', 'READ ONLY', 'pass', 'The scan uses a public address and token data; no private key is requested.'),
+        makeLayer('L04', 'GoPlus token checks', highCount ? highCount + ' HIGH RISK' : (unverifiedCount ? unverifiedCount + ' UNVERIFIED' : 'CHECKED'),
+          highRisk ? 'threat' : unverifiedCount ? 'warn' : 'pass',
+          'Scanned ' + Number(summary.totalTokensScanned || tokens.length) + ' token entries; ' + highCount + ' high-risk, ' + suspiciousCount + ' suspicious, ' + unverifiedCount + ' unverified.'),
+        makeLayer('L05', 'Tax and transfer findings', hasTaxFinding ? 'FINDINGS' : 'NO FINDING RETURNED', hasTaxFinding ? (highRisk ? 'threat' : 'warn') : 'pass', tokenList || 'No token rows were returned.'),
+        makeLayer('L06', 'Canonical asset impersonation', impersonations ? impersonations + ' MISMATCH' : 'CHECKED', impersonations ? 'threat' : 'pass',
+          impersonations ? 'One or more token symbols did not match the curated canonical contract address.' : 'No symbol-to-address mismatch was returned for scanned token entries.'),
+        makeLayer('L07', 'Transaction calldata', 'NOT CHECKED', 'unverified', 'Wallet portfolio scanning does not decode transaction calldata.'),
+        makeLayer('L08', 'Wallet address reputation', 'NOT CHECKED', 'unverified', 'This portfolio endpoint does not run the separate address reputation lookup.')
+      ];
+      return liveResultItem({
+        targetType: 'LIVE BASE WALLET SCAN',
+        targetText: address,
+        latency: elapsedMs,
+        privacy: partial ? 'Partial discovery coverage' : 'Read-only token discovery',
+        topology: [
+          { name: 'Token discovery', pip: partial ? 'pip-amber' : 'pip-green', status: data.discoveryMode || 'Unknown' },
+          { name: 'Blockscout indexer', pip: data.blockscoutStatus === 'CONNECTED' ? 'pip-green' : 'pip-amber', status: data.blockscoutStatus || 'Unknown' },
+          { name: 'GoPlus findings', pip: highRisk ? 'pip-rose' : hasCoverageGap ? 'pip-amber' : 'pip-green', status: highCount + ' high risk / ' + suspiciousCount + ' suspicious' },
+          { name: 'Asset impersonation', pip: impersonations ? 'pip-rose' : 'pip-green', status: impersonations + ' mismatch' }
+        ],
+        layers: layers,
+        verdictCls: highRisk ? 'verdict-threat' : (review || hasCoverageGap ? 'verdict-warn' : 'verdict-pass'),
+        verdictIcon: highRisk || review ? 'fa-triangle-exclamation' : 'fa-wallet',
+        verdictCategory: data.status || 'UNVERIFIED',
+        verdictHeadline: highRisk ? 'HIGH-RISK TOKENS FOUND' : review ? 'TOKENS NEED REVIEW' : hasCoverageGap ? 'PARTIAL SCAN' : 'NO KNOWN ISSUES FOUND',
+        verdictScore: hasCoverageGap ? 'COVERAGE: PARTIAL' : 'RISK: ' + (highRisk ? 'ELEVATED' : 'NO FLAGS RETURNED'),
+        verdictSummary: 'Scanned ' + Number(summary.totalTokensScanned || tokens.length) + ' token entries. ' + highCount + ' high-risk, ' + suspiciousCount + ' suspicious, ' + unverifiedCount + ' unverified.',
+        guidanceCls: highRisk ? 'guidance-threat' : 'guidance-warn',
+        guidanceText: (data.advisoryNotice || 'Token results are advisory.') + ' Discovery coverage can be partial; unindexed holdings may not appear.'
+      });
+    }
+
+    function renderLiveUnavailable(target, message) {
+      const layers = [
+        makeLayer('L01', 'Input parsing', 'NOT VERIFIED', 'warn', 'The request did not return a usable result.'),
+        makeLayer('L02', 'Domain / asset identity', 'NOT CHECKED', 'unverified', 'No identity verdict was produced.'),
+        makeLayer('L03', 'Privacy and redaction', 'NOT CHECKED', 'unverified', 'No completed security response is available.'),
+        makeLayer('L04', 'Token contract security', 'NOT CHECKED', 'unverified', 'No provider response is available.'),
+        makeLayer('L05', 'Tax and transfer risks', 'NOT CHECKED', 'unverified', 'No provider response is available.'),
+        makeLayer('L06', 'Canonical asset identity', 'NOT CHECKED', 'unverified', 'No canonical-asset result is available.'),
+        makeLayer('L07', 'Transaction calldata', 'NOT CHECKED', 'unverified', 'No transaction decoding result is available.'),
+        makeLayer('L08', 'Address / URL reputation', 'NOT CHECKED', 'unverified', 'No reputation result is available.')
+      ];
+      renderInvestigationView(liveResultItem({
+        targetType: 'LIVE CHECK UNAVAILABLE',
+        targetText: target,
+        latency: 'Unavailable',
+        privacy: 'No verdict returned',
+        topology: [{ name: 'PayGuard API', pip: 'pip-amber', status: 'Unavailable' }],
+        layers: layers,
+        verdictCls: 'verdict-warn',
+        verdictIcon: 'fa-circle-exclamation',
+        verdictCategory: 'UNVERIFIED',
+        verdictHeadline: 'CHECK NOT COMPLETED',
+        verdictScore: 'RISK: UNKNOWN',
+        verdictSummary: message || 'The security API could not complete this request. No threat verdict was produced.',
+        guidanceCls: 'guidance-warn',
+        guidanceText: 'Retry when the API is available. Verify the target independently before connecting, approving or signing.'
+      }));
+    }
+
+    async function postCockpitJson(path, payload, timeoutMs) {
+      const controller = new AbortController();
+      const timer = window.setTimeout(function() { controller.abort(); }, timeoutMs || 15000);
+      try {
+        const response = await fetch(path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+        let data;
+        try { data = await response.json(); }
+        catch { throw new Error('The security API returned an unreadable response.'); }
+        if (!response.ok) throw new Error(data && data.error ? data.error : 'The security API returned HTTP ' + response.status + '.');
+        return data;
+      } catch (error) {
+        if (error && error.name === 'AbortError') throw new Error('The security request timed out. No verdict was produced.');
+        throw error;
+      } finally {
+        window.clearTimeout(timer);
+      }
+    }
+
+    async function executeCockpitScan() {
+      const input = document.getElementById('cockpitTargetInput');
+      const contextInput = document.getElementById('scannerTargetInput');
+      const scanButton = document.getElementById('btnLiveScan');
+      const scanLabel = document.getElementById('scanBtnLabel');
+      const inputVal = input ? input.value.trim() : '';
       if (!inputVal) {
-        alert("Please enter a target identifier to inspect.");
+        renderLiveUnavailable('[empty input]', 'Enter a website URL, Base token contract, wallet address or calldata.');
         return;
       }
 
-      // If URL mode, perform actual live API fetch to POST /api/analyze-url
-      if (currentPillar === 'url' || inputVal.startsWith('http://') || inputVal.startsWith('https://')) {
-        scanBtn.disabled = true;
-        scanLabel.textContent = "Scanning...";
-        triggerInvestigationSimulation();
-
-        try {
-          const res = await fetch('/api/analyze-url', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: inputVal, expectedDomain: 'base.org' })
-          });
-          const data = await res.json();
-          mapApiResultToCockpit(data, inputVal);
-        } catch (err) {
-          // If server offline or network error, render safe fail-closed fallback
-          renderLiveFallback(inputVal);
-        } finally {
-          scanBtn.disabled = false;
-          scanLabel.textContent = "Scan Target Now";
+      let path;
+      let payload;
+      if (currentPillar === 'url') {
+        path = '/api/analyze-url';
+        payload = { url: inputVal };
+      } else if (currentPillar === 'token') {
+        if (!/^0x[0-9a-fA-F]{40}$/.test(inputVal)) {
+          renderLiveUnavailable(inputVal, 'Enter a valid 20-byte EVM token contract address.');
+          return;
         }
+        path = '/api/token-security';
+        payload = { chainId: '8453', contractAddress: inputVal };
+      } else if (/^0x[0-9a-fA-F]{40}$/.test(inputVal)) {
+        path = '/api/scan-wallet-tokens';
+        payload = { walletAddress: inputVal };
       } else {
-        // Token or Calldata mode: trigger simulation with active preset
-        triggerInvestigationSimulation();
+        const tokenAddress = contextInput ? contextInput.value.trim() : '';
+        if (!/^0x[0-9a-fA-F]{40}$/.test(tokenAddress)) {
+          renderLiveUnavailable(inputVal, 'Enter a valid token contract address before inspecting calldata.');
+          return;
+        }
+        if (!/^0x(?:[0-9a-fA-F]{2})+$/.test(inputVal)) {
+          renderLiveUnavailable(inputVal, 'Calldata must be a 0x-prefixed hexadecimal byte string.');
+          return;
+        }
+        path = '/api/inspect-calldata';
+        payload = { to: tokenAddress, value: '0', data: inputVal };
       }
-    }
 
-    function mapApiResultToCockpit(apiData, rawUrl) {
-      const isOfficial = apiData.isOfficialBaseProject || apiData.statusCategory === 'VERIFIED OFFICIAL';
-      const isThreat = apiData.statusCategory === 'HIGH RISK' || apiData.isBaseImpersonation || apiData.riskLevel === 'HIGH';
-
-      const isHomoglyph = (apiData.checks || []).some(function(c) { return c.id.includes('homoglyph') || c.id.includes('lookalike'); });
-      const isSecretLeak = (apiData.checks || []).some(function(c) { return c.id.includes('secret') || c.id.includes('wallet_secret'); });
-
-      const customItem = {
-        targetType: "LIVE URL TARGET",
-        targetText: apiData.displayedUrl || rawUrl,
-        network: "Base Mainnet (Chain ID: 8453)",
-        privacy: apiData.privacy && apiData.privacy.pathSegmentsRedactedForReputationProvider ? "Sanitized (Params Redacted)" : "URL Lexer In-Memory; Provider Checks Separate",
-        latency: "LIVE: 36ms",
-        showRabby: false,
-        topology: [
-          { name: "Inbound Client Request", pip: "pip-green", status: "Airgapped In-Memory" },
-          { name: "Authoritative Base Registry", pip: isOfficial ? "pip-green" : (isThreat ? "pip-rose" : "pip-amber"), status: isOfficial ? "MATCHED (base.org)" : (isThreat ? "MISMATCH" : "Unindexed") },
-          { name: "Unicode Punycode Lexer", pip: isHomoglyph ? "pip-rose" : "pip-green", status: isHomoglyph ? "Homoglyph Detected" : "ASCII Latin [Clean]" },
-          { name: "Zero-SSRF In-Memory Buffer", pip: "pip-green", status: "0 Outbound Sockets" }
-        ],
-        layers: [
-          { idx: "L01", name: "Unicode Homoglyph & Punycode Lexer", desc: "RFC-3492 Normalizer", pill: isHomoglyph ? "FLAGGED" : "PASS", pillCls: isHomoglyph ? "threat" : "pass", latency: "12ms", tele: isHomoglyph ? "Deceptive homoglyph / typosquat flagged" : "Clean ASCII character sequence" },
-          { idx: "L02", name: "Canonical Base Ecosystem Registry", desc: "17 Verified Base Domains", pill: isOfficial ? "VERIFIED" : (isThreat ? "UNVERIFIED" : "THIRD-PARTY"), pillCls: isOfficial ? "pass" : (isThreat ? "threat" : "unverified"), latency: "16ms", tele: isOfficial ? "Matches authoritative Base ecosystem registry" : (isThreat ? "Mimics official Base infrastructure" : "Domain not in official registry") },
-          { idx: "L03", name: "Privacy & Credential Sanitizer", desc: "Zero-Retention Secret Scrubber", pill: isSecretLeak ? "SECRET DETECTED" : "CLEAN", pillCls: isSecretLeak ? "warn" : "pass", latency: "22ms", tele: isSecretLeak ? "Sensitive parameters redacted" : "Zero credential parameters detected" },
-          { idx: "L04", name: "Contract Bytecode & Honeypot Detector", desc: "GoPlus Security Engine", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Contract bytecode check not applicable" },
-              { idx: "L05", name: "Predatory Tax & Siphon Simulator", desc: "Dynamic Fee Hooks", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Swap tax simulation not applicable" },
-              { idx: "L06", name: "Canonical Asset Impersonation Guard", desc: "Official Base Token Registry", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Web URL target &bull; Token impersonation check not applicable" },
-              { idx: "L07", name: "Pre-Signing Calldata & Approval Inspector", desc: "Rabby-Style 4-Byte EVM Decoder", pill: "NOT CHECKED", pillCls: "unverified", latency: "—", tele: "Contract address target &bull; Calldata inspection requires transaction payload" },
-          { idx: "L08", name: "Counterparty Reputation & Sanctions", desc: "OFAC & Phishing List Filter", pill: apiData.reputation && apiData.reputation.threatTypes && apiData.reputation.threatTypes.length > 0 ? "THREAT" : (apiData.reputation && apiData.reputation.status === "UNAVAILABLE" ? "UNAVAILABLE" : "NOT REQUESTED"), pillCls: apiData.reputation && apiData.reputation.threatTypes && apiData.reputation.threatTypes.length > 0 ? "threat" : (apiData.reputation && apiData.reputation.status === "UNAVAILABLE" ? "warn" : "unverified"), latency: "—", tele: apiData.reputation && apiData.reputation.status ? ("Reputation provider status: " + apiData.reputation.status) : "External reputation lookup not requested for domain" }
-        ],
-        verdictCls: isOfficial ? "verdict-pass" : (isThreat ? "verdict-threat" : "verdict-warn"),
-        verdictIcon: isOfficial ? "fa-circle-check" : (isThreat ? "fa-triangle-exclamation" : "fa-circle-question"),
-        verdictCategory: apiData.verdict || (isOfficial ? "EXPECTED_DOMAIN_MATCH" : "SUSPICIOUS"),
-        verdictHeadline: apiData.statusCategory || (isOfficial ? "VERIFIED OFFICIAL" : "HIGH RISK THREAT"),
-        verdictScore: isOfficial ? "RISK: 0/100" : (isThreat ? "RISK: 95/100" : "RISK: ADVISORY"),
-        verdictSummary: apiData.summary || "Security evaluation completed across in-memory inspection gates.",
-        guidanceCls: isOfficial ? "guidance-pass" : (isThreat ? "guidance-threat" : "guidance-warn"),
-        guidanceText: apiData.recommendation || "Confirm destination independently before connecting a wallet."
-      };
-
-      renderInvestigationView(customItem);
-    }
-
-    function renderLiveFallback(rawUrl) {
-      const isBad = rawUrl.includes('evil') || rawUrl.includes('bases.invalid') || rawUrl.includes('xn--') || rawUrl.includes('attacker');
-      mapApiResultToCockpit({
-        statusCategory: isBad ? 'HIGH RISK' : 'UNVERIFIED',
-        verdict: isBad ? 'BLOCK' : 'UNVERIFIED',
-        riskLevel: isBad ? 'HIGH' : 'UNKNOWN',
-        isOfficialBaseProject: false,
-        isBaseImpersonation: isBad,
-        displayedUrl: rawUrl,
-        summary: isBad ? 'Potential phishing or typosquat detected.' : 'Unable to verify URL through remote provider &bull; Fail-closed.',
-        recommendation: isBad ? 'DO NOT PROCEED. Do not enter credentials.' : 'Verify domain independently before connecting wallet.'
-      }, rawUrl);
+      if (scanButton) scanButton.disabled = true;
+      if (scanLabel) scanLabel.textContent = 'Checking...';
+      setLivePipelineState('running');
+      const started = performance.now();
+      try {
+        const data = await postCockpitJson(path, payload, path === '/api/scan-wallet-tokens' ? 30000 : 10000);
+        const elapsedMs = Math.max(1, Math.round(performance.now() - started));
+        let result;
+        if (path === '/api/analyze-url') result = mapUrlResultToCockpit(data, inputVal, elapsedMs);
+        else if (path === '/api/token-security') result = mapTokenResultToCockpit(data, inputVal, elapsedMs);
+        else if (path === '/api/inspect-calldata') result = mapCalldataResultToCockpit(data, inputVal, payload.to, elapsedMs);
+        else if (data.status === 'SUCCESS') result = mapWalletResultToCockpit(data, inputVal, elapsedMs);
+        else throw new Error(data.error || 'Wallet token discovery did not complete.');
+        renderInvestigationView(result);
+        setLivePipelineState('done');
+      } catch (error) {
+        setLivePipelineState('done');
+        renderLiveUnavailable(inputVal, error && error.message ? error.message : 'The security API could not complete this check.');
+      } finally {
+        if (scanButton) scanButton.disabled = false;
+        if (scanLabel) scanLabel.textContent = currentPillar === 'url' ? 'Check website' :
+          currentPillar === 'token' ? 'Check token' :
+          (/^0x[0-9a-fA-F]{40}$/.test(inputVal) ? 'Scan wallet' : 'Inspect calldata');
+      }
     }
 
     // Modal: Incident Report (.json) Viewer (Decloak Feature)
