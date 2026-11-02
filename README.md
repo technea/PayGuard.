@@ -1,158 +1,252 @@
 # PayGuard
 
-**A read-only payment-intent security checker for AI agents.**
+**A Base-focused Web3 security platform for AI agents and developers.**
 
-PayGuard evaluates an x402-style payment request against a separate, explicit policy describing what the user intended to pay for. It returns **PASS**, **REVIEW**, or **BLOCK** with check-by-check explanations.
+PayGuard provides read-only, advisory security intelligence before wallet signing, token interaction, or payment authorization. It exposes six Model Context Protocol (MCP) tools covering URL phishing detection, EVM calldata inspection, x402 payment policy validation, privacy-conscious threat reporting, and on-chain reputation via the GoPlus Security API.
 
-## Security boundary
+> [!IMPORTANT]
+> PayGuard is an advisory sentinel — it does not sign, authorize, or execute transactions. Verdicts of PASS, REVIEW, BLOCK, or UNVERIFIED are findings for a human or agent to act on, not automated enforcement gates.
 
-PayGuard does not sign, authorize, or execute payments, and it does not independently enforce a block. A `PASS` means only that the supplied request fields match the supplied policy. It does **not** authenticate the merchant, prove request origin, inspect chain state or token contract safety, or guarantee a payment is safe.
+---
 
-Never put private keys, seed phrases, API tokens, or user credentials into this repository.
+## Security Boundary
 
-## MVP checks
+PayGuard does **not**:
+- Sign or broadcast transactions
+- Request or store private keys or seed phrases
+- Expose API credentials in tool output or client-side code
+- Fetch the submitted URL or contact the target host
 
-- HTTPS resource URL matches the user's expected resource.
-- Payment scheme, network, asset identifier, recipient, atomic-unit amount, and validity timeout match explicit policy.
-- Conflicting current and legacy amount fields fail closed.
-- Mixed acceptable and unacceptable payment alternatives do not receive an overall `PASS`.
-- Incomplete policy returns `REVIEW`.
+PayGuard **does**:
+- Analyze URL structure and content locally without opening the link
+- Decode EVM calldata and evaluate it against configurable policy
+- Validate x402 payment requirements against a user-supplied intent policy
+- Query GoPlus Security API for Base Mainnet token and address intelligence (opt-in)
 
-## Local development
+---
 
-Requires Node.js 20+.
+## Six MCP Tools
+
+| Tool | Purpose |
+|------|---------|
+| `payguard_check_payment_intent` | Validate x402 payment requirements against explicit user intent policy |
+| `payguard_analyze_url` | Detect phishing, Bidi control chars, homoglyphs, and URL deceptions |
+| `payguard_prepare_threat_report` | Generate a redacted, privacy-safe threat report draft |
+| `payguard_inspect_calldata` | Decode and audit EVM transaction calldata before signing |
+| `payguard_check_token_security` | GoPlus honeypot, tax, and contract risk assessment (Base Mainnet) |
+| `payguard_check_address_security` | GoPlus address reputation check (phishing, sanctions, cybercrime) |
+
+All tools return structured JSON with a **verdict** (`PASS` / `REVIEW` / `BLOCK` / `UNVERIFIED`), **riskLevel**, and detailed **findings**.
+
+---
+
+## Installation
+
+**Requires Node.js 20+.**
 
 ```bash
+git clone https://github.com/technea/PayGuard.git
+cd PayGuard
+npm install
+```
+
+---
+
+## Commands
+
+```bash
+# Run all 143 tests
 npm test
+
+# Build ESM, CommonJS, TypeScript declarations, and stdio MCP server
 npm run build
-```
 
-## Example
-
-See the tests for complete request and policy examples. Amounts are integer strings in the asset's smallest units; do not use floating-point values for payment amounts.
-
-## Flow
-
-```mermaid
-flowchart TD
-    A["User / AI agent supplies URL"] --> B["URL Sentinel parses locally"]
-    B --> C["Check hostname, URL syntax, lookalikes and wallet-secret signals"]
-    C --> D{"Explicit reputation lookup requested?"}
-    D -->|No| E["Return heuristic assessment"]
-    D -->|Yes| F["Optional Google Web Risk lookup"]
-    F --> G["Known threat / no match / unavailable"]
-    G --> H["Explain findings and limitations"]
-    E --> H
-    H --> I["Prepare redacted report draft"]
-    I --> J["User reviews report"]
-    J --> K["Submit only via a verified reporting channel"]
-```
-
-URL Sentinel does not open or fetch the submitted URL, read the user's computer, request wallet secrets, or automatically notify PayBox. Reputation lookup is opt-in and sends the normalized origin/path without query parameters to Google Web Risk. The URL path may still contain identifiers, so only enable reputation lookup when it is appropriate to share that URL with the provider.
-
-## URL Sentinel
-
-PayGuard includes a URL Sentinel tool for checking a user-supplied URL for common phishing and impersonation indicators. It parses the supplied address but never opens the submitted URL. Checks include embedded credentials, non-HTTPS URLs, IP-literal hosts, punycode/IDN labels, URL shorteners, likely lookalikes compared with a separately supplied trusted domain, suspicious PayBox-branded hostnames, wallet-recovery terminology, and a resource/expected-domain mismatch.
-
-Verdicts are evidence-oriented:
-- `KNOWN_MALICIOUS`: an enabled Google Web Risk lookup returned a threat match.
-- `SUSPICIOUS` / `CAUTION`: heuristic signals need independent verification.
-- `EXPECTED_DOMAIN_MATCH`: a hostname matches a user-supplied trusted domain; this does not guarantee the page is safe.
-- `NO_KNOWN_THREAT`: the configured reputation lookup found no match; absence of a match is not proof of legitimacy.
-- `UNVERIFIED`: the available information is insufficient to call the website legitimate.
-
-### Optional Google Web Risk lookup
-
-Set `GOOGLE_WEB_RISK_API_KEY` in the **server-side environment only**. The tool performs a lookup only when `checkReputation: true` is explicitly supplied. To reduce accidental disclosure, the reputation query removes all URL query parameters, credentials and fragments; this may miss threat records scoped to those parts of a URL. The API key is sent in the request header and is never expected as tool input.
-
-Google lists the Web Risk Lookup API's first 100,000 calls per month as free at the time of writing; confirm current pricing and terms before deployment: https://cloud.google.com/web-risk/pricing
-
-## Threat reports
-
-`payguard_prepare_threat_report` creates a redacted JSON draft. It does not submit the report or notify PayBox because no verified official reporting endpoint is configured in this project. Review and submit it only through a route confirmed by PayBox. Reports are allegations for investigation, not proof of malicious intent. The draft does not include free-form user notes because automated secret redaction cannot reliably identify every seed phrase or credential format.
-
-## Local API, k6 and Grafana testing
-
-This repository includes a read-only HTTP wrapper for local testing, k6 scenarios, Prometheus metrics, and a provisioned Grafana dashboard. These are development tools; they do not execute payments or prove transaction blocking.
-
-### Requirements
-
-- Node.js 20+ for the API and automated tests.
-- Docker Desktop with Docker Compose v2 for Grafana, Prometheus, and k6 containers.
-
-### Run automated tests
-
-```bash
-npm test
-npm run build
-node --check server.mjs
-node --check dist/plugin.mjs
-```
-
-### Start the API directly
-
-```bash
+# Start the local HTTP API server
 npm start
+
+# Run the URL Sentinel demo
+npm run demo
 ```
 
-The local API defaults to `http://127.0.0.1:8080` and provides `GET /health`, `GET /metrics`, and these JSON POST endpoints:
+---
 
-- `/api/analyze-url`
-- `/api/check-payment`
-- `/api/threat-report`
+## MCP Integration
 
-The supplied URL is parsed but never visited. Reputation lookup is disabled unless a request explicitly sets `checkReputation: true` and the server-side `GOOGLE_WEB_RISK_API_KEY` is configured.
+The plugin exposes a JSON-RPC 2.0 stdio MCP server compatible with Claude, Cursor, and any MCP-compliant host.
 
-### Interactive Web Dashboard
+**Run directly as stdio MCP server:**
+```bash
+node dist/index.js
+# or
+MCP_STDIO=1 node dist/plugin.mjs
+```
 
-Open `http://127.0.0.1:8080/dashboard` (or simply visit the root URL `http://127.0.0.1:8080` in any web browser) to access the interactive PayGuard UI:
-- **Telemetry & Service Health**: Real-time health check, uptime, total request counter, and in-flight request status.
-- **URL Sentinel Scanner**: Interactive sandbox with preset attack simulations (Unicode homoglyphs, brand spoofing, subdomain/suffix bypasses, credential leak detection) and instant verdict rationale.
-- **Payment Guard Policy Studio**: Test autonomous agent payment criteria against custom policies (`PASS`, `REVIEW`, `BLOCK`).
-- **Threat Report Studio**: Produce sanitized incident report drafts with client-side credential redaction and JSON export.
-- **x402 Bazaar Discovery & Simulator**: View registered payment-gated capabilities and inspect simulated HTTP 402 challenge payloads.
+**Import as a Node.js module:**
+```js
+import plugin from 'payguard-paybox-plugin/plugin';
 
-### Start Grafana and Prometheus
+// Inspect a URL
+const result = await plugin.invokeTool('payguard_analyze_url', {
+  url: 'https://payb0x-support.xyz/wallet-recovery'
+});
+console.log(result.verdict); // "SUSPICIOUS"
 
-Copy `.env.example` to `.env`, then set a long, unique value for `GRAFANA_ADMIN_PASSWORD`. Keep `.env` private.
+// Inspect EVM calldata
+const callResult = await plugin.invokeTool('payguard_inspect_calldata', {
+  to: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  value: '0',
+  data: '0x095ea7b3' +
+        '000000000000000000000000deadbeefdeadbeefdeadbeefdeadbeefdeadbeef' +
+        'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+});
+console.log(callResult.verdict);   // "REVIEW"
+console.log(callResult.operation); // "ERC20_APPROVE"
+```
+
+---
+
+## Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| `GOOGLE_WEB_RISK_API_KEY` | Enables optional Google Web Risk reputation lookup in URL Sentinel |
+| `GOPLUS_API_KEY` | Optional bearer token for GoPlus API (higher rate limits) |
+
+Both are **server-side only** and are never included in tool output or client-side bundles.
+
+---
+
+## Verdict Reference
+
+| Verdict | Meaning |
+|---------|---------|
+| `PASS` | All configured checks passed. Advisory only — not a guarantee of safety. |
+| `REVIEW` | Suspicious signals detected. Human or agent review required before proceeding. |
+| `BLOCK` | High or critical risk detected. PayGuard-controlled signing paths abort. |
+| `UNVERIFIED` | Insufficient data or provider unavailable. Treat as unknown risk. |
+| `SUSPICIOUS` | URL Sentinel: heuristic signals present. |
+| `KNOWN_MALICIOUS` | URL Sentinel: Web Risk threat intelligence match. |
+| `EXPECTED_DOMAIN_MATCH` | URL Sentinel: matches a user-supplied trusted domain. |
+
+---
+
+## x402 Pre-Signing Hook
+
+PayGuard attaches to the x402 client to intercept payment creation before payload signing:
+
+```js
+import { x402Client } from '@x402/core/client';
+import { registerPayGuardX402 } from 'payguard-paybox-plugin';
+
+const client = new x402Client();
+
+registerPayGuardX402(client, {
+  intent: {
+    expectedResourceUrl: 'https://api.example.com/report',
+    maxAmountAtomic: '2000',
+    allowedNetworks: ['eip155:8453'],
+    allowedAssets: ['0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'],
+    allowedPayTo: ['0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+    allowedSchemes: ['exact'],
+    maxTimeoutSeconds: 300
+  }
+});
+```
+
+The hook aborts payment creation for both `BLOCK` and `REVIEW` verdicts. Only a clean `PASS` proceeds to the scheme-specific payload step. Policy values must come from a trusted configuration source — never from the 402 response itself.
+
+---
+
+## Base Smart Wallet Integration
+
+PayGuard includes a pre-signing inspection layer for Coinbase Base Smart Wallet (`@coinbase/wallet-sdk`):
+
+```js
+import { createBaseSmartWalletClient } from 'payguard-paybox-plugin/smart-wallet';
+
+const client = createBaseSmartWalletClient({ appName: 'My dApp' });
+
+// Inspect before signing — aborts on BLOCK or REVIEW
+const result = await client.requestTransaction({
+  to:    '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  value: '0',
+  data:  '0x095ea7b3...'
+}, {
+  policy: { allowedSpenders: ['0xknown...'], maxAllowance: '1000000' }
+});
+
+if (result.aborted) {
+  console.warn('Transaction aborted:', result.verdict, result.reasons);
+}
+```
+
+Only transactions with a PASS verdict reach the `eth_sendTransaction` wallet prompt.
+
+---
+
+## Local Development & Observability
 
 ```bash
+# Start Prometheus + Grafana + HTTP API
 docker compose up --build -d payguard-api prometheus grafana
-docker compose ps
+
+# Run k6 load tests
+docker compose --profile loadtest run --rm k6 run /scripts/smoke.js
 ```
 
-Open Grafana at http://127.0.0.1:3000 (username `admin`, password from `.env`). Prometheus is at http://127.0.0.1:9090. Ports bind to loopback only.
+Grafana dashboard at `http://127.0.0.1:3000`. Prometheus at `http://127.0.0.1:9090`.
 
-### Run k6
+Metrics use low-cardinality labels; submitted URLs are never included in metric labels.
 
-With the services above running, execute:
+---
+
+## Architecture
+
+```
+src/
+  plugin.mjs           ← MCP plugin manifest, tool registry, stdio server
+  calldata-inspector.mjs ← Pure EVM calldata decoder & risk evaluator
+  token-security.mjs   ← GoPlus Token Security API client (Base 8453)
+  address-security.mjs ← GoPlus Address Security API client (Base 8453)
+  smart-wallet.mjs     ← Coinbase Base Smart Wallet SDK + pre-signing hook
+dist/
+  plugin.mjs/.cjs      ← Bundled plugin (ESM + CJS)
+  index.mjs/.cjs       ← SDK index (ESM + CJS)
+  index.d.ts           ← TypeScript declarations
+  calldata-inspector.mjs/.cjs
+  token-security.mjs/.cjs
+  address-security.mjs/.cjs
+```
+
+See [`docs/architecture.md`](docs/architecture.md) for a detailed data-flow diagram.
+
+---
+
+## Documentation
+
+| Document | Contents |
+|----------|---------|
+| [`docs/architecture.md`](docs/architecture.md) | Module architecture and data-flow diagrams |
+| [`docs/security-model.md`](docs/security-model.md) | Security boundaries, threat model, privacy guarantees |
+| [`docs/getting-started.md`](docs/getting-started.md) | Installation, configuration, and first steps |
+| [`docs/mcp-tools.md`](docs/mcp-tools.md) | All six tools: schemas, examples, and verdict semantics |
+| [`docs/whitepaper.md`](docs/whitepaper.md) | Full technical whitepaper |
+| [`docs/judge-brief.md`](docs/judge-brief.md) | Vibeathon judge brief |
+| [`docs/demo-script.md`](docs/demo-script.md) | 3–4 minute demo walkthrough |
+| [`docs/limitations-roadmap.md`](docs/limitations-roadmap.md) | Current limitations and future roadmap |
+
+---
+
+## Testing
+
+143 tests across 6 test modules covering adversarial inputs, failure modes, and security boundaries:
 
 ```bash
-docker compose --profile loadtest run --rm k6 run -o experimental-prometheus-rw /scripts/smoke.js
-docker compose --profile loadtest run --rm k6 run -o experimental-prometheus-rw /scripts/load.js
+npm test
+# tests 143 | pass 143 | fail 0
 ```
 
-The load scenario ramps up to 25 virtual users for about 90 seconds. Initial thresholds are development targets (less than 1% failed requests, p95 below 500 ms, p99 below 1 second), not production capacity guarantees. k6 sends metrics to the enabled Prometheus remote-write receiver; Grafana's `PayGuard API & k6 Load Test` dashboard displays request rate, latency, HTTP errors, verdicts, and in-flight API requests.
-
-Stop the stack with `docker compose down`. Use `docker compose down -v` only if you intend to delete persisted metrics and Grafana data.
-
-Metrics use low-cardinality route/status/verdict labels and deliberately omit the submitted URL and domain. Concurrency limits and sliding window rate limits are implemented in `server.mjs`.
-
-## x402 Protocol & Bazaar Discovery
-
-PayGuard implements the x402 HTTP 402 Payment Required flow and provides standard Bazaar discovery metadata for autonomous AI agents in `paybox.mjs`:
-- Unpaid requests can receive an HTTP 402 challenge with payment requirement fields and Bazaar discovery catalog information.
-- Supports Base Sepolia testnet (`eip155:84532`) and test USDC asset configuration.
-- Verifies payment proofs (`Payment-Signature` / CDP transaction proof) to settle security report requests.
-
-## PayBox Marketplace Integration
-
-PayGuard exports an MCP/x402 compliant plugin manifest in `paybox.mjs` exposing:
-- `payguard_analyze_url`: URL phishing and impersonation sentinel
-- `payguard_check_payment_intent`: x402 payment requirements policy verifier
-- `payguard_prepare_threat_report`: privacy-redacted threat report generator
-
-Integration verification status: Local unit and end-to-end simulated flows verified; distribution artifacts are bundled into standalone ESM and CommonJS modules (`dist/index.js`, `dist/index.mjs`, `dist/index.cjs`, `dist/plugin.mjs`) with zero external runtime dependencies and integrated Model Context Protocol (MCP) stdio discovery (`initialize`, `tools/list`, and `tools/call`) so marketplace checkers can discover tools without executing them. See [PAYBOX_SUBMISSION.md](file:///e:/PayGuard.-main/PAYBOX_SUBMISSION.md) for complete checklist.
+---
 
 ## License
 

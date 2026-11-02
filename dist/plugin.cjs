@@ -2,6 +2,9 @@
 /**
  * PayGuard PayBox Plugin - Standalone CJS Bundle
  */
+const { inspectCalldata } = require('./calldata-inspector.cjs');
+const { checkTokenSecurity } = require('./token-security.cjs');
+const { checkAddressSecurity } = require('./address-security.cjs');
 /**
  * PayGuard: policy-based x402 payment-intent checker.
  *
@@ -345,10 +348,190 @@ function evaluatePaymentIntent(input) {
 }
 
 
+/**
+ * Create a fail-closed adapter for the x402 TypeScript client's
+ * onBeforePaymentCreation hook.
+ *
+ * Compatible with the x402 v2 hook context: { paymentRequired, selectedRequirements }.
+ * No x402 package import is required; the caller supplies an x402Client instance.
+ */
+function createPayGuardX402Hook({ intent, onDecision } = {}) {
+  if (!isRecord(intent)) {
+    throw new TypeError("PayGuard x402 adapter requires an explicit intent policy object.");
+  }
+  if (onDecision !== undefined && typeof onDecision !== "function") {
+    throw new TypeError("onDecision must be a function when provided.");
+  }
+
+  let trustedIntent;
+  try {
+    // Snapshot policy at registration so later caller mutations cannot relax it.
+    trustedIntent = JSON.parse(JSON.stringify(intent));
+  } catch {
+    throw new TypeError("PayGuard x402 adapter policy must be JSON-serializable.");
+  }
+
+  return async function payGuardBeforePaymentCreation(context) {
+    const resourceUrl = context?.paymentRequired?.resource?.url;
+    const selected = context?.selectedRequirements;
+
+    const result = evaluatePaymentIntent({
+      intent: trustedIntent,
+      paymentRequirements: {
+        resource: resourceUrl,
+        accepts: [selected]
+      }
+    });
+    const approved = result.status === "PASS";
+
+    // Audit callbacks receive detached snapshots, never mutable SDK objects or
+    // the decision object used below. A callback failure also fails closed.
+    if (onDecision) {
+      let selectedSnapshot = null;
+      try {
+        selectedSnapshot = JSON.parse(JSON.stringify(selected));
+      } catch {}
+      await onDecision(JSON.parse(JSON.stringify(result)), {
+        resourceUrl,
+        selectedRequirements: selectedSnapshot
+      });
+    }
+
+    // REVIEW is not consent. Only a complete PASS may continue to payload creation.
+    if (!approved) {
+      const reason = `PayGuard ${result.status}: ${result.summary || "Payment did not pass policy checks."}`;
+      return { abort: true, reason: reason.slice(0, 1000) };
+    }
+
+    return undefined;
+  };
+}
+
+/**
+ * Register PayGuard directly on an x402 TypeScript x402Client.
+ * The hook runs before the SDK asks the scheme client to create a payment payload.
+ */
+function registerPayGuardX402(client, options) {
+  if (!client || typeof client.onBeforePaymentCreation !== "function") {
+    throw new TypeError("Expected an x402 client with onBeforePaymentCreation().");
+  }
+  client.onBeforePaymentCreation(createPayGuardX402Hook(options));
+  return client;
+}
+
+
+
+const CALLDATA_INSPECTOR_NAME = "payguard_inspect_calldata";
+const CALLDATA_INSPECTOR_DESCRIPTION =
+  "Advisory inspection of proposed EVM transaction calldata before signing. " +
+  "Detects unlimited ERC-20 allowances, malformed inputs, and policy violations. " +
+  "Purely advisory analysis; does not block or broadcast transactions.";
+
+const ADDRESS_SECURITY_NAME = "payguard_check_address_security";
+const ADDRESS_SECURITY_DESCRIPTION =
+  "Inspect an EVM address on Base using GoPlus Security intelligence. " +
+  "Detects phishing, theft/draining attacks, sanctions, blacklists, cybercrime, " +
+  "money laundering, and honeypot affiliation. Read-only advisory analysis.";
+
+const ADDRESS_SECURITY_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["address"],
+  properties: {
+    address: {
+      type: "string",
+      pattern: "^0x[0-9a-fA-F]{40}$",
+      description: "Target EVM address (20-byte hex)."
+    },
+    chainId: {
+      type: ["string", "number"],
+      description: "Blockchain network ID. GoPlus address security currently supports Base Mainnet (8453)."
+    }
+  }
+};
+
+const TOKEN_SECURITY_NAME = "payguard_check_token_security";
+const TOKEN_SECURITY_DESCRIPTION =
+  "Inspect a Base token contract address using GoPlus Security intelligence. " +
+  "Identifies honeypots, malicious taxes, transfer restrictions, mintability, " +
+  "and owner balance modification risks. Read-only advisory analysis.";
+
+const TOKEN_SECURITY_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["contractAddress"],
+  properties: {
+    contractAddress: {
+      type: "string",
+      pattern: "^0x[0-9a-fA-F]{40}$",
+      description: "Target ERC-20 token contract address (20-byte hex)."
+    },
+    chainId: {
+      type: ["string", "number"],
+      description: "Blockchain network ID. GoPlus token security currently supports Base Mainnet (8453)."
+    }
+  }
+};
+
+const CALLDATA_INSPECTOR_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["to"],
+  properties: {
+    to: {
+      type: "string",
+      pattern: "^0x[0-9a-fA-F]{40}$",
+      description: "Target contract or recipient address."
+    },
+    value: {
+      type: "string",
+      description: "Native transaction value in wei. Defaults to 0."
+    },
+    data: {
+      type: "string",
+      description: "Transaction calldata hex string. Defaults to 0x."
+    },
+    network: {
+      type: "string",
+      description: "Optional target network or chain ID."
+    },
+    policy: {
+      type: "object",
+      additionalProperties: false,
+      description: "Optional security policy constraints to enforce against the transaction.",
+      properties: {
+        allowedTargets: { type: "array", items: { type: "string" }, description: "Whitelisted target addresses." },
+        allowedSpenders: { type: "array", items: { type: "string" }, description: "Whitelisted approval spender addresses." },
+        allowedRecipients: { type: "array", items: { type: "string" }, description: "Whitelisted transfer recipient addresses." },
+        maxAllowance: { type: "string", description: "Maximum permitted token allowance atomic units." },
+        maxTransferAmount: { type: "string", description: "Maximum permitted transfer amount atomic units." },
+        maxNativeValue: { type: "string", description: "Maximum permitted native value in wei." }
+      }
+    }
+  }
+};
+
 const URL_SENTINEL_NAME = "payguard_analyze_url";
 const THREAT_REPORT_NAME = "payguard_prepare_threat_report";
 const MAX_URL_INPUT = 4096;
 const PAYBOX_OFFICIAL_DOMAINS = ["paybox.sh", "app.paybox.sh", "docs.paybox.sh", "developer.paybox.sh", "api.paybox.sh"];
+
+const BIDI_CONTROL_CHARS = /[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/;
+
+function findBidiControls(str) {
+  if (typeof str !== "string") return [];
+  const found = [];
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    if (code === 0x061C || code === 0x200E || code === 0x200F ||
+       (code >= 0x202A && code <= 0x202E) ||
+       (code >= 0x2066 && code <= 0x2069)) {
+      found.push("U+" + code.toString(16).toUpperCase().padStart(4, "0"));
+    }
+  }
+  return [...new Set(found)];
+}
+
 const URL_SHORTENERS = new Set([
   "bit.ly", "t.co", "tinyurl.com", "tiny.cc", "cutt.ly", "rebrand.ly",
   "is.gd", "rb.gy", "ow.ly", "buff.ly", "lnkd.in", "shorturl.at"
@@ -573,13 +756,26 @@ async function analyzeUrlSecurity(input, options = {}) {
     };
   }
 
+  // Check for Unicode Bidirectional (Bidi) override controls in original raw URL
+  const bidiControlsInInput = findBidiControls(input.url);
+  if (bidiControlsInInput.length > 0) {
+    addUrlCheck(
+      "unicode_bidi_override",
+      "high",
+      "The URL contains Unicode bidirectional formatting control characters (" + bidiControlsInInput.join(", ") + "). " +
+      "These characters can visually reorder text to spoof legitimate domains or obscure executable paths.",
+      "fail"
+    );
+  }
+
   const parsedInfo = parseUrlInput(input.url);
   if (!parsedInfo || !parsedInfo.parsed) {
     const scheme = parsedInfo && parsedInfo.scheme ? parsedInfo.scheme : "unknown";
+    const syntaxChecks = [...checks, { id: "url_syntax", severity: "high", status: "fail", detail: "Unsupported or malformed URL scheme: " + scheme }];
     return {
       verdict: "SUSPICIOUS", riskLevel: "HIGH", hostname: null, displayedUrl: "[URL not opened]",
       summary: "This URL could not be safely parsed as an HTTP or HTTPS web address.",
-      checks: [{ id: "url_syntax", severity: "high", status: "fail", detail: "Unsupported or malformed URL scheme: " + scheme }],
+      checks: syntaxChecks,
       reputation: { status: "NOT_REQUESTED", threatTypes: [] },
       recommendation: "Do not proceed to wallet connection, payment, or credential entry. Verify the address independently.",
       paymentExecuted: false, urlFetched: false
@@ -588,6 +784,7 @@ async function analyzeUrlSecurity(input, options = {}) {
 
   const parsed = parsedInfo.parsed;
   const host = parsed.hostname.toLowerCase().replace(/\.$/, "");
+
   const shownUrl = redactUrl(input.url);
   const expectedDomain = input.expectedDomain ? normalizeTrustedDomain(input.expectedDomain) : null;
   const suppliedTrustedDomains = Array.isArray(input.trustedDomains)
@@ -642,6 +839,21 @@ async function analyzeUrlSecurity(input, options = {}) {
   const rawHost = extractUrlHostRaw(input.url);
   if (/[^\x00-\x7F]/.test(rawHost) && !checks.some(c => c.id === "idn_punycode")) {
     addUrlCheck("unicode_hostname", "medium", "The URL contains Unicode characters in its hostname, which can be used for visual impersonation.");
+  }
+
+
+  // Detect Unicode compatibility / confusable characters in raw hostname
+  const rawHostForNorm = extractUrlHostRaw(input.url);
+  if (rawHostForNorm) {
+    const nfkcHost = rawHostForNorm.normalize("NFKC").toLowerCase();
+    if (nfkcHost !== rawHostForNorm.toLowerCase() || nfkcHost !== host) {
+      addUrlCheck(
+        "unicode_compatibility_confusable",
+        "high",
+        "The hostname contains full-width, compatibility, or confusable Unicode characters that alter domain interpretation after NFKC normalization.",
+        "fail"
+      );
+    }
   }
 
   const sensitiveUrlText = parsed.pathname + "?" + parsed.searchParams.toString();
@@ -754,6 +966,143 @@ async function prepareThreatReport(input, options = {}) {
   };
 }
 
+
+/**
+ * Advisory tool to inspect proposed EVM transaction calldata before signing.
+ * Purely read-only; does not access private keys, sign, or broadcast transactions.
+ */
+async function payGuardCheckAddressSecurity(input, options = {}) {
+  if (!isRecord(input)) {
+    return {
+      verdict: "UNVERIFIED",
+      riskLevel: "UNKNOWN",
+      chainId: null,
+      address: null,
+      findings: [
+        {
+          code: "MALFORMED_INPUT",
+          severity: "high",
+          message: "Input must be a valid JSON object containing address."
+        }
+      ],
+      reasonCodes: ["MALFORMED_INPUT"],
+      provider: "goplus",
+      timestamp: Date.now(),
+      dataStatus: "MALFORMED_INPUT"
+    };
+  }
+
+  const chainId = input.chainId !== undefined && input.chainId !== null ? input.chainId : "8453";
+  const address = typeof input.address === "string" ? input.address : "";
+
+  return checkAddressSecurity({
+    chainId,
+    address,
+    fetchImpl: options.fetchImpl,
+    timeoutMs: options.timeoutMs,
+    apiKey: options.apiKey
+  });
+}
+
+const payGuardAddressSecurityTool = Object.freeze({
+  id: ADDRESS_SECURITY_NAME,
+  name: ADDRESS_SECURITY_NAME,
+  title: ADDRESS_SECURITY_NAME,
+  description: ADDRESS_SECURITY_DESCRIPTION,
+  inputSchema: ADDRESS_SECURITY_SCHEMA,
+  input_schema: ADDRESS_SECURITY_SCHEMA,
+  outputSchema: { type: "object" },
+  output_schema: { type: "object" },
+  handler: payGuardCheckAddressSecurity,
+  execute: payGuardCheckAddressSecurity,
+  run: payGuardCheckAddressSecurity
+});
+
+async function payGuardCheckTokenSecurity(input, options = {}) {
+  if (!isRecord(input)) {
+    return {
+      verdict: "UNVERIFIED",
+      riskLevel: "UNKNOWN",
+      chainId: null,
+      contractAddress: null,
+      tokenName: null,
+      tokenSymbol: null,
+      findings: [
+        {
+          code: "MALFORMED_INPUT",
+          severity: "high",
+          message: "Input must be a valid JSON object containing contractAddress."
+        }
+      ],
+      reasonCodes: ["MALFORMED_INPUT"],
+      provider: "goplus",
+      timestamp: Date.now(),
+      dataStatus: "MALFORMED_INPUT"
+    };
+  }
+
+  const chainId = input.chainId !== undefined && input.chainId !== null ? input.chainId : "8453";
+  const contractAddress = typeof input.contractAddress === "string" ? input.contractAddress : "";
+
+  return checkTokenSecurity({
+    chainId,
+    contractAddress,
+    fetchImpl: options.fetchImpl,
+    timeoutMs: options.timeoutMs,
+    apiKey: options.apiKey
+  });
+}
+
+const payGuardTokenSecurityTool = Object.freeze({
+  id: TOKEN_SECURITY_NAME,
+  name: TOKEN_SECURITY_NAME,
+  title: TOKEN_SECURITY_NAME,
+  description: TOKEN_SECURITY_DESCRIPTION,
+  inputSchema: TOKEN_SECURITY_SCHEMA,
+  input_schema: TOKEN_SECURITY_SCHEMA,
+  outputSchema: { type: "object" },
+  output_schema: { type: "object" },
+  handler: payGuardCheckTokenSecurity,
+  execute: payGuardCheckTokenSecurity,
+  run: payGuardCheckTokenSecurity
+});
+
+async function payGuardInspectCalldata(input) {
+  if (!isRecord(input)) {
+    return {
+      verdict: "BLOCK",
+      riskLevel: "CRITICAL",
+      operation: "MALFORMED_INPUT",
+      reasons: ["Input must be a valid JSON object"],
+      checks: [{ id: "input_structure", status: "FAIL", detail: "Input is not an object" }],
+      details: null
+    };
+  }
+
+  const tx = {
+    to: input.to,
+    value: input.value,
+    data: input.data
+  };
+
+  const policy = isRecord(input.policy) ? input.policy : {};
+  return inspectCalldata(tx, policy);
+}
+
+const payGuardCalldataInspectorTool = Object.freeze({
+  id: CALLDATA_INSPECTOR_NAME,
+  name: CALLDATA_INSPECTOR_NAME,
+  title: CALLDATA_INSPECTOR_NAME,
+  description: CALLDATA_INSPECTOR_DESCRIPTION,
+  inputSchema: CALLDATA_INSPECTOR_SCHEMA,
+  input_schema: CALLDATA_INSPECTOR_SCHEMA,
+  outputSchema: { type: "object" },
+  output_schema: { type: "object" },
+  handler: payGuardInspectCalldata,
+  execute: payGuardInspectCalldata,
+  run: payGuardInspectCalldata
+});
+
 const payGuardUrlSentinelTool = Object.freeze({
   id: URL_SENTINEL_NAME,
   name: URL_SENTINEL_NAME,
@@ -796,7 +1145,7 @@ const payGuardTool = Object.freeze({
   run: evaluatePaymentIntent
 });
 
-const tools = Object.freeze([payGuardTool, payGuardUrlSentinelTool, payGuardThreatReportTool]);
+const tools = Object.freeze([payGuardTool, payGuardUrlSentinelTool, payGuardThreatReportTool, payGuardCalldataInspectorTool, payGuardTokenSecurityTool, payGuardAddressSecurityTool]);
 
 const plugin = Object.freeze({
   id: "payguard",
@@ -810,6 +1159,9 @@ const plugin = Object.freeze({
     if (name === TOOL_NAME) return evaluatePaymentIntent(input);
     if (name === URL_SENTINEL_NAME) return analyzeUrlSecurity(input);
     if (name === THREAT_REPORT_NAME) return prepareThreatReport(input);
+    if (name === CALLDATA_INSPECTOR_NAME) return payGuardInspectCalldata(input);
+    if (name === TOKEN_SECURITY_NAME) return payGuardCheckTokenSecurity(input);
+    if (name === ADDRESS_SECURITY_NAME) return payGuardCheckAddressSecurity(input);
     throw new Error(`Unknown tool: ${String(name)}`);
   },
   execute(name, input) {
@@ -988,9 +1340,17 @@ const cjsExport = Object.assign({}, plugin, {
   payGuardTool: payGuardTool,
   payGuardUrlSentinelTool: payGuardUrlSentinelTool,
   payGuardThreatReportTool: payGuardThreatReportTool,
+  payGuardCalldataInspectorTool: payGuardCalldataInspectorTool,
+  payGuardTokenSecurityTool: payGuardTokenSecurityTool,
+  payGuardAddressSecurityTool: payGuardAddressSecurityTool,
   evaluatePaymentIntent: evaluatePaymentIntent,
+  createPayGuardX402Hook: createPayGuardX402Hook,
+  registerPayGuardX402: registerPayGuardX402,
   analyzeUrlSecurity: analyzeUrlSecurity,
   prepareThreatReport: prepareThreatReport,
+  payGuardInspectCalldata: payGuardInspectCalldata,
+  payGuardCheckTokenSecurity: payGuardCheckTokenSecurity,
+  payGuardCheckAddressSecurity: payGuardCheckAddressSecurity,
   startMcpServer: startMcpServer
 });
 module.exports = cjsExport;

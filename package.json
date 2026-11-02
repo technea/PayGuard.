@@ -35,5 +35,11 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "@x402/core": "2.29.0"
+  },
+  "dependencies": {
+    "@coinbase/wallet-sdk": "4.4.0"
   }
 }
