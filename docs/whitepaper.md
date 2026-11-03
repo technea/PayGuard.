@@ -1,361 +1,408 @@
 # PayGuard Technical Whitepaper
 
-**A Base-First Pre-Signing Security Layer for Humans and Autonomous AI Agents**
+**A Base-first pre-interaction security layer for people, developers and AI agents**
 
-**Version 1.1.0 | November 2026**
-*Mission: Verify Before You Trust*
-*Repository: https://github.com/technea/PayGuard | Branch: main*
+**Version 1.2.0 | November 2026**
 
-> **Evidence policy.** Every capability in this paper is labeled **Implemented and tested**, **Implemented, not verified live**, or **Planned**. PayGuard never claims a scan, detection or protection works without a test or recorded evidence behind it. Section 16 lists what is not yet proven.
+Mission: Verify Before You Trust
+
+Repository: [github.com/technea/PayGuard](https://github.com/technea/PayGuard) (branch: main)
+
+> [!IMPORTANT]
+> This paper separates what exists from what is proposed. Every capability carries one of three labels: **Implemented**, **Partially Supported** or **Planned**. The AI Security Agent described in Section 10 is a **Planned** development objective. It is not a current product feature. PayGuard has not received a grant, funding or measured ecosystem adoption, and nothing here should be read that way.
+
+Companion documents: [Architecture](architecture.md), [Security Model](security-model.md), [API Reference](api-reference.md), [MCP Tools](mcp-tools.md), [AI Security Agent design](ai-security-agent.md), [Limitations and Roadmap](limitations-roadmap.md).
 
 ---
 
-## Table of Contents
+## Contents
 
-1. [Executive Summary](#1-executive-summary)
-2. [The Problem: Impersonation and Pre-Signing Risk](#2-the-problem-impersonation-and-pre-signing-risk)
-3. [Mission and Positioning](#3-mission-and-positioning)
-4. [Why HTTPS Does Not Mean a Website Is Legitimate](#4-why-https-does-not-mean-a-website-is-legitimate)
-5. [Why Verified Contract Source Does Not Prove Safety](#5-why-verified-contract-source-does-not-prove-safety)
-6. [Why Token Names and Symbols Cannot Establish Identity](#6-why-token-names-and-symbols-cannot-establish-identity)
-7. [Security Architecture and Invariants](#7-security-architecture-and-invariants)
-8. [x402 Payment-Intent Guard](#8-x402-payment-intent-guard)
-9. [URL Sentinel](#9-url-sentinel)
-10. [Token, Address and Wallet Security](#10-token-address-and-wallet-security)
-11. [Calldata Inspection](#11-calldata-inspection)
-12. [Base Ecosystem Integration](#12-base-ecosystem-integration)
-13. [Interfaces: REST API, MCP Tools, Console](#13-interfaces-rest-api-mcp-tools-console)
-14. [Threat Model and Security Boundaries](#14-threat-model-and-security-boundaries)
-15. [Capability Status](#15-capability-status)
-16. [Known Limitations and Unverified Items](#16-known-limitations-and-unverified-items)
-17. [Roadmap](#17-roadmap)
+1. Executive Summary
+2. The Problem: Web3 Security and Trust Challenges
+3. Why Existing Security Approaches Are Not Enough
+4. Mission and Vision
+5. Product Overview
+6. Core Security Capabilities
+7. System Architecture and Security Intelligence Layers
+8. Evidence-Based Risk Assessment
+9. Base Ecosystem Integration
+10. AI Agent Security: Vision and Future Architecture
+11. MCP Integration and Agent Interoperability
+12. Security, Privacy and Non-Custodial Design
+13. Current Implementation and Technical Limitations
+14. Development Roadmap
+15. Ecosystem Impact and Potential Adoption
+16. Open-Source Approach and Sustainability
+17. Conclusion
 
 ---
 
 ## 1. Executive Summary
 
-Irreversible on-chain payments meet two growing risks: people are tricked by look-alike domains, tokens and approvals, and autonomous AI agents now pay for services over HTTP (the x402 protocol) with no human reading the request. Once a transaction settles on Base, it cannot be reversed.
+Transactions on Base are final once confirmed. Most losses in Web3 do not come from broken cryptography. They come from a person, or increasingly a software agent, trusting the wrong thing: a look-alike domain, a counterfeit token, an unlimited approval, or a payment request that asks for more than intended.
 
-PayGuard is a free, open, **advisory** security layer that returns one of four verdicts before a user or agent acts:
+PayGuard is a free, open-source, advisory security layer for the Base ecosystem. Before a user or agent acts, PayGuard inspects the evidence it can verify and returns a structured verdict with the reasons behind it. It covers five areas:
 
-| Verdict | Meaning |
-| :--- | :--- |
-| `PASS` | Every check that ran passed. Not a guarantee of safety. |
-| `REVIEW` | Something needs human or policy attention. |
-| `BLOCK` | A check found a clear violation or high-risk signal. |
-| `UNVERIFIED` | Evidence was unavailable. PayGuard does not guess. |
+- URL and domain analysis (look-alike hostnames, Unicode tricks, Base impersonation).
+- Token and contract risk (honeypot, tax and owner-privilege flags from a threat-intelligence provider).
+- Wallet and address screening (holdings scan and counterparty reputation).
+- Transaction calldata inspection (ERC-20 `approve`, `transfer`, `transferFrom`).
+- x402 payment-policy verification (compare a payment request against a policy the user wrote in advance).
 
-Core design rules:
+The checks are exposed three ways: a REST API, a dashboard, and seven Model Context Protocol (MCP) tools that AI agents can call directly.
 
-- **Zero custody.** PayGuard never requests, stores or handles private keys, seed phrases or signatures, and never broadcasts transactions.
-- **Fail closed.** Timeouts, upstream errors, unsupported chains and unindexed contracts return `UNVERIFIED` or `BLOCK`, never a silent `PASS`.
-- **Policy from the user, not the payer.** The x402 guard compares a payment request against a policy the user or developer wrote in advance. It never trusts values taken from the request being judged.
-- **Exact identity, not appearance.** Tokens are identified by contract address, domains by normalized hostname, never by displayed name.
-- **Honest scope.** Base Mainnet (chain ID 8453) first. Other chains return `UNVERIFIED`.
+PayGuard follows four rules. It is **non-custodial** (no keys, no signing for users, no custody). It **fails closed** (missing evidence returns `UNVERIFIED`, never a silent pass). It is **advisory** (a verdict informs a decision and is not a guarantee). It is **honest about scope** (Base Mainnet, chain ID 8453, is the supported network).
+
+The next development phase is an **AI Security Agent** that would coordinate these tools, correlate evidence and explain findings. That agent is a proposal, described in Section 10 and in the [design document](ai-security-agent.md).
 
 ---
 
-## 2. The Problem: Impersonation and Pre-Signing Risk
+## 2. The Problem: Web3 Security and Trust Challenges
 
-### 2.1 Attack vectors
+### 2.1 Finality shifts risk to the moment before signing
 
-| Attack vector | Mechanism | Impact |
+There is no chargeback on Base. The only reliable control point is before a wallet signs or an agent pays. At that moment the person or agent must decide using limited information, often under time pressure.
+
+### 2.2 Common attack patterns
+
+| Pattern | How it works | Typical consequence |
 | :--- | :--- | :--- |
-| Domain typosquatting and homoglyphs | Look-alike hostnames (`bases.org`, Cyrillic `а` in `bаse.org`) | Wallet connected to a drainer |
-| Token look-alike impersonation | Contract copies a canonical ticker such as `USDC` | Victim buys a worthless token |
-| Honeypot logic | `buy()` works, `sell()` reverts or is taxed heavily | Total loss of capital |
-| Owner balance control | Privileged mint or balance edit | Holders wiped or liquidity drained |
-| Unlimited allowance | `approve(spender, 2^256 - 1)` | Spender can drain tokens at any later time |
-| Malicious payment request (x402) | Swapped `payTo`, inflated amount, wrong asset or network, plain-HTTP quote | Agent pays the wrong party or too much |
-| Signature-based drains | Permit, Permit2 and EIP-712 typed-data signatures | Funds moved without an on-chain approval |
-| Delegation phishing (EIP-7702) | Account delegated to a malicious contract | Wallet swept |
-| Counterparty risk | Address linked to sanctions or crime | Compliance and reputation loss |
+| Domain impersonation | Hostnames such as `bases.org`, or a Cyrillic letter in place of a Latin one | Wallet connected to a drainer site |
+| Token impersonation | Contract reuses a well-known ticker such as `USDC` at a different address | Victim holds a worthless token |
+| Honeypot contracts | Buying works, selling reverts or is taxed heavily | Capital cannot be withdrawn |
+| Owner privilege abuse | Owner can change balances, pause transfers or mint | Holders diluted or frozen |
+| Unlimited approvals | `approve(spender, 2^256 - 1)` | Spender can drain the token later |
+| Malicious payment requests | Altered recipient, inflated amount, unexpected asset or network | Agent pays the wrong party or too much |
+| Risky counterparties | Address linked to phishing, sanctions or mixers | Loss, or compliance exposure |
 
-Rows 7 and 8 are known attack classes. PayGuard does **not** yet inspect them (see Sections 16 and 17).
+### 2.3 Why autonomous agents raise the stakes
 
-### 2.2 What a local check can and cannot catch for x402
+AI agents that pay for APIs and services over HTTP (the x402 pattern) act without a person reading each request. An agent cannot see a browser address bar, tends to read URLs as plain text, and may select a token by symbol. A single malicious payment requirement or link can therefore turn into a transaction at machine speed.
 
-Some payment failures are visible offline: a changed recipient, an amount above a cap, a disallowed asset or network, an insecure transport. Others need reputation data, such as a fake endpoint cluster or a prompt-injection that talks an agent into paying. PayGuard's current x402 guard covers the first group. The second group is the reason for the threat-intelligence work in Section 17.
+### 2.4 Three misconceptions PayGuard is built around
 
----
-
-## 3. Mission and Positioning
-
-**Mission: Verify Before You Trust.** PayGuard gives people and software an independent, inspectable check that runs before money moves.
-
-PayGuard is not a wallet and does not hold funds. Wallet vendors ship their own spending limits and key isolation. PayGuard's position is a neutral, open guard that works with any wallet or agent framework and explains each verdict with evidence.
+1. **HTTPS does not prove legitimacy.** TLS encrypts the connection. Certificates for any domain can be issued automatically in seconds, so phishing sites routinely present a padlock.
+2. **Verified contract source does not prove a token is safe or official.** A verification badge shows that source code compiles to the deployed bytecode. Deployers of malicious contracts can and do verify them.
+3. **A token name or symbol does not establish identity.** `name()` and `symbol()` are free-form strings. The contract address is the only authoritative identifier.
 
 ---
 
-## 4. Why HTTPS Does Not Mean a Website Is Legitimate
+## 3. Why Existing Security Approaches Are Not Enough
 
-- **Encryption is not identity.** TLS protects the channel. It says nothing about who operates the server.
-- **Free, automatic certificates.** Domain-validated certificates are issued in seconds by automated authorities, so attackers use them too.
-- **Consequence.** Phishing sites commonly present a valid padlock. PayGuard ignores the padlock and examines the hostname itself: Unicode normalization, Punycode, edit distance and subdomain structure.
+The following are general categories, not assessments of specific products. Each is useful. None covers the whole pre-interaction window on its own.
 
----
-
-## 5. Why Verified Contract Source Does Not Prove Safety
-
-An explorer's "source verified" badge proves only that published source compiles to the deployed bytecode. Scam deployers verify their contracts on purpose. A verified contract can still contain owner balance controls, hidden sell taxes, blacklists or pausable transfers.
-
-PayGuard therefore evaluates behavior-related risk flags from a threat-intelligence provider (GoPlus) and does not treat the verification badge as a safety signal.
-
----
-
-## 6. Why Token Names and Symbols Cannot Establish Identity
-
-ERC-20 `name()` and `symbol()` are free-form strings anyone can set. The only authoritative identifier of a token is its 20-byte contract address. For example, native USDC on Base is `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`.
-
-PayGuard matches contract addresses exactly against a curated Base canonical registry. A contract that presents a canonical symbol at a different address is flagged `TOKEN_LOOKALIKE_IMPERSONATION`.
-
----
-
-## 7. Security Architecture and Invariants
-
-```
- Inbound: x402 payment requirement | URL | calldata | token | address | wallet
-                                   |
-                                   v
- +-------------------------------------------------------------------+
- |  Input validation (strict schemas, size limits, no extra fields)  |
- +-------------------------------------------------------------------+
-                  |                                   |
-                  v                                   v
- +-------------------------------+     +------------------------------+
- |  Local, deterministic checks  |     |  Optional upstream evidence  |
- |  - x402 intent policy         |     |  - GoPlus (Base 8453)        |
- |  - URL lexical analysis       |     |  - Base RPC (eth_call)       |
- |  - calldata selectors         |     |  - Blockscout indexer        |
- |  - canonical registry         |     |  (cached, fail-closed)       |
- +-------------------------------+     +------------------------------+
-                  |                                   |
-                  +-----------------+-----------------+
-                                    v
-         Verdict: PASS | REVIEW | BLOCK | UNVERIFIED  + evidence list
-```
-
-### 7.1 Invariants
-
-1. **Non-custodial.** No keys, seed phrases, signing or broadcasting.
-2. **In-memory URL analysis.** The URL Sentinel parses a URL as text and does not contact the inspected host. This removes SSRF from that tool.
-3. **Bounded upstream calls.** Token, address and wallet tools call fixed, operator-chosen providers (GoPlus, Base RPC, Blockscout). They do not fetch attacker-supplied URLs. Responses are cached for 10 minutes and failures return `UNVERIFIED`.
-4. **Fail closed.** No evidence never becomes `PASS`.
-5. **Advisory only.** Verdicts inform a decision. They do not enforce one outside the paths PayGuard controls.
-
----
-
-## 8. x402 Payment-Intent Guard
-
-*Status: Implemented. Unit-tested in the repository's suite.*
-
-The guard compares an x402 payment requirement with an explicit policy (the *intent*). Policy fields:
-
-| Field | Purpose |
-| :--- | :--- |
-| `expectedResourceUrl` | The resource the user meant to pay for |
-| `maxAmountAtomic` | Highest allowed amount in the asset's smallest unit (integer string) |
-| `allowedNetworks` | Permitted network identifiers |
-| `allowedAssets` | Permitted asset addresses |
-| `allowedPayTo` | Permitted recipient addresses |
-| `allowedSchemes` | Permitted payment schemes |
-| `maxTimeoutSeconds` | Longest accepted payment validity window |
-
-Behavior:
-
-- A missing or incomplete policy cannot yield `PASS`.
-- A recipient, asset, network or amount outside the policy yields `BLOCK`.
-- Inputs are schema-validated; oversized or malformed values are rejected.
-
-**SDK integration.** `createPayGuardX402Hook` and `registerPayGuardX402` attach the guard to an x402 client through its `onBeforePaymentCreation` hook, so a rejected payment is aborted before a payload is created. Observed behavior of `@x402/core` 2.29.0 (default spend controls run before hooks; an abort surfaces as "Payment creation aborted") was confirmed in a CI probe. A full end-to-end integration test suite against the real SDK is **not** confirmed on main (Section 16).
-
----
-
-## 9. URL Sentinel
-
-*Status: Implemented. In-memory analysis only.*
-
-Checks performed on a URL string:
-
-1. **Unicode bidirectional controls** (U+061C, U+200E, U+200F, U+202A to U+202E, U+2066 to U+2069).
-2. **NFKC normalization and homoglyph detection** for full-width, Cyrillic and Greek confusables.
-3. **Punycode (`xn--`) decoding** and character-set review.
-4. **Edit distance** against official Base ecosystem domains.
-5. **Credential and token redaction** (userinfo and high-entropy query values) before reporting.
-
-URL Sentinel does not yet consume live threat-intelligence feeds. That integration is planned (Section 17).
-
-### 9.1 Passive website scanner and threat-intel feeds (separate branch)
-
-A passive website scanner (PR #5, not merged) adds an SSRF-restricted collector (public IPv4 only, DNS pinning, redirect revalidation, TLS metadata), OpenPhish and URLhaus parsers with exact-URL matching, and a feed-refresh and signed-snapshot storage layer. It is unit-tested but has **not** been run against live feeds or hardened for production egress. Nothing in this section is a claim about the current main branch.
-
----
-
-## 10. Token, Address and Wallet Security
-
-*Status: Implemented. Depends on third-party data; not independently audited.*
-
-### 10.1 Token indicators (Base 8453, via GoPlus)
-
-| Indicator | Condition | Result |
+| Approach | What it does well | Gap PayGuard targets |
 | :--- | :--- | :--- |
-| `is_honeypot` | `1` | `BLOCK` |
-| `owner_change_balance` | `1` | `BLOCK` |
-| `cannot_sell_all` | `1` | `BLOCK` |
-| `buy_tax` / `sell_tax` | above 10% | `BLOCK` or `REVIEW` |
-| `transfer_pausable` | `1` | `REVIEW` |
-| `is_airdrop_scam` | `1` | `BLOCK` |
-| `is_open_source` | `0` | `REVIEW` |
-| Canonical symbol, wrong address | mismatch | `BLOCK` |
+| Wallet and browser warnings | Warn at the moment of connecting or signing | Not available to headless agents; limited explanation of why |
+| Domain blocklists | Catch known bad sites | Miss new domains; say nothing about unlisted look-alikes |
+| Explorer badges | Show that source matches bytecode | Do not indicate intent or safety |
+| Smart-contract audits | Deep review of one codebase | Slow, costly, and unavailable for most tokens a user meets |
+| Reputation APIs | Fast flags on known-bad contracts and addresses | Return raw flags; need interpretation and fail-closed handling |
+| Wallet spend limits | Cap what an agent can spend | Do not judge whether the payee or request is the intended one |
 
-Thresholds are policy choices, not proof of malice.
-
-### 10.2 Address security
-
-Counterparty addresses are screened through GoPlus for phishing, sanctions and mixer links. A clean result means "no listed risk", not "safe".
-
-### 10.3 Wallet token scanner
-
-Two tiers: the Blockscout API v2 indexer first, then an `eth_call` multicall fallback against Base RPC. The fallback checks the seven canonical registry tokens plus user-supplied contracts and labels the result `REGISTRY_AND_CUSTOM_PARTIAL`, because it cannot enumerate unsolicited tokens.
+PayGuard's contribution is to combine local deterministic checks with provider evidence, explain each result, and expose the same logic to humans (dashboard), developers (API) and agents (MCP) without taking custody of anything.
 
 ---
 
-## 11. Calldata Inspection
+## 4. Mission and Vision
 
-*Status: Implemented for ERC-20 selectors.*
+**Mission: Verify Before You Trust.** Give people and software an inspectable check that runs before value moves, and show the evidence behind each answer.
 
-- Decodes `approve` (`0x095ea7b3`), `transfer` (`0xa9059cbb`) and `transferFrom` (`0x23b872dd`).
-- Flags `UNLIMITED_ALLOWANCE` when the amount is `2^256 - 1`.
-- Checks spender and recipient against user allowlists.
-- Unknown selectors, multicalls and DEX aggregator calls return advisory `REVIEW`, not `PASS`.
-
-Not covered: Permit and Permit2 signatures, EIP-712 typed data, `setApprovalForAll`, EIP-7702 authorizations and transaction simulation.
+**Vision.** An ecosystem where links, tokens, approvals and payment requests are checked against explicit, independent evidence before action, and where an agent can ask "is this safe to do?" and receive an answer that states its own uncertainty. The vision is incremental. Today the checks listed in Section 6 exist. The investigation and correlation layer in Section 10 is what comes next.
 
 ---
 
-## 12. Base Ecosystem Integration
+## 5. Product Overview
 
-- **Canonical registry:** WETH `0x4200000000000000000000000000000000000006`, native USDC `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`, cbETH `0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22`, VIRTUAL `0x0b3e328455c4059EEb9e3f84b5543F74E24e7E1b`, DAI `0x50c5725949a6F0c72E6C4a641F24049A917DB0Cb`, USDbC `0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA`, AERO `0x940181a94A35A4569E4529A3CDfB74e38FD98631`. Re-verify these against official sources before each release.
-- **Smart wallet client:** integrates `@coinbase/wallet-sdk` with pre-signing calldata inspection.
-- **Browser wallet connection:** standard EIP-1193 injected providers, chain check with `eth_chainId`, and a Base switch request. Connection is read-only and starts only after a user click.
-- **Network scope:** Base Mainnet only. Base Sepolia (84532) returns `UNVERIFIED / UNSUPPORTED_CHAIN`.
+PayGuard is a Node.js (native ES modules) service and library with no web framework. It is delivered as:
+
+| Surface | Description | Status |
+| :--- | :--- | :--- |
+| Security modules | Pure functions in `src/` for each check | Implemented |
+| MCP server | Seven tools over JSON-RPC 2.0 stdio | Implemented |
+| REST API | `POST /api/*` endpoints plus health, capabilities and metrics | Implemented |
+| Dashboard and docs | Browser console, landing page, documentation viewer | Implemented |
+| x402 client hook | `createPayGuardX402Hook`, `registerPayGuardX402` | Implemented |
+| Smart-wallet wrapper | Opt-in client that aborts on non-`PASS` calldata verdicts | Implemented (opt-in) |
+| Paid-endpoint mode | Optional x402 payment gate on the API | Partially Supported (see 13) |
+
+### Verdicts
+
+Verdict vocabularies differ slightly by tool because the evidence differs. See the [API Reference](api-reference.md) for exact fields.
+
+| Tool family | Verdict field and values |
+| :--- | :--- |
+| x402 payment policy | `status`: PASS, REVIEW, BLOCK |
+| Calldata, token, address, wallet | `verdict`: PASS, REVIEW, BLOCK, UNVERIFIED |
+| URL Sentinel | `verdict`: KNOWN_MALICIOUS, SUSPICIOUS, CAUTION, NO_KNOWN_THREAT, EXPECTED_DOMAIN_MATCH, UNVERIFIED |
 
 ---
 
-## 13. Interfaces: REST API, MCP Tools, Console
+## 6. Core Security Capabilities
 
-### 13.1 MCP tools (JSON-RPC 2.0 over stdio)
+### 6.1 URL and domain security — Implemented
+
+URL Sentinel analyzes a URL as text. It never opens or fetches the target.
+
+- Bidirectional Unicode control detection (U+061C, U+200E, U+200F, U+202A to U+202E, U+2066 to U+2069).
+- NFKC normalization and homoglyph detection.
+- Punycode (`xn--`) label detection.
+- Edit-distance comparison against a registry of official Base domains (`BASE_OFFICIAL_DOMAINS`) and any `expectedDomain` or `trustedDomains` the caller supplies.
+- Redaction of credentials and sensitive query values before reporting.
+- Optional Google Web Risk lookup, only when the request sets `checkReputation: true` and the server has a key. Path segments are redacted and query parameters are not sent.
+
+A result of `NO_KNOWN_THREAT` does not prove a site is legitimate, and an unknown site is not automatically malicious.
+
+### 6.2 Token and smart-contract security — Partially Supported
+
+Token checks query the GoPlus token-security API for Base Mainnet and map flags to findings:
+
+| Flag | Condition | Effect |
+| :--- | :--- | :--- |
+| `is_honeypot` | true | BLOCK, critical |
+| `owner_change_balance` | true | BLOCK, critical |
+| `cannot_sell_all` | true | BLOCK, critical |
+| Buy or sell tax | above threshold | BLOCK or REVIEW |
+| `transfer_pausable` | true | REVIEW |
+| `is_airdrop_scam` | true | BLOCK |
+| `is_open_source` | false | REVIEW |
+| Canonical symbol at a non-canonical address | mismatch | BLOCK (impersonation) |
+
+This is provider reputation data. It is not an independent smart-contract audit, and PayGuard does not analyze bytecode itself. That limit is why this area is marked Partially Supported. Requests time out after 3 seconds, responses are capped at 64 KB and successful results are cached in memory for 10 minutes.
+
+### 6.3 Wallet and address security — Partially Supported
+
+- **Address screening** uses GoPlus address security for phishing, sanctions, cybercrime and similar records.
+- **Wallet token scanner** discovers ERC-20 holdings in two tiers. Tier 1 uses the Blockscout API v2 indexer. If the indexer is unavailable (for example, bot protection), Tier 2 calls `eth_call` on Base RPC for seven canonical tokens plus any `customTokenAddresses` and reports `discoveryMode: REGISTRY_AND_CUSTOM_PARTIAL`.
+
+Wallet discovery can be incomplete. A partial scan cannot see unsolicited tokens, and the response says so.
+
+### 6.4 Transaction calldata inspection — Partially Supported
+
+The inspector decodes three selectors: `approve` (`0x095ea7b3`), `transfer` (`0xa9059cbb`) and `transferFrom` (`0x23b872dd`). It flags unlimited allowances, malformed data and violations of caller-supplied policy (`allowedTargets`, `allowedSpenders`, `allowedRecipients`, `maxAllowance`, `maxNativeValue`). It makes no network calls.
+
+Any other method returns an advisory `REVIEW`. Permit and Permit2 signatures, EIP-712 typed data, `setApprovalForAll`, EIP-7702 authorizations, multicalls and transaction simulation are **not supported**.
+
+### 6.5 x402 payment-policy verification — Implemented
+
+The guard compares a payment requirement with an explicit policy: `expectedResourceUrl`, `maxAmountAtomic`, `allowedNetworks`, `allowedAssets`, `allowedPayTo`, `allowedSchemes`, `maxTimeoutSeconds`. An incomplete policy returns `REVIEW`. A recipient, amount, asset or network outside the policy returns `BLOCK`. When a request offers several payment options, each is evaluated.
+
+The guard checks the supplied data against the supplied policy. It does not authenticate the merchant or judge whether a price is fair. For x402 SDK clients, `registerPayGuardX402(client, options)` attaches the guard to the client's `onBeforePaymentCreation` hook so a rejected payment is aborted before a payload is created.
+
+---
+
+## 7. System Architecture and Security Intelligence Layers
+
+```mermaid
+flowchart TD
+    C["Clients: people, apps, AI agents"] --> I["Interfaces: Dashboard, REST API, MCP stdio, x402 hook"]
+    I --> V["Input validation: schemas, size limits"]
+    V --> L["Layer 1: local deterministic checks"]
+    V --> P["Layer 2: provider evidence, opt-in or cached"]
+    L --> R["Verdict builder: checks, reasons, limitations"]
+    P --> R
+    R --> O["Structured result: verdict + evidence + advisory notice"]
+```
+
+**Layer 1, local and deterministic.** URL analysis, calldata decoding, x402 policy comparison and the canonical token registry. No third party is contacted.
+
+**Layer 2, provider evidence.** GoPlus (token and address reputation), Base public RPC (`eth_call`), Blockscout (holdings discovery) and optionally Google Web Risk. Providers are fixed, operator-chosen endpoints. Failures return `UNVERIFIED`.
+
+**Verdict builder.** Combines checks into one verdict and always returns the individual checks, so a reader can see why.
+
+Detail for each module is in [Architecture](architecture.md).
+
+---
+
+## 8. Evidence-Based Risk Assessment
+
+PayGuard treats a verdict as a summary of evidence, not as a prediction.
+
+- **Every check is listed.** Results carry an array of checks with an id, a status and a detail sentence.
+- **Absence of evidence is not safety.** If a provider cannot answer, the result is `UNVERIFIED`.
+- **Limitations travel with the result.** Responses include a `limitations` field stating what was not checked.
+- **Provider claims are attributed.** Token and address findings state that they come from the provider.
+- **No unsupported claims.** Statements about detection, protection or coverage are made only where code and tests support them. Where a feature has not been exercised against live services, this paper says so.
+
+---
+
+## 9. Base Ecosystem Integration
+
+PayGuard is Base-first because the risks above are concentrated where value and new users are arriving: consumer apps, tokens launched by anyone, and agents that pay in stablecoins.
+
+| Integration | Detail | Status |
+| :--- | :--- | :--- |
+| Chain scope | Base Mainnet, chain ID 8453, for provider-backed checks | Implemented |
+| Canonical registry | WETH, native USDC, cbETH, VIRTUAL, DAI, USDbC, AERO addresses for impersonation checks | Implemented |
+| Official domain registry | Base and Coinbase domains for impersonation checks | Implemented |
+| Base RPC | `https://mainnet.base.org` for balance reads | Implemented |
+| Smart wallet | Wrapper around `@coinbase/wallet-sdk` 4.4.0 with pre-signing calldata inspection | Implemented (opt-in) |
+| x402 | Policy guard, client hook, discovery metadata at `/.well-known/x402-bazaar.json` | Implemented |
+| Base Sepolia (84532) | Provider checks return `UNVERIFIED / UNSUPPORTED_CHAIN` | Not supported for provider data |
+| Other chains | Not supported | Planned (Section 14) |
+
+Registry addresses should be re-verified against official sources before each release.
+
+---
+
+## 10. AI Agent Security: Vision and Future Architecture
+
+> [!WARNING]
+> **Status: Planned.** The AI Security Agent does not exist yet. This section describes an objective and a proposed design. No part of it is operational.
+
+### 10.1 What exists today
+
+Agents can already call PayGuard's seven MCP tools one at a time and receive structured verdicts. The agent that calls them is the user's own, and it decides what to ask. PayGuard does not currently investigate, plan or correlate across tools.
+
+### 10.2 What the AI Security Agent would add
+
+The proposed agent would be a coordinating layer on top of the existing tools. It would eventually:
+
+- Investigate suspicious websites and domains by running URL Sentinel and any configured threat-intelligence sources.
+- Analyze token contracts, wallets, addresses and supported transaction data using the existing tools.
+- Collect and correlate evidence from several providers into one report.
+- Explain findings in plain language.
+- State uncertainty and ask for additional verification when evidence is insufficient.
+- Support other agents through MCP and x402-compatible payment-policy workflows.
+- Give an evidence-based recommendation before a Web3 interaction.
+
+### 10.3 Design principles
+
+1. **Tools produce evidence, the model explains it.** Verdicts come from deterministic tools. The language model writes the explanation and may not change a verdict.
+2. **Read-only by construction.** The agent has no signing, key or payment capability.
+3. **Uncertainty is a first-class output.** `UNVERIFIED` is a valid and common answer.
+4. **Untrusted input stays untrusted.** Content from visited pages, tokens or payment requests is data, never instructions.
+5. **Everything is traceable.** Each conclusion links to the tool calls and evidence that produced it.
+
+### 10.4 Proposed flow
+
+```mermaid
+flowchart LR
+    Q["Question: is this safe to do?"] --> PL["Plan: choose tools"]
+    PL --> T["Run PayGuard tools"]
+    T --> E["Evidence set"]
+    E --> G{"Enough evidence?"}
+    G -- "no" --> M["Request more checks or say UNVERIFIED"]
+    M --> T
+    G -- "yes" --> X["Explain with cited evidence"]
+    X --> A["Advisory recommendation"]
+```
+
+The proposed architecture, safety requirements and acceptance tests are in [AI Security Agent design](ai-security-agent.md).
+
+---
+
+## 11. MCP Integration and Agent Interoperability
+
+PayGuard exposes seven tools over MCP (JSON-RPC 2.0 on stdio). The stdio server handles `initialize`, `tools/list`, `tools/call` and `ping`.
 
 | Tool | Purpose |
 | :--- | :--- |
-| `payguard_check_payment_intent` | x402 requirement vs. user policy |
-| `payguard_analyze_url` | In-memory phishing, Bidi and look-alike checks |
-| `payguard_prepare_threat_report` | Privacy-conscious draft incident report |
-| `payguard_inspect_calldata` | ERC-20 calldata and unlimited-approval check |
-| `payguard_check_token_security` | GoPlus token risk (Base 8453) |
-| `payguard_check_address_security` | GoPlus address reputation |
-| `payguard_scan_wallet_tokens` | Wallet holdings scan with impersonation detection |
+| `payguard_check_payment_intent` | x402 payment requirement vs. user policy |
+| `payguard_analyze_url` | URL phishing and impersonation signals |
+| `payguard_prepare_threat_report` | Draft incident report with sensitive data redacted; not transmitted |
+| `payguard_inspect_calldata` | ERC-20 calldata and policy inspection |
+| `payguard_check_token_security` | Token risk from GoPlus (Base 8453) |
+| `payguard_check_address_security` | Address reputation from GoPlus (Base 8453) |
+| `payguard_scan_wallet_tokens` | Wallet token scan with impersonation detection |
 
-### 13.2 REST endpoints
-
-`/api/check-payment`, `/api/analyze-url`, `/api/threat-report`, `/api/inspect-calldata`, `/api/token-security`, `/api/address-security`, `/api/scan-wallet-tokens`, `/api/capabilities`, `/api/bazaar`.
-
-### 13.3 Current server controls
-
-Request body limit 64 KB, a concurrency cap (default 100), and a per-IP rate limit over a 60-second window. **There is no authentication or per-user quota.** The rate limiter reads the client IP from a forwarded header, so it must sit behind a trusted proxy to be reliable. See Section 16.
+Schemas and examples are in [MCP Tools](mcp-tools.md). Because tools are read-only and return structured JSON with a `limitations` field, an agent framework can treat them as a policy gate: call the tool, then continue only if the verdict meets the framework's own rule.
 
 ---
 
-## 14. Threat Model and Security Boundaries
+## 12. Security, Privacy and Non-Custodial Design
 
-### 14.1 Mitigated (with the stated scope)
-
-| Threat | Mitigation | Scope |
-| :--- | :--- | :--- |
-| Invisible Bidi characters in URLs | Control-range scan | URL Sentinel |
-| Confusable hostnames | NFKC, Punycode, script checks | URL Sentinel |
-| Deceptive suffix domains | Parent-domain extraction vs. allowlist | URL Sentinel |
-| Unlimited ERC-20 approvals | Parse amount, flag `2^256 - 1` | Calldata inspector |
-| Wrong x402 recipient, asset, network or amount | Intent policy | x402 guard |
-| Honeypot and owner-control tokens | GoPlus flags | Base 8453 only |
-| Sanctioned counterparties | GoPlus address screening | Base 8453 only |
-
-### 14.2 Out of scope or not yet covered
-
-- Brand-new contracts not yet indexed (returns `UNVERIFIED`).
-- Transactions signed directly in a wallet extension outside PayGuard-controlled paths.
-- Off-chain social engineering and credential compromise.
-- Signature-based and delegation-based drains (Permit, Permit2, EIP-712, EIP-7702).
-- Prompt-injection detection for agents (needs reputation data).
-- Compromise of an upstream provider such as GoPlus.
-
----
-
-## 15. Capability Status
-
-| Capability | Status |
+| Principle | What it means in practice |
 | :--- | :--- |
-| x402 payment-intent guard and SDK hook | Implemented, unit-tested |
-| URL Sentinel (in-memory) | Implemented, tested |
-| ERC-20 calldata inspection | Implemented, tested |
-| GoPlus token and address checks | Implemented, tested with mocks; live behavior depends on provider |
-| Wallet token scanner (two-tier) | Implemented, tested with mocks |
-| REST API, MCP server, console | Implemented |
-| Passive website scanner, threat-intel parsers, feed refresh | On unmerged PR #5; unit-tested, not verified live |
-| Authentication, quotas, production egress controls | Planned |
-| Permit/Permit2/EIP-712, EIP-7702, simulation | Planned |
+| Non-custodial | No private keys, seed phrases or user funds. PayGuard never signs for users. |
+| Advisory | Verdicts do not block external wallets. They block only inside PayGuard-controlled paths (the opt-in smart-wallet wrapper and the x402 hook). |
+| Minimal outbound surface | Fixed provider endpoints only. User-supplied URLs are never fetched by the current tools. |
+| Fail closed | Timeouts, rate limits and missing data return `UNVERIFIED`. |
+| Redaction | Credentials and sensitive query values are removed before any external lookup or report. |
+| Credential isolation | Provider API keys live server-side and are not returned in responses. |
 
-The test suite last passed 155 of 155 tests in a recorded CI run. Test counts change with every commit; treat CI as the source of truth.
+**Data handling.** The analyzed URL, address or calldata is processed in memory. Addresses sent to GoPlus, Blockscout and Base RPC leave the server and are visible to those providers. A URL path is sent to Google Web Risk only when reputation lookup is requested, with path segments redacted and query parameters withheld. PayGuard does not persist submitted inputs on its own; cached provider results live in process memory for 10 minutes. See [Security Model](security-model.md) for the full trust-boundary list.
 
 ---
 
-## 16. Known Limitations and Unverified Items
+## 13. Current Implementation and Technical Limitations
 
-1. **CommonJS bundle is broken on main.** `dist/index.cjs` retains an ES `import`, so the CommonJS check fails and CI is red until the build script is fixed. ES module use is unaffected.
-2. **No authentication or quotas.** Public endpoints rely on an IP rate limit that trusts a forwarded header.
-3. **Third-party assets.** Public pages load fonts and icons from external CDNs without subresource integrity.
-4. **x402 end-to-end tests.** The hook is implemented, but a real-SDK integration test suite is not confirmed on main.
-5. **No live-feed verification.** Threat-intel refresh and storage have not been exercised against live feeds.
-6. **Provider dependence.** Token and address verdicts rely on GoPlus data and public RPC and indexer availability.
-7. **Partial wallet discovery** when the indexer is unavailable (Section 10.3).
-8. **Base Mainnet only.**
-9. **License file.** The project states an MIT license, but a LICENSE file is not yet in the repository root.
-10. **No independent security review** has been performed.
+### 13.1 Status table
 
----
+| Capability | Status | Notes |
+| :--- | :--- | :--- |
+| URL Sentinel (local analysis) | Implemented | Heuristic; false positives and negatives are possible |
+| URL reputation (Google Web Risk) | Partially Supported | Opt-in; needs server key |
+| x402 payment-policy guard | Implemented | Checks supplied data against supplied policy |
+| x402 client hook | Implemented | Attaches to `onBeforePaymentCreation` |
+| Calldata inspector | Partially Supported | Three ERC-20 selectors only |
+| Token security | Partially Supported | Provider data, Base 8453 only |
+| Address security | Partially Supported | Provider data, Base 8453 only |
+| Wallet token scanner | Partially Supported | Full discovery depends on public indexer; fallback is partial |
+| MCP server (7 tools) | Implemented | stdio transport |
+| REST API and dashboard | Implemented | No authentication |
+| Smart-wallet wrapper | Implemented | Opt-in; blocks only inside the wrapper |
+| Paid-endpoint x402 mode | Partially Supported | Not verified against live settlement in this review |
+| Threat-intelligence feeds (OpenPhish, URLhaus) and passive scanner | Planned for main | Exists on an unmerged branch (PR 5); not part of main |
+| Permit, Permit2, EIP-712 inspection | Planned | |
+| EIP-7702 delegation inspection | Planned | |
+| Transaction simulation | Planned | |
+| Authentication, quotas | Planned | |
+| AI Security Agent | Planned | Proposal only |
 
-## 17. Roadmap
+### 13.2 Known limitations
 
-Ordered by value and dependency. Items are plans, not commitments.
+- Base Mainnet only for provider-backed checks.
+- No authentication or per-user quota. The API applies a per-IP rate limit (default 120 requests per 60 seconds), a concurrency cap (default 100) and a 64 KB body limit. The limiter reads the client address from forwarded headers, so it is reliable only behind a trusted proxy.
+- Provider verdicts depend on GoPlus data and on public RPC and indexer availability, and PayGuard does not audit that data.
+- Brand-new contracts may be unindexed and return `UNVERIFIED`.
+- The test suite is run with `npm test` and in CI. This paper does not quote a test count because it changes with each commit.
+- Public pages load fonts and icons from third-party CDNs.
+- A LICENSE file is not yet present in the repository root, although the README states MIT.
+- No independent security review has been performed.
 
-**Now: trust and hygiene**
-- Fix the CommonJS build and restore green CI.
-- Add LICENSE, SECURITY.md and `.env.example`.
-- Align all public claims with this paper's status labels.
-
-**Next: production safety**
-- API-key or JWT authentication, per-identity quotas and trusted-proxy handling.
-- Production SSRF and egress controls for the passive scanner; review and merge PR #5 only after explicit approval.
-- Verify feed refresh against live OpenPhish and URLhaus and record the evidence.
-- Connect URL Sentinel to threat-intelligence matches.
-
-**Then: coverage**
-- Permit, Permit2 and EIP-712 typed-data inspection.
-- EIP-7702 delegation check.
-- Multicall decoding and transaction simulation.
-- Contract and token risk analysis beyond provider flags, and Base and NEAR security adapters.
-- Evidence correlation and reporting across modules.
-- Real-SDK x402 integration tests in CI.
-
-**Then: assurance**
-- Independent security review, and a testnet demonstration with real transactions.
-
-### Explicit non-goals
-
-- Private key custody, signing or transaction broadcasting.
-- On-chain freezing, burning or quarantine.
-- Paywalls on the core checks.
+Detail is in [Limitations and Roadmap](limitations-roadmap.md).
 
 ---
 
-*PayGuard is an open-source project for the Base and Web3 communities. Licensing: MIT is intended; see Section 16, item 9.*
+## 14. Development Roadmap
+
+This is a development proposal, ordered by dependency. It is not a commitment, and dates are deliberately omitted.
+
+| Phase | Focus | Deliverables | Evidence that it is done |
+| :--- | :--- | :--- | :--- |
+| 1. Foundation | Repository trust | Fix the CommonJS build, add LICENSE, SECURITY.md and `.env.example`, align public claims | Green CI, files present |
+| 2. Production safety | Operating the API safely | API-key or JWT authentication, quotas, trusted-proxy handling, egress controls | Tests for auth and quota paths, documented deployment |
+| 3. Threat intelligence | Evidence beyond one provider | Live feed refresh with secure storage, URL Sentinel integration, passive scanner review | Live-feed run recorded; tests |
+| 4. Coverage | Close known gaps | Permit and Permit2, EIP-712, EIP-7702, multicall decoding, simulation, NEAR adapter | Per-feature tests and documented limits |
+| 5. AI Security Agent | Investigation and correlation | Agent over existing tools, evidence correlation, reporting, evaluation suite | Evaluation results published with method |
+| 6. Assurance | Independent validation | External security review, testnet demonstration | Review report and findings addressed |
+
+---
+
+## 15. Ecosystem Impact and Potential Adoption
+
+PayGuard has no measured adoption today. The sections below describe where it could be useful, not where it is used.
+
+- **Base users** could check a link, token or approval before connecting or signing.
+- **Application developers** could call the API or library to screen links and tokens inside their own product.
+- **Agent builders** could place the x402 hook or MCP tools in front of an agent's payments as a policy gate.
+- **Researchers** could use the evidence-and-limitations output format as a basis for comparison and for reporting new attack patterns.
+
+Credible adoption signals to track in future are installs, API integrations, agent frameworks that adopt the hook, and independent reviews. None are claimed here.
+
+---
+
+## 16. Open-Source Approach and Sustainability
+
+PayGuard is developed in the open on GitHub. The README states an MIT license; a LICENSE file will be added so reuse terms are unambiguous. The core checks are intended to remain free for users. Planned sustainability steps are a documented contribution process, a security-disclosure policy (SECURITY.md), reproducible CI, and optional operator-run hosting. Mandatory paywalls, custody and on-chain control over assets are explicit non-goals.
+
+### Grant proposal outline
+
+PayGuard has not received a grant. If a grant is sought, the work above can be offered as milestones with the evidence listed in Section 14: repository trust and authentication first, then threat-intelligence verification and coverage gaps, then the AI Security Agent, then independent review. What has been built already is the Implemented set in Section 13. What funding would enable is the Planned set, in particular the review and live verification work that a single maintainer cannot credibly self-certify.
+
+---
+
+## 17. Conclusion
+
+PayGuard already gives Base users, developers and agents a set of read-only, evidence-returning checks and a way to put those checks in front of an x402 payment. Its limits are specific and documented: three calldata selectors, provider-dependent token and address data, a single supported network, and no authentication. The path forward is to close those gaps, verify the existing integrations against live services, and then build the AI Security Agent as a layer that explains evidence rather than replaces it.

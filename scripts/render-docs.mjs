@@ -50,8 +50,7 @@ export function markdownToHtml(markdown) {
       }
       htmlTable += "</tr>";
     }
-    htmlTable += "tbody></table>";
-    htmlTable = htmlTable.replace("tbody>", "</tbody>");
+    htmlTable += "</tbody></table>";
     tables.push(htmlTable);
     return "\n\n" + placeholder + "\n\n";
   });
@@ -171,6 +170,8 @@ export function renderDocPage(docSlug, templateHtml) {
     architecture: "docs/architecture.md",
     "security-model": "docs/security-model.md",
     "mcp-tools": "docs/mcp-tools.md",
+    "api-reference": "docs/api-reference.md",
+    "ai-security-agent": "docs/ai-security-agent.md",
     "getting-started": "docs/getting-started.md",
     "limitations-roadmap": "docs/limitations-roadmap.md",
     "judge-brief": "docs/judge-brief.md",

@@ -43,6 +43,11 @@ These are honest, accurate limitations of the current implementation. They repre
 | 17 | **No cross-chain GoPlus support** | Threat intelligence is scoped to Base Mainnet (8453). Ethereum mainnet, Arbitrum, Optimism, and Solana are not supported. |
 | 18 | **Google Web Risk opt-in** | Web Risk reputation lookup requires both `checkReputation: true` in the request and a valid `GOOGLE_WEB_RISK_API_KEY` server-side. |
 | 19 | **No document or message analysis** | PayGuard analyzes URLs, EVM calldata, and on-chain addresses. It does not parse PDFs, emails, Discord messages, or social media text. |
+| 20 | **No authentication or quotas** | The API is open. The per-IP rate limit reads forwarded headers and is reliable only behind a trusted proxy. |
+| 21 | **CommonJS build issue** | `dist/index.cjs` fails the CI CommonJS check at the time of this update. ES module use is unaffected. |
+| 22 | **Third-party assets on public pages** | Fonts and icons load from external CDNs without subresource integrity. |
+| 23 | **No independent security review** | The code has not been externally audited. |
+| 24 | **Paid-endpoint mode unverified live** | The x402 payment gate is not verified against a live facilitator. |
 
 ---
 
@@ -59,6 +64,13 @@ The following areas are considered for future development. Items marked **planne
 | **Dedicated Indexer RPC Support** | Support optional dedicated Alchemy/QuickNode/Goldsky endpoints for full historical token indexing |
 | **Persistent GoPlus cache** | Optional Redis or SQLite backend for cross-process and cross-restart caching |
 | **Structured audit log** | Optional append-only event log of tool invocations and verdicts for operator review |
+| **Repository trust items** | Fix the CommonJS build, add LICENSE, SECURITY.md and `.env.example` |
+| **Authentication and quotas** | API-key or JWT authentication, per-identity quotas, trusted-proxy handling |
+| **EIP-7702 and multicall inspection** | Inspect delegation authorizations and decode batched calls |
+
+### AI Security Agent (Planned)
+
+A coordinating agent that would plan checks over the existing tools, correlate evidence from several providers, state uncertainty and explain findings. It is a development objective and does not exist yet. See [AI Security Agent](ai-security-agent.md) for the proposed architecture, safety requirements and evaluation plan.
 
 ### Medium-Term (Exploratory)
 
@@ -82,3 +94,16 @@ The following areas are considered for future development. Items marked **planne
 ## Disclosure Statement
 
 PayGuard is an **advisory intelligence platform**. It delivers structured security data to help users and AI agents make informed decisions. It is not a certified security audit, not financial advice, and not an absolute guarantee that inspected assets or websites are safe.
+
+---
+
+## Implementation Status Summary
+
+| Area | Status |
+|------|--------|
+| URL Sentinel, x402 payment guard, x402 client hook, MCP server, REST API, dashboard | Implemented |
+| Calldata inspector, token security, address security, wallet scanner, Google Web Risk lookup | Partially Supported |
+| Paid-endpoint x402 gate | Partially Supported |
+| Live threat-intelligence feeds, passive website scanner | Planned for main (exists on an unmerged branch) |
+| Authentication, Permit and EIP-712, EIP-7702, simulation, additional chains | Planned |
+| AI Security Agent | Planned |

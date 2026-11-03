@@ -22,7 +22,7 @@ PayGuard exposes **seven Model Context Protocol (MCP) tools** that any AI agent 
 3. **GoPlus Address Security (Base Mainnet 8453):** Integrated entity reputation screening (phishing records, sanctions, cybercrime, mixer usage).
 4. **Base Wallet Token Scanner & Impersonation Engine:** Added the 7th MCP tool (`payguard_scan_wallet_tokens`) featuring a two-tier discovery architecture (Blockscout API v2 with on-chain RPC fallback) and lookalike token impersonation detection against canonical Base assets.
 5. **Calldata Inspector:** Decodes EVM calldata (`approve`, `transfer`, `transferFrom`) and flags unlimited token allowances (`uint256.max`).
-6. **Production Build & Test Suite Expansion:** Expanded the test suite to **154 passing automated tests with 0 failures**; bundled unified ESM, CJS, DTS, and stdio MCP server.
+6. **Production Build & Test Suite Expansion:** Expanded the automated test suite and added a build that bundles ESM, CJS, type declarations and the stdio MCP server. Run `npm test` and check the latest CI run for the current result; the CJS bundle has a known issue (see [Limitations and Roadmap](limitations-roadmap.md)).
 
 ---
 
@@ -47,7 +47,7 @@ Modern AI agents are granted financial autonomy to hire compute, execute swaps, 
 | Tool Name | Core Capability |
 |-----------|-----------------|
 | `payguard_check_payment_intent` | Evaluates x402 payment requirements against an explicit user intent policy |
-| `payguard_analyze_url` | 100% in-memory anti-phishing scan (Bidi overrides, homoglyphs, zero SSRF) |
+| `payguard_analyze_url` | Local anti-phishing analysis (Bidi overrides, homoglyphs); never fetches the URL |
 | `payguard_prepare_threat_report` | Generates privacy-redacted security incident drafts without leaking secrets |
 | `payguard_inspect_calldata` | Decodes EVM calldata and detects unlimited `approve(spender, uint256.max)` |
 | `payguard_check_token_security` | Audits Base Mainnet contracts via GoPlus for honeypot traps and trading taxes |
@@ -59,8 +59,10 @@ Modern AI agents are granted financial autonomy to hire compute, execute swaps, 
 ## Verification & Technical Metrics
 
 - **Repository:** `https://github.com/technea/PayGuard` (Branch: `main`)
-- **Automated Tests:** **154/154 passing** (`npm test`)
+- **Automated Tests:** `npm test` (see the latest CI run for results)
 - **Tools Exposed:** **7 MCP tools** (`npm run build`)
 - **Runtime Dependencies:** Zero external HTTP frameworks; only `@coinbase/wallet-sdk@4.4.0` for smart wallet client.
 - **Fail-Closed Architecture:** All external API errors, timeouts, or unindexed tokens return `UNVERIFIED` — never `PASS`.
-- **Zero SSRF:** URL Sentinel operates purely in-memory and never initiates an outbound network connection to target URLs.
+- **No user-directed fetching:** URL Sentinel analyzes URL text and never initiates a connection to the submitted URL. Provider calls go only to fixed endpoints.
+- **Planned, not built:** an AI Security Agent. See [AI Security Agent](ai-security-agent.md).
+- **No grant or funding is claimed.** See the [Whitepaper](whitepaper.md) for the roadmap.

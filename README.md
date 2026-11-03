@@ -47,7 +47,7 @@ PayGuard exposes **seven Model Context Protocol (MCP) tools** compatible with Cl
 | Tool | Capability |
 |------|------------|
 | `payguard_check_payment_intent` | Validate x402 payment requirements against an explicit user intent policy |
-| `payguard_analyze_url` | In-memory anti-phishing scan (Bidi overrides, Punycode homoglyphs, zero SSRF) |
+| `payguard_analyze_url` | Local anti-phishing analysis (Bidi overrides, Punycode homoglyphs); never fetches the URL |
 | `payguard_prepare_threat_report` | Generate privacy-redacted security incident drafts without leaking secrets |
 | `payguard_inspect_calldata` | Decode EVM calldata (`approve`, `transfer`) and flag unlimited approvals (`uint256.max`) |
 | `payguard_check_token_security` | GoPlus honeypot, tax, and owner balance privilege assessment (Base Mainnet 8453) |
@@ -70,7 +70,7 @@ cd PayGuard
 # Install dependencies (only @coinbase/wallet-sdk for smart wallet client)
 npm install
 
-# Run the complete test suite (154 tests)
+# Run the complete test suite
 npm test
 
 # Build ESM, CommonJS, TypeScript declarations, and stdio MCP server
@@ -149,6 +149,8 @@ console.log(calldataResult.verdict); // "PASS"
 - [Architecture Overview](docs/architecture.md)
 - [Security Model & Threat Landscape](docs/security-model.md)
 - [MCP Tools Reference (7 Tools)](docs/mcp-tools.md)
+- [API Reference](docs/api-reference.md)
+- [AI Security Agent (planned design)](docs/ai-security-agent.md)
 - [Getting Started Guide](docs/getting-started.md)
 - [Technical Whitepaper](docs/whitepaper.md)
 - [Frequently Asked Questions (FAQ)](docs/faq.md)

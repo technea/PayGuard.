@@ -97,10 +97,11 @@ PayGuard's URL Sentinel ignores the padlock and inspects what actually matters: 
 ### How does PayGuard inspect URLs without risking SSRF?
 Server-Side Request Forgery (SSRF) occurs when a security scanner attempts to visit an attacker-supplied link and is tricked into querying private internal servers or cloud metadata services.
 
-PayGuard guarantees **zero SSRF**:
-- The URL Sentinel operates **100% in-memory**.
+PayGuard's URL Sentinel does not fetch user-supplied URLs, so it adds no SSRF surface:
+- The URL analysis runs locally and in memory.
 - It uses the standard WHATWG URL parser and lexical pattern matchers locally.
 - PayGuard **never fetches, opens, pings, or resolves** the target host.
+- Other tools call fixed provider endpoints (GoPlus, Base RPC, Blockscout) and, only when you request it, Google Web Risk.
 - High-entropy tokens, API keys, passwords, and sensitive query strings are scrubbed locally before any optional reputation check.
 
 ---
@@ -223,3 +224,11 @@ In keeping with our transparency principles, PayGuard's current limitations incl
 ---
 
 *For further details, refer to the [Architecture Documentation](architecture.md), [Security Model](security-model.md), and [Limitations & Roadmap](limitations-roadmap.md).*
+
+---
+
+### Does PayGuard have an AI agent?
+Not yet. PayGuard exposes seven tools that an AI agent can call through MCP, but PayGuard does not include its own investigating agent. An AI Security Agent that would coordinate the tools, correlate evidence and explain findings is a planned development objective. See [AI Security Agent](ai-security-agent.md).
+
+### Has PayGuard received a grant or funding?
+No grant or funding is claimed in this documentation. The [Whitepaper](whitepaper.md) describes a development roadmap as a proposal.
