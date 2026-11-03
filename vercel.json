@@ -9,7 +9,10 @@
           "server.mjs",
           "paybox.mjs",
           "src/**",
-          "public/**"
+          "public/**",
+          "scripts/**",
+          "docs/**",
+          "README.md"
         ]
       }
     }
