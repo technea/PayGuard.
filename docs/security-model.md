@@ -30,7 +30,7 @@ PayGuard never:
 - Signs or broadcasts transactions (except in the opt-in `BaseSmartWalletClient` wrapper when explicitly requested by user code).
 - Requests, handles, or stores private keys, seed phrases, or mnemonics.
 - Executes payments or initiates transfers.
-- Opens, fetches, or pings user-supplied URLs (100% anti-SSRF).
+- Opens, fetches, or pings user-supplied URLs. The current tools analyze URL text only.
 - Freezes, burns, or quarantines on-chain assets (it has zero administrative privileges).
 
 ### 2. Fail Closed
@@ -38,7 +38,7 @@ Every external API integration (GoPlus, Blockscout, Base RPC) fails closed:
 - An upstream HTTP 500, 429 rate limit, network timeout, or unindexed asset returns `UNVERIFIED` — **never `PASS`**.
 - Missing data is never treated as proof of safety. Absence of evidence is not evidence of absence.
 
-### 3. Minimal External Surface & Zero SSRF
+### 3. Minimal External Surface and No User-Directed Fetching
 - **In-Memory URL Parsing:** URL Sentinel uses the WHATWG URL parser locally. No outbound connection is ever made to the inspected host.
 - **Fixed Upstream Providers:** External network requests are restricted to hardcoded endpoints:
   - GoPlus Security API (`api.gopluslabs.io`)
@@ -69,7 +69,7 @@ Every external API integration (GoPlus, Blockscout, Base RPC) fails closed:
 | **Token Impersonation** | Lookalike contract copying canonical symbols (`USDC`, `VIRTUAL`) | `checkTokenImpersonation` compares contract address against Base canonical registry |
 | **Suspicious Counterparties** | Transfers to sanctioned or phishing addresses | GoPlus Address Security screening (flags `BLOCK / CRITICAL`) |
 | **x402 Intent Manipulation** | Rogue merchant demanding excess payment or unapproved assets | Strict pre-payment comparison against user-defined intent policy |
-| **SSRF Attacks** | Attacker supplying `http://169.254.169.254` or internal LAN IPs | URL Sentinel runs 100% in-memory; zero outbound network fetch |
+| **SSRF Attacks** | Attacker supplying `http://169.254.169.254` or internal LAN IPs | The URL Sentinel parses text only and never fetches the submitted URL. Outbound calls go only to fixed provider endpoints |
 | **DoS via Giant Payloads** | Massive calldata or oversized API responses | 64 KB hard request ceiling and 3-second network timeouts |
 
 ### Out of Scope
@@ -77,7 +77,10 @@ Every external API integration (GoPlus, Blockscout, Base RPC) fails closed:
 | Threat | Why Out of Scope |
 |--------|------------------|
 | **Zero-Day Unindexed Scams** | Newly deployed contracts not yet in threat feeds return `UNVERIFIED`, not detected |
-| **EIP-712 Permit Signatures** | Offline permit signatures (`eth_signTypedData_v4`) not currently decoded |
+| **EIP-712, Permit and Permit2 Signatures** | Offline signatures (`eth_signTypedData_v4`) are not currently decoded |
+| **EIP-7702 Delegation** | Account delegation authorizations are not inspected |
+| **Multicall and Batched Calls** | Return advisory `REVIEW`; inner calls are not decoded |
+| **Prompt Injection of Agents** | Detecting hostile instructions needs reputation data and an investigation layer (planned) |
 | **Cross-Chain Attacks** | GoPlus and RPC checks currently target Base Mainnet (Chain ID 8453) only |
 | **MEV & Sandwich Exploits** | Mempool transaction ordering and slippage attacks are out of scope |
 | **External Wallet Enforcement** | PayGuard cannot prevent a user from manually signing inside MetaMask or other third-party wallets |
@@ -106,3 +109,51 @@ The API response explicitly includes `discoveryMode` and an `advisoryNotice` so 
 PayGuard is an **advisory intelligence sentinel**. It delivers structured evidence to empower human users and autonomous AI agents to make informed decisions before interacting with smart contracts or visiting Web3 links.
 
 PayGuard does **not** guarantee that an asset is risk-free, does **not** replace a comprehensive smart contract audit, and does **not** possess administrative custody over user funds.
+
+---
+
+## Trust Boundaries
+
+| Boundary | Trusted | Untrusted or limited |
+|----------|---------|----------------------|
+| Caller input (URL, calldata, addresses) | Validated against schemas and size limits | Content is attacker-controlled and treated as data |
+| x402 policy | Supplied by the user or developer in advance | A payment request is never used to define its own policy |
+| GoPlus, Blockscout, Base RPC, Google Web Risk | Fixed endpoints chosen by the operator | Provider accuracy and availability are not verified by PayGuard |
+| PayGuard server | Holds optional provider API keys server-side | No authentication; spoofable per-IP rate limit if not behind a trusted proxy |
+| External wallet | Outside PayGuard | PayGuard cannot stop a user from signing there |
+
+---
+
+## Data Handling and Privacy
+
+| Data | Where it goes | Notes |
+|------|---------------|-------|
+| Submitted URL | Processed in memory | Not fetched. With `checkReputation: true`, a redacted URL goes to Google Web Risk: path segments redacted, query parameters withheld |
+| Token or wallet address | GoPlus, Blockscout and Base RPC | These providers can see the address you query |
+| Calldata and x402 policy | Processed in memory | No outbound calls for these two checks |
+| Provider results | Process memory, 10 minute TTL | Cleared on restart; no database |
+| Threat reports | Returned to the caller | Draft only; not transmitted anywhere |
+| Metrics | In-memory Prometheus counters | Counts and verdict labels only, no submitted values |
+| Provider API keys | Environment variables on the server | Not returned in responses |
+
+The code reviewed for this page does not write submitted inputs to disk. Operators who log requests at a proxy or platform layer are responsible for that data.
+
+---
+
+## Operational Controls and Gaps
+
+| Control | Current behavior |
+|---------|------------------|
+| Request body limit | 64 KB |
+| Concurrency cap | 100 in-flight requests by default |
+| Rate limit | 120 requests per 60 seconds per client IP by default; the address is read from `x-forwarded-for` or `x-real-ip` |
+| Upstream timeout | 3 seconds for GoPlus calls; 64 KB response cap |
+| Authentication and quotas | None. Planned |
+| CORS | `*` |
+| Errors | Internal details hidden unless `NODE_ENV=development` |
+
+---
+
+## Status Labels
+
+Documentation across this site labels capabilities as **Implemented**, **Partially Supported** or **Planned**. The AI Security Agent is **Planned**; see [AI Security Agent](ai-security-agent.md). Provider reputation results are not an independent smart-contract audit.

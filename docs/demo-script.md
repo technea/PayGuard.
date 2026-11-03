@@ -2,7 +2,7 @@
 
 **Audience:** Judges, technical evaluators, Web3 developers
 **Format:** Terminal walkthrough + code execution
-**Prerequisites:** Node.js 20+, `npm test` passing (154 tests), `npm run build` completed (7 tools)
+**Prerequisites:** Node.js 20+, `npm test` passing, `npm run build` completed (7 tools)
 
 > [!IMPORTANT]
 > All examples use public test contracts, known addresses, or synthetic inputs. No private keys are required. No real funds are at risk.
@@ -14,7 +14,7 @@
 ```bash
 cd PayGuard
 node --version    # Must be v20+
-npm test          # Confirm 154/154 passing tests
+npm test          # Confirm the suite passes
 npm run build     # Confirm "7 tools exposed"
 ```
 

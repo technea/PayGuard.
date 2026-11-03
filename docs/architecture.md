@@ -153,7 +153,7 @@ Interrogates the GoPlus Address Security API for Base Mainnet (Chain ID 8453):
 Wraps `@coinbase/wallet-sdk@4.4.0` with PayGuard's pre-signing security perimeter:
 - Intercepts proposed transactions before `eth_sendTransaction` is called.
 - Decodes candidate calldata using `inspectCalldata()`.
-- Aborts automatically with `TransactionBlockedError` if the verdict is `BLOCK` or `REVIEW`.
+- Returns `{ aborted: true, verdict, riskLevel, reasons, checks, details }` and does not call the wallet if the verdict is not `PASS` (`BLOCK` or `REVIEW`).
 
 ---
 
@@ -175,4 +175,47 @@ HTTP/1.1 microservice running with native Node.js ESM and zero external HTTP fra
   - `GET /health` — Read-only health probe.
   - `GET /metrics` — Prometheus metrics export.
   - `GET /.well-known/x402-bazaar.json` — PayBox Bazaar discovery metadata.
-- **Security Protections:** In-memory sliding-window rate limiting (120 req/min/IP), 64 KB maximum request body ceiling, strict CORS headers, and anti-SSRF protections.
+- **Security Protections:** In-memory sliding-window rate limiting (120 req/min/IP), 64 KB maximum request body ceiling, and permissive CORS (`*`). The URL Sentinel does not fetch user-supplied URLs, so it adds no SSRF surface. There is no authentication, and the rate limiter reads the client address from forwarded headers, so it is reliable only behind a trusted proxy.
+
+---
+
+## Implementation Status
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| URL Sentinel (`analyzeUrlSecurity`) | Implemented | Local analysis; optional Google Web Risk lookup |
+| x402 payment guard (`evaluatePaymentIntent`) | Implemented | Compares supplied data with supplied policy |
+| x402 client hook (`createPayGuardX402Hook`, `registerPayGuardX402`) | Implemented | Attaches to `onBeforePaymentCreation` |
+| Calldata inspector | Partially Supported | Three ERC-20 selectors |
+| Token and address security | Partially Supported | GoPlus data, Base 8453 only |
+| Wallet token scanner | Partially Supported | Full discovery depends on the public indexer |
+| Smart-wallet wrapper | Implemented (opt-in) | Blocks only inside the wrapper |
+| `paybox.mjs` x402 gate and Bazaar metadata | Partially Supported | Challenge format tested; live settlement not verified |
+| Threat-intelligence feeds, passive scanner | Planned for main | Exists on an unmerged branch |
+| AI Security Agent | Planned | See [AI Security Agent](ai-security-agent.md) |
+
+---
+
+## Request Lifecycle
+
+1. `server.mjs` routes the request. Check endpoints accept only `POST`.
+2. The server enforces the concurrency cap, then the per-IP rate limit.
+3. If `PAYGUARD_REQUIRE_X402=true`, a payment header is required and a live-settled proof must verify.
+4. The JSON body is read (64 KB limit) and passed to the tool in `src/plugin.mjs` through `plugin.invokeTool(name, input)`.
+5. The tool runs local checks, then optional provider calls with a 3 second timeout and a 64 KB response cap.
+6. The result is returned as JSON. Finite verdicts are counted in Prometheus metrics. Submitted inputs are not written to disk by this code.
+
+---
+
+## Build and Distribution
+
+`npm run build` compiles the Tailwind stylesheet (`scripts/build-tailwind.mjs`) and then bundles ESM, CommonJS, type declarations and the stdio MCP server into `dist/` (`scripts/build.mjs`). The Vercel entry point is `api/index.mjs`, which loads `server.mjs`.
+
+> [!NOTE]
+> At the time of this documentation update the CommonJS output (`dist/index.cjs`) is a known build issue and fails the CI CommonJS syntax check. ES module use is unaffected. See [Limitations and Roadmap](limitations-roadmap.md).
+
+---
+
+## Related Pages
+
+[API Reference](api-reference.md), [Security Model](security-model.md), [MCP Tools](mcp-tools.md), [Whitepaper](whitepaper.md), [AI Security Agent (planned)](ai-security-agent.md).
