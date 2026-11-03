@@ -2569,7 +2569,7 @@
       <div class="nav-actions">
         <div class="net-pulse-chip">
           <span class="net-pulse-dot"></span>
-          <span>BASE (8453) // LIVE</span>
+          <span>BASE (8453) LIVE</span>
         </div>
         <a href="/dashboard" class="btn btn-cyan nav-dashboard-cta" title="Launch Security Console">
           <i class="fa-solid fa-sliders"></i> Open Dashboard
@@ -2655,7 +2655,7 @@
             </div>
             <span class="seq-cursor">_</span>
           </div>
-          <span class="seq-module-tag" id="seqModuleTag">URL SENTINEL // ACTIVE</span>
+          <span class="seq-module-tag" id="seqModuleTag">URL SENTINEL ACTIVE</span>
         </div>
 
         <p class="hero-desc">
@@ -2744,7 +2744,7 @@
               <span class="inv-dot yellow"></span>
               <span class="inv-dot green"></span>
             </div>
-            <span class="inv-title">PAYGUARD // SECURITY CHECK</span>
+            <span class="inv-title">PAYGUARD SECURITY CHECK</span>
           </div>
           <div class="inv-status-chip">
             <i class="fa-solid fa-network-wired"></i>
@@ -3281,7 +3281,7 @@
     <div class="report-modal-card" onclick="event.stopPropagation()">
       <div class="report-modal-header">
         <span style="color:#ffffff; font-family:var(--font-mono); font-size:0.85rem; font-weight:700;">
-          <i class="fa-solid fa-file-shield" style="color:var(--cyan)"></i> PAYGUARD_THREAT_REPORT // INCIDENT_TELEMETRY.JSON
+          <i class="fa-solid fa-file-shield" style="color:var(--cyan)"></i> PAYGUARD_THREAT_REPORT INCIDENT_TELEMETRY.JSON
         </span>
         <button onclick="closeThreatReportModal()" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:1.1rem;">
           <i class="fa-solid fa-xmark"></i>
@@ -3464,9 +3464,9 @@
     // =========================================================
     (function initCapabilityRotator() {
       const items = [
-        { text: "Verify Websites.", tag: "URL SENTINEL // ACTIVE" },
-        { text: "Detect Fake Tokens.", tag: "GOPLUS ENGINE // ACTIVE" },
-        { text: "Inspect Wallet Risks.", tag: "WALLET SCANNER // ACTIVE" }
+        { text: "Verify Websites.", tag: "URL SENTINEL ACTIVE" },
+        { text: "Detect Fake Tokens.", tag: "GOPLUS ENGINE ACTIVE" },
+        { text: "Inspect Wallet Risks.", tag: "WALLET SCANNER ACTIVE" }
       ];
       let itemIdx = 0;
       const textEl = document.getElementById('seqText');
@@ -3560,7 +3560,7 @@
             latency: "SAMPLE DATA",
                         topology: [
               { name: "Inbound Client Request", pip: "pip-green", status: "Airgapped In-Memory" },
-              { name: "Authoritative Base Registry", pip: "pip-rose", status: "MISMATCH // Not in registry" },
+              { name: "Authoritative Base Registry", pip: "pip-rose", status: "MISMATCH: Not in registry" },
               { name: "Typosquat Distance Analyzer", pip: "pip-rose", status: "Distance: 1 (base.org)" },
               { name: "Privacy Redactor Buffer", pip: "pip-amber", status: "1 Query Secret Redacted" }
             ],
@@ -3726,7 +3726,7 @@
                         topology: [
               { name: "Base Mainnet RPC (8453)", pip: "pip-green", status: "Deployed on 8453" },
               { name: "GoPlus Security Feed", pip: "pip-rose", status: "Honeypot Flagged (is_honeypot: 1)" },
-              { name: "Canonical Token Registry", pip: "pip-rose", status: "MISMATCH // Fake USDC" },
+              { name: "Canonical Token Registry", pip: "pip-rose", status: "MISMATCH: Fake USDC" },
               { name: "Sell Tax Bytecode Hook", pip: "pip-rose", status: "99.0% Siphon Tax" }
             ],
             layers: [
