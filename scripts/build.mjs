@@ -120,7 +120,7 @@ function toWalletScannerCJS(esmCode) {
     .replace(/^export\s+async\s+function\s+([a-zA-Z0-9_$]+)/gm, 'async function $1')
     .replace(/^export\s+function\s+([a-zA-Z0-9_$]+)/gm, 'function $1')
     .replace(/^export\s+const\s+([a-zA-Z0-9_$]+)/gm, 'const $1')
-    .replace(/^export\\s+default\\s+([a-zA-Z0-9_$]+);?/gm, '');
+    .replace(/^export\s+default\s+([a-zA-Z0-9_$]+);?/gm, '');
   cjs += `\nmodule.exports = { BASE_CHAIN_ID, BASE_RPC_URL, BLOCKSCOUT_BASE_API, OFFICIAL_BASE_TOKENS, checkTokenImpersonation, getErc20Balance, getErc20Metadata, fetchBlockscoutTokens, evaluateWalletToken, scanBaseWalletTokens, default: scanBaseWalletTokens };\n`;
   return cjs;
 }
