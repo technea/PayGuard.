@@ -286,6 +286,121 @@
       .nav-links { display: none; }
       .doc-content { padding: 1.5rem; }
     }
+
+    .logo-badge img {
+      display: block;
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+    .footer-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+    }
+    .footer-brand img {
+      flex: 0 0 22px;
+      display: block;
+      object-fit: contain;
+    }
+    .doc-content {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .table-scroll {
+      width: 100%;
+      max-width: 100%;
+      margin: 1.25rem 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-inline: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 240, 255, .35) rgba(255, 255, 255, .04);
+    }
+    .doc-content .table-scroll table {
+      display: table;
+      width: max-content;
+      min-width: 100%;
+      max-width: none;
+      margin: 0;
+      border-collapse: collapse;
+    }
+    .doc-content th,
+    .doc-content td {
+      min-width: 6.5rem;
+      vertical-align: top;
+    }
+    @media (max-width: 600px) {
+      header {
+        padding: .7rem .85rem;
+        gap: .55rem;
+      }
+      .brand {
+        min-width: 0;
+        gap: .55rem;
+      }
+      .logo-badge {
+        flex: 0 0 36px;
+        width: 36px;
+        height: 36px;
+      }
+      .logo-badge img {
+        width: 31px;
+        height: 31px;
+      }
+      .brand-title {
+        min-width: 0;
+        font-size: 1.05rem;
+        white-space: nowrap;
+      }
+      .btn-tools {
+        flex: 0 0 auto;
+        padding: .45rem .75rem;
+        font-size: .75rem;
+        white-space: nowrap;
+      }
+      .doc-layout {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1rem;
+        padding: .9rem .65rem 1.35rem;
+      }
+      .doc-content {
+        padding: 1rem .85rem;
+        border-radius: 12px;
+      }
+      .doc-content h1 {
+        font-size: clamp(1.45rem, 7vw, 1.9rem);
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+      }
+      .doc-content h2 {
+        font-size: 1.25rem;
+      }
+      .doc-content table {
+        font-size: .8rem;
+      }
+      .doc-content th,
+      .doc-content td {
+        min-width: 6rem;
+        padding: .6rem .7rem;
+      }
+      main {
+        padding-bottom: 1rem;
+      }
+      footer {
+        padding: 1rem .85rem;
+        margin-top: 0;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: .85rem;
+      }
+      footer > div:last-child {
+        flex-wrap: wrap;
+        gap: .85rem !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -293,7 +408,7 @@
   <!-- Top Header Navigation -->
   <header>
     <a href="/" class="brand">
-      <div class="logo-badge"><i class="fa-solid fa-shield-halved"></i></div>
+      <div class="logo-badge"><img src="/assets/payguard-mark.svg" alt="" width="32" height="32"></div>
       <div class="brand-title">PayGuard</div>
     </a>
     <nav>
@@ -340,7 +455,7 @@
   </div>
 
   <footer>
-    <div><i class="fa-solid fa-shield-halved" style="color: var(--cyan);"></i> PayGuard • Verify Before You Trust • Free Base Ecosystem Security Platform</div>
+    <div class="footer-brand"><img src="/assets/payguard-mark.svg" alt="" width="22" height="22"> <span>PayGuard • Verify Before You Trust • Free Base Ecosystem Security Platform</span></div>
     <div style="display:flex; gap:1.25rem;">
       <a href="/dashboard" style="color:var(--text-muted); text-decoration:none;">Dashboard</a>
       <a href="/docs" style="color:var(--text-muted); text-decoration:none;">Docs</a>
