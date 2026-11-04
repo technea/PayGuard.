@@ -1169,6 +1169,78 @@
       }
     }
 
+  
+    .bazaar-endpoint-card {
+      padding: 1rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: .65rem;
+      min-width: 0;
+    }
+
+    .bazaar-endpoint-heading {
+      width: 100%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: .65rem;
+      flex-wrap: wrap;
+    }
+
+    .bazaar-endpoint-route {
+      display: inline-flex;
+      min-width: 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      line-height: 1.4;
+    }
+
+    .bazaar-discovered {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      flex: 0 0 auto;
+      color: var(--emerald);
+      font-size: .72rem;
+      font-weight: 700;
+    }
+
+    .bazaar-endpoint-description {
+      color: var(--text-muted);
+      font-size: .84rem;
+      line-height: 1.5;
+    }
+
+    .bazaar-open-tool {
+      min-height: 40px;
+      margin-top: .1rem;
+      padding: .55rem .8rem;
+      font-size: .78rem;
+      cursor: pointer;
+    }
+
+    .bazaar-open-tool:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 768px) {
+      .bazaar-layout {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 1rem !important;
+      }
+
+      .bazaar-endpoint-card {
+        padding: .9rem;
+      }
+
+      .bazaar-open-tool {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -1874,7 +1946,7 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+        <div class="bazaar-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
           <div>
             <div style="font-weight: 700; margin-bottom: 0.75rem; color: #ffffff;"><i class="fa-solid fa-cube" style="color: var(--cyan); margin-right: 0.35rem;"></i> Discovered Security Endpoints</div>
             <div id="bazaar-endpoints-list" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
@@ -2438,6 +2510,25 @@
       });
     }
 
+    // Open the dashboard tool that handles a discovered API endpoint.
+    const DISCOVERED_ENDPOINT_TOOLS = Object.freeze({
+      "/api/analyze-url": { tab: "url-sentinel", input: "sentinel-url", label: "Open URL Sentinel" },
+      "/api/check-payment": { tab: "payment-guard", input: "policy-intent-input", label: "Open Payment Guard" }
+    });
+
+    function openDiscoveredEndpoint(path) {
+      const tool = DISCOVERED_ENDPOINT_TOOLS[path];
+      if (!tool) return;
+
+      switchTab(tool.tab);
+      const panel = document.getElementById("tab-" + tool.tab);
+      panel?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      window.setTimeout(() => {
+        document.getElementById(tool.input)?.focus({ preventScroll: true });
+      }, 180);
+    }
+
     // Bazaar Loader
     async function loadBazaarData() {
       try {
@@ -2445,17 +2536,23 @@
         if (!res.ok) return;
         const b = await res.json();
         const list = document.getElementById('bazaar-endpoints-list');
-        list.innerHTML = (b.info?.endpoints || []).map(ep => `
-          <div class="glass-card" style="padding: 1rem 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-              <span class="pill-secondary" style="font-weight: 700; color: var(--cyan); display: inline-flex; align-items: center; gap: 0.4rem;">
-                <i class="fa-solid fa-code-branch"></i> ${ep.method} ${ep.path}
-              </span>
-              <span style="font-size: 0.75rem; color: var(--emerald); font-weight: 700;"><i class="fa-solid fa-circle-check"></i> Discovered</span>
-            </div>
-            <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">${ep.description}</div>
-          </div>
-        `).join('');
+        const endpoints = b.info?.endpoints || [];
+        list.innerHTML = endpoints.map(ep => {
+          const tool = DISCOVERED_ENDPOINT_TOOLS[ep.path];
+          const action = tool
+            ? `<button type="button" class="btn btn-secondary bazaar-open-tool" onclick="openDiscoveredEndpoint('${ep.path}')"><i class="fa-solid fa-arrow-up-right-from-square"></i> ${tool.label}</button>`
+            : '';
+          return `
+            <article class="glass-card bazaar-endpoint-card">
+              <div class="bazaar-endpoint-heading">
+                <span class="pill-secondary bazaar-endpoint-route"><i class="fa-solid fa-code-branch"></i> ${ep.method} ${ep.path}</span>
+                <span class="bazaar-discovered"><i class="fa-solid fa-circle-check"></i> Discovered</span>
+              </div>
+              <p class="bazaar-endpoint-description">${ep.description}</p>
+              ${action}
+            </article>
+          `;
+        }).join('');
       } catch (e) {
         console.warn('Bazaar load error:', e);
       }
