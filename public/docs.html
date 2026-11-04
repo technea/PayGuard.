@@ -286,6 +286,113 @@
       .nav-links { display: none; }
       .doc-content { padding: 1.5rem; }
     }
+  
+    /* Shared PayGuard visual system and responsive documentation layout */
+    header {
+      position:sticky; top:0; z-index:80; min-height:70px;
+      padding: .75rem clamp(1rem,3vw,2rem);
+      gap: clamp(.65rem,1.5vw,1.4rem);
+    }
+    .brand { gap:.75rem; flex:0 0 auto; }
+    .logo-badge {
+      width:42px; height:42px; flex:0 0 42px;
+      border-radius:12px; background:rgba(4,12,28,.72);
+      border-color:rgba(0,240,255,.28); box-shadow:0 6px 22px rgba(0,0,0,.24);
+    }
+    .logo-badge img { display:block; width:35px; height:35px; object-fit:contain; }
+    .brand-title { font-size:1.16rem; }
+    .nav-links { gap:clamp(.7rem,1.25vw,1.3rem); }
+    .nav-link { display:inline-flex; min-height:42px; align-items:center; white-space:nowrap; }
+    .btn-tools { min-height:44px; justify-content:center; white-space:nowrap; }
+    .docs-menu-toggle, .docs-mobile-nav { display:none; }
+    .docs-mobile-nav[hidden] { display:none !important; }
+    .doc-layout {
+      width:min(100%,1360px);
+      padding:clamp(1.25rem,3vw,2.25rem) clamp(1rem,3vw,1.5rem);
+      gap:clamp(1.25rem,2.5vw,2.5rem);
+    }
+    .doc-content {
+      min-width:0;
+      padding:clamp(1.25rem,3vw,2.5rem);
+      border-radius:18px;
+      line-height:1.7;
+    }
+    .doc-content h1 { font-size:clamp(1.8rem,3.4vw,2.35rem); line-height:1.16; text-wrap:balance; }
+    .doc-content h2 { font-size:clamp(1.35rem,2.3vw,1.65rem); line-height:1.25; }
+    .doc-content h3 { font-size:clamp(1.1rem,1.8vw,1.25rem); line-height:1.3; }
+    .doc-content p { max-width:78ch; line-height:1.75; }
+    .doc-content pre, .doc-content table { max-width:100%; }
+    .doc-content pre { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .doc-content table { display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .doc-content th, .doc-content td { min-width:120px; }
+    .doc-nav-item { min-height:42px; }
+    footer { padding:1.35rem clamp(1rem,3vw,2rem); gap:1rem; flex-wrap:wrap; }
+    a:focus-visible, button:focus-visible {
+      outline:2px solid rgba(0,240,255,.85); outline-offset:3px;
+    }
+    @media (max-width: 1080px) {
+      header { flex-wrap:wrap; }
+      .docs-desktop-nav { display:none; }
+      .docs-menu-toggle {
+        display:inline-flex; align-items:center; justify-content:center;
+        width:44px; height:44px; min-width:44px; border-radius:11px;
+        border:1px solid var(--border-subtle); color:var(--text-main);
+        background:rgba(255,255,255,.04); cursor:pointer;
+      }
+      .docs-mobile-nav:not([hidden]) {
+        position:absolute; top:100%; left:1rem; right:1rem;
+        display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.45rem;
+        padding:.85rem; border:1px solid var(--border-medium); border-radius:0 0 15px 15px;
+        background:rgba(5,10,24,.98); box-shadow:0 22px 50px rgba(0,0,0,.42);
+      }
+      .docs-mobile-nav a {
+        min-height:46px; display:flex; align-items:center; padding:.7rem .85rem;
+        border:1px solid var(--border-subtle); border-radius:10px;
+        color:var(--text-muted); text-decoration:none; font-size:.86rem; font-weight:600;
+      }
+      .docs-mobile-nav a:hover { color:#fff; border-color:rgba(0,240,255,.35); background:rgba(0,240,255,.08); }
+    }
+    @media (max-width: 900px) {
+      .doc-layout { grid-template-columns:minmax(0,1fr); gap:1rem; }
+      aside {
+        display:flex; position:static; height:auto; overflow-x:auto; overflow-y:hidden;
+        flex-direction:row; align-items:center; gap:.4rem; padding:0 0 .75rem;
+        margin:0; border-right:0; border-bottom:1px solid var(--border-subtle);
+        scrollbar-width:thin; -webkit-overflow-scrolling:touch;
+      }
+      .sidebar-heading { display:none; }
+      .doc-nav-item { flex:0 0 auto; white-space:nowrap; padding:.55rem .75rem; }
+      .doc-content { padding:1.35rem; }
+      footer { flex-direction:column; align-items:flex-start; }
+    }
+    @media (max-width: 560px) {
+      header { min-height:64px; padding:.6rem 1rem; }
+      .logo-badge { width:38px; height:38px; flex-basis:38px; }
+      .logo-badge img { width:32px; height:32px; }
+      .brand-title { font-size:1.08rem; }
+      .btn-tools { padding:.55rem .75rem; font-size:.78rem; }
+      .docs-menu-toggle { width:42px; height:42px; min-width:42px; }
+      .docs-mobile-nav:not([hidden]) { grid-template-columns:minmax(0,1fr); }
+      .doc-layout { padding:1rem .85rem 1.5rem; }
+      .doc-content { padding:1.05rem; border-radius:14px; }
+      .doc-content h1 { margin-bottom:1.1rem; }
+      .doc-content table { font-size:.8rem; }
+      .doc-content th, .doc-content td { padding:.6rem .7rem; min-width:110px; }
+      .doc-content pre { padding:.9rem; border-radius:10px; }
+      .doc-content pre code { font-size:.78rem; }
+      footer { padding:1.2rem 1rem; }
+    }
+    @media (max-width: 390px) {
+      .brand-title { font-size:1rem; }
+      .btn-tools { font-size:0; min-width:42px; width:42px; height:42px; padding:0; }
+      .btn-tools i { font-size:.95rem; }
+      .docs-mobile-nav:not([hidden]) { left:.65rem; right:.65rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior:auto; }
+      *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+    }
+
   </style>
 </head>
 <body>
@@ -293,10 +400,10 @@
   <!-- Top Header Navigation -->
   <header>
     <a href="/" class="brand">
-      <div class="logo-badge"><i class="fa-solid fa-shield-halved"></i></div>
+      <div class="logo-badge"><img src="/assets/payguard-mark.svg" alt="" width="32" height="32"></div>
       <div class="brand-title">PayGuard</div>
     </a>
-    <nav>
+    <nav class="docs-desktop-nav" aria-label="Primary navigation">
       <ul class="nav-links">
         <li><a href="/" class="nav-link"><i class="fa-solid fa-house"></i> Home</a></li>
         <li><a href="/dashboard" class="nav-link"><i class="fa-solid fa-gauge-high"></i> Security Tools</a></li>
@@ -304,6 +411,16 @@
         <li><a href="/docs" class="nav-link" id="nav-docs"><i class="fa-solid fa-book"></i> Technical Docs</a></li>
         <li><a href="/faq" class="nav-link" id="nav-faq"><i class="fa-solid fa-circle-question"></i> FAQ</a></li>
       </ul>
+    </nav>
+    <button class="docs-menu-toggle" id="docs-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="docs-mobile-nav">
+      <i class="fa-solid fa-bars" aria-hidden="true"></i>
+    </button>
+    <nav class="docs-mobile-nav" id="docs-mobile-nav" aria-label="Mobile navigation" hidden>
+      <a href="/">Home</a>
+      <a href="/dashboard">Security Tools</a>
+      <a href="/whitepaper">Whitepaper</a>
+      <a href="/docs">Technical Docs</a>
+      <a href="/faq">FAQ</a>
     </nav>
     <a href="/dashboard" class="btn-tools"><i class="fa-solid fa-sliders"></i> Launch Tools</a>
   </header>
@@ -366,5 +483,34 @@
       document.getElementById('nav-docs')?.classList.add('active');
     }
   </script>
+
+<script>
+  (function initDocsMobileNavigation() {
+    const toggle = document.getElementById("docs-menu-toggle");
+    const panel = document.getElementById("docs-mobile-nav");
+    if (!toggle || !panel) return;
+    const setOpen = (open, restoreFocus) => {
+      panel.hidden = !open;
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
+      toggle.innerHTML = open
+        ? '<i class="fa-solid fa-xmark" aria-hidden="true"></i>'
+        : '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
+      if (!open && restoreFocus) toggle.focus();
+    };
+    toggle.addEventListener("click", () => setOpen(toggle.getAttribute("aria-expanded") !== "true"));
+    panel.querySelectorAll("a").forEach(link => link.addEventListener("click", () => setOpen(false)));
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !panel.hidden) setOpen(false, true);
+    });
+    document.addEventListener("click", event => {
+      if (!panel.hidden && !panel.contains(event.target) && !toggle.contains(event.target)) setOpen(false);
+    });
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 1080 && !panel.hidden) setOpen(false);
+    }, { passive:true });
+  })();
+</script>
+
 </body>
 </html>
