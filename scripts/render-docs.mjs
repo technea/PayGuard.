@@ -51,7 +51,7 @@ export function markdownToHtml(markdown) {
       htmlTable += "</tr>";
     }
     htmlTable += "</tbody></table>";
-    tables.push(htmlTable);
+    tables.push(`<div class="table-scroll" role="region" aria-label="Scrollable table" tabindex="0">${htmlTable}</div>`);
     return "\n\n" + placeholder + "\n\n";
   });
 
