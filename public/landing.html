@@ -2669,6 +2669,123 @@
     }
     @media (prefers-reduced-motion: reduce) { .video-hold-orbit { animation: none !important; } }
 
+  
+    /* Mobile portrait layout safeguards */
+    html, body {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    body {
+      overflow-x: clip;
+    }
+
+    main,
+    .container,
+    .nav-container,
+    .pg-architecture-visual,
+    .pg-architecture-visual > * {
+      min-width: 0;
+    }
+
+    main,
+    .container,
+    .pg-architecture-visual {
+      width: 100%;
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    .brand-title {
+      min-width: 0;
+    }
+
+    .pg-architecture-visual {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .pg-architecture-visual > * {
+      max-width: 100%;
+    }
+
+    .pg-network-stage {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .pg-visual-title,
+    .pg-visual-description,
+    .pg-flow-item small {
+      overflow-wrap: anywhere;
+    }
+
+    @media (min-width: 1024px) {
+      .pg-architecture-visual {
+        grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr);
+      }
+    }
+
+    @media (max-width: 960px) {
+      .nav-container {
+        width: 100%;
+        gap: .55rem;
+      }
+
+      .brand {
+        flex: 1 1 auto;
+      }
+
+      .nav-actions {
+        flex: 0 0 auto;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero-section {
+        padding: 1.55rem 0 1.2rem;
+      }
+
+      .pg-architecture-visual {
+        margin: 1rem auto .75rem;
+        padding: .8rem;
+        gap: .75rem;
+      }
+
+      .pg-network-stage {
+        min-height: 220px;
+      }
+
+      .pg-flow-list {
+        gap: .4rem;
+        margin-top: .9rem;
+      }
+
+      .hero-cta-group {
+        margin: 1rem 0;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .nav-container {
+        padding-left: .65rem;
+        padding-right: .65rem;
+        gap: .4rem;
+      }
+
+      .brand-title {
+        gap: .35rem;
+        white-space: nowrap;
+      }
+
+      .mobile-menu-toggle {
+        min-width: 68px;
+        padding-left: .4rem;
+        padding-right: .4rem;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -2800,7 +2917,7 @@
           Check websites, Base tokens, wallet addresses and transaction data before you connect or sign.
         </p>
 
-        <div class="pg-architecture-visual relative mx-auto grid w-full max-w-5xl grid-cols-1 items-center gap-5 overflow-hidden rounded-2xl border border-cyan-300/20 bg-slate-950/75 p-4 text-left shadow-2xl md:grid-cols-[0.88fr_1.12fr] md:p-6" aria-label="Illustrative PayGuard security architecture">
+        <div class="pg-architecture-visual relative mx-auto grid w-full max-w-5xl grid-cols-1 items-center gap-5 overflow-hidden rounded-2xl border border-cyan-300/20 bg-slate-950/75 p-4 text-left shadow-2xl lg:grid-cols-[0.88fr_1.12fr] md:p-6" aria-label="Illustrative PayGuard security architecture">
           <div class="pg-visual-copy relative z-10">
             <span class="pg-visual-kicker">BASE SECURITY PIPELINE <span> / 8453</span></span>
             <h2 class="pg-visual-title">Check before you connect.</h2>
