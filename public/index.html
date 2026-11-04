@@ -834,6 +834,156 @@
       .wallet-connect-status { transition: none; }
     }
 
+  
+    /* PayGuard dashboard design-system refinement */
+    :root {
+      --dashboard-gutter: clamp(1rem, 3vw, 2rem);
+      --dashboard-radius: 16px;
+    }
+    html { scroll-behavior: smooth; scroll-padding-top: 92px; }
+    body { font-size: 15px; line-height: 1.62; text-rendering: optimizeLegibility; }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 80;
+      gap: clamp(.65rem, 1.5vw, 1.25rem);
+      padding: .8rem var(--dashboard-gutter);
+      flex-wrap: nowrap;
+    }
+    .brand { flex: 0 0 auto; min-width: 0; gap: .75rem; }
+    .logo-badge {
+      width: 42px; height: 42px; flex: 0 0 42px;
+      border-radius: 12px; background: rgba(4,12,28,.72);
+      border-color: rgba(0,240,255,.28); box-shadow: 0 6px 22px rgba(0,0,0,.24);
+    }
+    .logo-badge img { display:block; width:35px; height:35px; object-fit:contain; }
+    .brand-title { font-size: 1.16rem; }
+    .brand-tag { white-space: nowrap; }
+    .top-nav-links { gap: clamp(.55rem, 1vw, 1rem) !important; }
+    .top-nav-links a { min-height: 42px; display:inline-flex; align-items:center; white-space:nowrap; }
+    .header-pills { gap: .5rem; flex: 0 0 auto; }
+    .header-pills > * { white-space: nowrap; }
+    #wallet-connect-btn { min-height: 42px; padding: .45rem .9rem; }
+    .dashboard-menu-toggle {
+      display:none; align-items:center; justify-content:center;
+      width:44px; min-width:44px; height:44px; padding:0;
+      border:1px solid var(--border-subtle); border-radius:11px;
+      background:rgba(255,255,255,.04); color:var(--text-main);
+      cursor:pointer; font-size:1rem;
+    }
+    .dashboard-mobile-nav { display:none; }
+    .dashboard-mobile-nav[hidden] { display:none !important; }
+    main {
+      max-width: 1320px;
+      padding: clamp(1.25rem, 2.8vw, 2.25rem) var(--dashboard-gutter);
+      gap: clamp(1.2rem, 2.5vw, 1.85rem);
+    }
+    .tab-nav {
+      gap:.45rem; padding:.45rem; border-radius:15px;
+      scrollbar-width:thin; scrollbar-color:rgba(148,163,184,.35) transparent;
+      overscroll-behavior-inline:contain; -webkit-overflow-scrolling:touch;
+    }
+    .tab-btn {
+      flex:0 0 auto; min-height:46px; min-width:150px;
+      padding:.75rem 1rem; border-radius:11px; font-size:.84rem;
+      scroll-snap-align:start;
+    }
+    .glass-card { border-radius:var(--dashboard-radius); padding:clamp(1.1rem,2vw,1.65rem); }
+    .card-header { gap:1rem; margin-bottom:1.15rem; }
+    .card-title { line-height:1.3; text-wrap:balance; }
+    .card-subtitle { line-height:1.55; }
+    .metric-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,205px),1fr)); gap:.85rem; }
+    .metric-card { min-width:0; border-radius:14px; padding:1.15rem; }
+    .metric-value { font-size:clamp(1.35rem,2.5vw,1.75rem); overflow-wrap:anywhere; }
+    .form-layout { grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); gap:1rem; }
+    .form-group { min-width:0; }
+    .input-box, input, textarea, select {
+      max-width:100%; min-width:0; font-size:16px;
+    }
+    .input-box { min-height:48px; border-radius:11px; }
+    textarea.input-box { min-height:140px; }
+    .btn, button { min-height:44px; }
+    .preset-bar, .form-actions { gap:.55rem; }
+    .preset-chip { min-height:40px; }
+    .verdict-hero { min-width:0; flex-wrap:wrap; border-radius:15px; }
+    pre, code, .code-preview { max-width:100%; overflow-x:auto; }
+    table { display:block; width:100%; max-width:100%; overflow-x:auto; }
+    footer {
+      gap:1rem; padding:1.35rem var(--dashboard-gutter);
+      flex-wrap:wrap; line-height:1.55;
+    }
+    .dashboard-footer-brand { display:flex; align-items:center; gap:.65rem; color:#e2e8f0; font-weight:700; }
+    .dashboard-footer-brand img { width:30px; height:30px; object-fit:contain; }
+    .dashboard-footer-version { color:var(--text-dim); font-size:.78rem; font-weight:500; }
+    .footer-links { display:flex; flex-wrap:wrap; gap:.65rem 1.1rem; }
+    a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+      outline:2px solid rgba(0,240,255,.85); outline-offset:3px;
+    }
+    @media (max-width: 1180px) {
+      header { flex-wrap:wrap; }
+      .top-nav-links { display:none !important; }
+      .dashboard-menu-toggle { display:inline-flex; }
+      header { position:sticky; }
+      .dashboard-mobile-nav:not([hidden]) {
+        position:absolute; top:calc(100% + 1px); left:var(--dashboard-gutter); right:var(--dashboard-gutter);
+        display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.45rem;
+        padding:.85rem; border:1px solid var(--border-medium); border-radius:0 0 15px 15px;
+        background:rgba(5,10,24,.98); box-shadow:0 22px 50px rgba(0,0,0,.42);
+        backdrop-filter:blur(18px); z-index:100;
+      }
+      .dashboard-mobile-nav a {
+        min-width:0; min-height:48px; display:flex; align-items:center; gap:.6rem;
+        padding:.7rem .8rem; border:1px solid var(--border-subtle); border-radius:10px;
+        color:var(--text-muted); text-decoration:none; font-size:.84rem; font-weight:600;
+      }
+      .dashboard-mobile-nav a[aria-current="page"], .dashboard-mobile-nav a:hover {
+        color:#fff; border-color:rgba(0,240,255,.35); background:rgba(0,240,255,.08);
+      }
+      .dashboard-mobile-nav i { color:var(--cyan); width:1rem; text-align:center; }
+    }
+    @media (max-width: 768px) {
+      :root { --dashboard-gutter:1rem; }
+      header { padding:.7rem var(--dashboard-gutter); gap:.65rem; }
+      .brand-tag { display:none; }
+      .header-pills { margin-left:auto; gap:.4rem; }
+      .header-pills > .live-status, .header-pills > .pill-secondary { display:none; }
+      #wallet-connect-btn { padding:.45rem .7rem; font-size:.75rem; }
+      #wallet-network-badge { font-size:.65rem; }
+      main { padding:1.1rem var(--dashboard-gutter) 2rem; gap:1.2rem; }
+      .tab-nav { margin-inline:-.1rem; scroll-snap-type:x proximity; }
+      .tab-btn { min-width:136px; font-size:.78rem; padding:.7rem .8rem; }
+      .glass-card { padding:1.1rem; }
+      .card-header { align-items:flex-start; flex-wrap:wrap; }
+      .metric-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:.7rem; }
+      .metric-card { padding:.9rem; }
+      .metric-label { font-size:.68rem; }
+      .metric-sub { flex-wrap:wrap; font-size:.7rem; }
+      .form-layout { grid-template-columns:minmax(0,1fr); }
+      .form-actions { display:grid; grid-template-columns:minmax(0,1fr); }
+      .form-actions .btn, .form-actions button { width:100%; justify-content:center; }
+      .verdict-hero { align-items:flex-start; flex-direction:column; padding:1.1rem; }
+      footer { flex-direction:column; align-items:flex-start; }
+      .footer-links { gap:.55rem .9rem; }
+    }
+    @media (max-width: 420px) {
+      .logo-badge { width:38px; height:38px; flex-basis:38px; }
+      .logo-badge img { width:32px; height:32px; }
+      .brand-title { font-size:1.05rem; }
+      #wallet-connect-btn { font-size:0; width:44px; min-width:44px; padding:0; justify-content:center; }
+      #wallet-connect-btn i { font-size:.95rem; }
+      .dashboard-menu-toggle { width:42px; min-width:42px; height:42px; }
+      .dashboard-mobile-nav:not([hidden]) { grid-template-columns:minmax(0,1fr); }
+      .metric-grid { grid-template-columns:minmax(0,1fr); }
+      .metric-value { font-size:1.6rem; }
+      .glass-card { padding:.95rem; }
+      .tab-btn { min-width:128px; }
+      .dashboard-footer-version { display:block; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior:auto; }
+      *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+    }
+
   </style>
 </head>
 <body>
@@ -868,7 +1018,17 @@
       <button id="wallet-connect-btn" onclick="walletConnect()">
         <i class="fa-solid fa-wallet"></i> <span id="wallet-btn-label">Connect Wallet</span>
       </button>
+      <button id="dashboard-menu-toggle" class="dashboard-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="dashboard-mobile-nav">
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+      </button>
     </div>
+    <nav id="dashboard-mobile-nav" class="dashboard-mobile-nav" aria-label="Mobile navigation" hidden>
+      <a href="/"><i class="fa-solid fa-house"></i><span>Home</span></a>
+      <a href="/dashboard" aria-current="page"><i class="fa-solid fa-gauge-high"></i><span>Security Tools</span></a>
+      <a href="/whitepaper"><i class="fa-solid fa-file-contract"></i><span>Whitepaper</span></a>
+      <a href="/docs"><i class="fa-solid fa-book"></i><span>Technical Docs</span></a>
+      <a href="/faq"><i class="fa-solid fa-circle-question"></i><span>FAQ</span></a>
+    </nav>
   </header>
 
   <main class="min-h-screen">
@@ -1563,7 +1723,10 @@
 
   <!-- Footer -->
   <footer>
-    <div><i class="fa-solid fa-shield-halved" style="color: var(--cyan); margin-right: 0.35rem;"></i> PayGuard v0.1.0 • Verify Before You Trust • Free Base Ecosystem Security Platform</div>
+    <div class="dashboard-footer-brand">
+      <img src="/assets/payguard-mark.svg" alt="" width="28" height="28">
+      <span>PayGuard <span class="dashboard-footer-version">v0.1.0 · Verify Before You Trust</span></span>
+    </div>
     <div class="footer-links">
       <a href="/"><i class="fa-solid fa-house"></i> Home</a>
       <a href="/whitepaper"><i class="fa-solid fa-file-contract"></i> Whitepaper</a>
@@ -2979,5 +3142,36 @@
     }, 250);
 
 </script>
+
+  <script>
+    (function initDashboardMobileNavigation() {
+      const toggle = document.getElementById("dashboard-menu-toggle");
+      const panel = document.getElementById("dashboard-mobile-nav");
+      if (!toggle || !panel) return;
+      const setOpen = (open, restoreFocus) => {
+        panel.hidden = !open;
+        toggle.setAttribute("aria-expanded", String(open));
+        toggle.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
+        toggle.innerHTML = open
+          ? '<i class="fa-solid fa-xmark" aria-hidden="true"></i>'
+          : '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
+        if (!open && restoreFocus) toggle.focus();
+      };
+      toggle.addEventListener("click", () => {
+        setOpen(toggle.getAttribute("aria-expanded") !== "true");
+      });
+      panel.querySelectorAll("a").forEach(link => link.addEventListener("click", () => setOpen(false)));
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && !panel.hidden) setOpen(false, true);
+      });
+      document.addEventListener("click", event => {
+        if (!panel.hidden && !panel.contains(event.target) && !toggle.contains(event.target)) setOpen(false);
+      });
+      window.addEventListener("resize", () => {
+        if (window.innerWidth > 1180 && !panel.hidden) setOpen(false);
+      }, { passive: true });
+    })();
+  </script>
+
 </body>
 </html>
