@@ -11,7 +11,7 @@ export function listAgentCompatibleTools() {
     category: definition.category,
     title: definition.title,
     access: "READ_ONLY",
-    defaultRequired: true
+    requiredness: "CONTEXTUAL"
   }));
 }
 
@@ -21,5 +21,5 @@ export function isKnownPayGuardTool(toolName) {
 
 export function getToolDefinition(toolName) {
   const definition = TOOL_CATALOG[toolName];
-  return definition ? { name: toolName, ...definition, access: "READ_ONLY" } : null;
+  return definition ? { name: toolName, ...definition, access: "READ_ONLY", requiredness: "CONTEXTUAL" } : null;
 }
