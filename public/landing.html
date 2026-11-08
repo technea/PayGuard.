@@ -2787,7 +2787,54 @@
       }
     }
 
-  </style>
+  
+    /* Final mobile layout rules — placed after page styles to win the cascade. */
+    html, body { width:100%; max-width:100%; overflow-x:clip; }
+    body { min-width:0; }
+    .container, .nav-container, .hero-section, #investigation-center,
+    #security-pillars, #agent-security, #web3-realities, #faq,
+    #explainer-video, .site-footer, .footer-grid, .footer-bottom {
+      box-sizing:border-box; min-width:0; max-width:100%;
+    }
+    .container { width:100%; margin-inline:auto; }
+    .pillars-grid, .realities-grid, .check-grid, .guarantee-grid, .form-layout {
+      grid-template-columns:repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    }
+    .pillar-card, .reality-box, .agent-card, .cta-banner,
+    .inv-container-card, .inv-panel, .pg-architecture-visual {
+      min-width:0; max-width:100%;
+    }
+    .pg-architecture-visual { width:100%; }
+    .pg-network-stage { min-width:0; max-width:100%; overflow:hidden; }
+    .footer-grid { grid-template-columns:minmax(0,1.45fr) repeat(3,minmax(0,1fr)); }
+    @media (max-width:960px) {
+      .pillars-grid, .realities-grid, .check-grid, .guarantee-grid, .form-layout {
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+      .footer-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+    @media (max-width:640px) {
+      .container { width:100%; padding-left:1rem; padding-right:1rem; }
+      .pillars-grid, .realities-grid, .check-grid, .guarantee-grid, .form-layout,
+      .footer-grid { grid-template-columns:minmax(0,1fr) !important; }
+      .realities-grid .reality-box:last-child { grid-column:auto; }
+      .hero-section, #investigation-center, #security-pillars, #agent-security,
+      #web3-realities, #faq, #explainer-video { width:100%; min-width:0; }
+      .section-header, .section-title, .section-subtitle,
+      .hero-title, .hero-desc { max-width:100%; min-width:0; }
+      .pg-architecture-visual { width:100%; margin-inline:0; }
+      .pg-map-node { max-width:43%; min-width:0; }
+      .pg-flow-item { min-width:0; grid-template-columns:2.2rem minmax(0,1fr) 1rem; }
+      .footer-grid, .footer-bottom { padding-left:1rem; padding-right:1rem; }
+      .cta-banner { width:100%; margin-inline:0; }
+    }
+    @media (max-width:380px) {
+      .container { padding-left:.75rem; padding-right:.75rem; }
+      .hero-title { overflow-wrap:break-word; }
+      .pg-map-node { max-width:42%; }
+    }
+
+</style>
 </head>
 <body>
 
