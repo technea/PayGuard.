@@ -4857,8 +4857,8 @@
       update();
     })();
 
-    // Reveal high-value sections as they enter the viewport.
-    (function initPremiumScrollMotion() {
+    // Reveal key landing-page sections with GSAP as they enter the viewport.
+    window.addEventListener('load', function initPremiumScrollMotion() {
       const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const targets = document.querySelectorAll('.section-header, .inv-container-card, .guarantees-bar, .capability-sequence-box');
       targets.forEach(function(target) { target.classList.add('pg-reveal-target'); });
@@ -4866,16 +4866,34 @@
         targets.forEach(function(target) { target.classList.add('pg-revealed'); });
         return;
       }
-      document.documentElement.classList.add('pg-reveal-enabled');
+
+      const useGsap = Boolean(window.gsap);
+      if (!useGsap) document.documentElement.classList.add('pg-reveal-enabled');
+      if (useGsap) {
+        window.gsap.set(targets, { autoAlpha: 0, y: 18, filter: 'blur(3px)' });
+      }
+
       const observer = new IntersectionObserver(function(entries) {
         entries.forEach(function(entry) {
           if (!entry.isIntersecting) return;
-          entry.target.classList.add('pg-revealed');
-          observer.unobserve(entry.target);
+          const target = entry.target;
+          if (useGsap) {
+            window.gsap.to(target, {
+              autoAlpha: 1,
+              y: 0,
+              filter: 'blur(0px)',
+              duration: 0.72,
+              ease: 'power3.out',
+              clearProps: 'all'
+            });
+          } else {
+            target.classList.add('pg-revealed');
+          }
+          observer.unobserve(target);
         });
       }, { threshold: 0.12, rootMargin: '0px 0px -36px 0px' });
       targets.forEach(function(target) { observer.observe(target); });
-    })();
+    });
 
     const cockpitTargetInput = document.getElementById('cockpitTargetInput');
     if (cockpitTargetInput) cockpitTargetInput.addEventListener('input', updateScannerControls);

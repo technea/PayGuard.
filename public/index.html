@@ -1241,6 +1241,184 @@
       }
     }
 
+
+    /* Refined motion: restrained, purposeful, and accessible. */
+    .glass-card,
+    .metric-card,
+    .check-card,
+    .guarantee-card,
+    .tab-btn,
+    .btn,
+    .preset-chip {
+      transition:
+        border-color 180ms ease,
+        background-color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms ease;
+    }
+
+    .glass-card:hover,
+    .metric-card:hover,
+    .check-card:hover,
+    .guarantee-card:hover {
+      border-color: rgba(148, 163, 184, 0.24);
+      transform: translateY(-2px);
+    }
+
+    .tab-btn:focus-visible,
+    .btn:focus-visible,
+    .preset-chip:focus-visible,
+    .input-box:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+
+    /* PayGuard dashboard refinement — quieter surfaces, clearer hierarchy. */
+    :root {
+      --bg-card: #0d1422;
+      --bg-card-hover: #111c2d;
+      --border-subtle: rgba(148, 163, 184, 0.14);
+      --cyan: #55c9d8;
+      --cyan-glow: rgba(85, 201, 216, 0.12);
+      --text-muted: #a3afc2;
+      --text-dim: #7e8ba1;
+    }
+
+    body {
+      background-image:
+        radial-gradient(ellipse at 50% -18%, rgba(47, 91, 116, 0.16), transparent 52%),
+        linear-gradient(180deg, #080d17 0%, #070a12 55%, #080d16 100%);
+    }
+
+    header {
+      background: rgba(8, 13, 23, 0.94);
+      border-bottom-color: rgba(148, 163, 184, 0.16);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand-title {
+      background: none;
+      color: #f1f5f9;
+      -webkit-text-fill-color: currentColor;
+      letter-spacing: -0.045em;
+    }
+
+    main { gap: 1.5rem; padding-top: 1.65rem; }
+
+    .tab-nav {
+      gap: .3rem;
+      padding: .3rem;
+      border-radius: 12px;
+      background: #0b1220;
+      border-color: rgba(148, 163, 184, 0.16);
+    }
+
+    .tab-btn {
+      min-height: 42px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      font-size: .84rem;
+      transition: color .18s ease, background .18s ease, border-color .18s ease;
+    }
+
+    .tab-btn.active {
+      color: #eafcff;
+      background: rgba(85, 201, 216, .11);
+      border-color: rgba(85, 201, 216, .32);
+      box-shadow: none;
+    }
+
+    .glass-card,
+    .metric-card,
+    .check-card,
+    .guarantee-card {
+      background: #0d1422;
+      border-color: rgba(148, 163, 184, .15);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .12);
+      backdrop-filter: none;
+    }
+
+    .glass-card { border-radius: 14px; padding: 1.5rem; }
+    .metric-card { border-radius: 12px; padding: 1.15rem 1.2rem; }
+    .metric-label { letter-spacing: .075em; }
+    .metric-value { letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
+
+    .glass-card:hover,
+    .metric-card:hover,
+    .check-card:hover,
+    .guarantee-card:hover {
+      border-color: rgba(148, 163, 184, .28);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .2);
+    }
+
+    .verdict-hero { border-radius: 14px; }
+    .input-box { border-color: rgba(148, 163, 184, .22); }
+    .input-box:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(85, 201, 216, .12); }
+
+    .tab-btn:focus-visible,
+    .btn:focus-visible,
+    .preset-chip:focus-visible,
+    a:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 768px) {
+      main { padding-top: 1rem; gap: 1rem; }
+      .glass-card { padding: 1.1rem; }
+      .tab-nav { scrollbar-width: thin; }
+    }
+
+    @media (max-width: 900px) {
+      .check-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .form-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 640px) {
+      main { min-width: 0; padding-left: .85rem; padding-right: .85rem; }
+      .tab-nav { max-width: 100%; justify-content: flex-start; }
+      .tab-btn { flex: 0 0 auto; min-width: 128px; }
+      .check-grid,
+      .form-layout,
+      .guarantee-grid { grid-template-columns: minmax(0, 1fr); }
+      .check-card { min-width: 0; padding: .9rem; }
+      .check-card-header { align-items: flex-start; }
+      .check-friendly-name { line-height: 1.35; }
+      .code-preview { max-width: 100%; font-size: .76rem; }
+      footer { flex-wrap: wrap; gap: .8rem; padding: 1rem; }
+      .footer-links { flex-wrap: wrap; gap: .65rem 1rem; }
+    }
+
+    @media (max-width: 380px) {
+      .tab-btn { min-width: 116px; padding: .65rem .75rem; }
+      .glass-card { padding: .9rem; }
+      .metric-card { padding: .95rem; }
+      .check-badge { white-space: nowrap; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -1981,17 +2159,29 @@
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
   <script>
-    // Tab Switching
+    // Tab Switching — preserve the existing panel and application logic; animate only presentation.
     function switchTab(tabId) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      const panels = document.querySelectorAll('.tab-content');
+      panels.forEach(content => content.classList.remove('active'));
 
       const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
       if (targetBtn) targetBtn.classList.add('active');
 
       const targetPanel = document.getElementById('tab-' + tabId);
-      if (targetPanel) targetPanel.classList.add('active');
+      if (!targetPanel) return;
+      targetPanel.classList.add('active');
+
+      if (window.gsap && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const items = targetPanel.querySelectorAll('.metric-card, .glass-card, .check-card, .guarantee-card');
+        window.gsap.killTweensOf(items);
+        window.gsap.fromTo(items,
+          { y: 12, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.42, stagger: 0.055, ease: 'power2.out', clearProps: 'transform,opacity,visibility' }
+        );
+      }
     }
 
     // Telemetry auto-polling
@@ -3409,6 +3599,17 @@
         bindWalletProvider(_walletProvider);
       }
     }, 250);
+
+
+    // Progressive dashboard entrance motion. Core UI remains usable if GSAP is unavailable.
+    window.addEventListener('load', function () {
+      if (!window.gsap || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const intro = document.querySelectorAll('header, main > .tab-nav, #tab-overview .metric-card, #tab-overview > .glass-card');
+      window.gsap.fromTo(intro,
+        { y: 14, autoAlpha: 0 },
+        { y: 0, autoAlpha: 1, duration: 0.58, stagger: 0.065, ease: 'power2.out', clearProps: 'all' }
+      );
+    });
 
 </script>
 </body>
