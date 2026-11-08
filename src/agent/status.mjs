@@ -31,7 +31,7 @@ const CALLDATA_RISK_CODES = new Set([
 
 function calldataHasRisk(result) {
   if (result.verdict === "BLOCK") return true;
-  if (Array.isArray(result.reasons) && result.reasons.some(code => CALldata_RISK_CODES.has(String(code)))) return true;
+  if (Array.isArray(result.reasons) && result.reasons.some(code => CALLDATA_RISK_CODES.has(String(code)))) return true;
   return Array.isArray(result.checks) && result.checks.some(check =>
     ["FAIL", "FAILED", "fail", "failed"].includes(String(check?.status || ""))
   );
