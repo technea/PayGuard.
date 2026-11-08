@@ -31,7 +31,7 @@ jobs:
       - name: Check CommonJS distributable syntax
         run: node --check dist/index.cjs
       - name: Verify CommonJS adapter exports
-        run: node -e "const p = require('./dist/index.cjs'); if (typeof p.createPayGuardX402Hook !== 'function' || typeof p.registerPayGuardX402 !== 'function') process.exit(1); console.log('CommonJS x402 adapter exports verified.');"
+        run: node -e "const p = require('./dist/index.cjs'); if (typeof p.createPayGuardX402Hook !== 'function' || typeof p.registerPayGuardX402 !== 'function' || typeof p.payGuardRunSecurityAssessment !== 'function') process.exit(1); console.log('CommonJS x402 and agent exports verified.');"
       - name: Verify plugin exports
         run: >-
           node --input-type=module -e "import('./dist/plugin.mjs').then(({default: p}) => { if (!p || p.tools.length !== 8) process.exit(1); console.log(p.tools.map(t => t.name).join(', ')); })"
