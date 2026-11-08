@@ -5,7 +5,6 @@
  * A timed-out Promise is no longer awaited, but cannot be forcibly cancelled by this layer.
  */
 
-import { plugin } from "../plugin.mjs";
 import { createErrorEvidence, createNotCheckedEvidence } from "./evidence-record.mjs";
 import { normalizeToolResult } from "./normalize-result.mjs";
 import { cloneJsonValue, canonicalJson } from "./canonical-json.mjs";
@@ -56,7 +55,11 @@ export async function executeAssessmentPlan(plan, options = {}) {
   };
   const invokeTool = typeof options.invokeTool === "function"
     ? options.invokeTool
-    : plugin.invokeTool.bind(plugin);
+    : async (toolName, input) => {
+        // Lazy import avoids a static cycle when the composite agent is registered as an MCP tool.
+        const { plugin } = await import("../plugin.mjs");
+        return plugin.invokeTool(toolName, input);
+      };
 
   const records = new Array(plan.tasks.length);
   const deadline = Date.now() + limits.totalTimeoutMs;
