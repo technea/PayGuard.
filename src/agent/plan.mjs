@@ -56,7 +56,7 @@ export function buildAssessmentPlan(input) {
   if (has(input, "transaction")) {
     const tx = input.transaction;
     const txInput = tx && typeof tx === "object" && !Array.isArray(tx)
-      ? Object.fromEntries(["to", "value", "data", "policy"]
+      ? Object.fromEntries(["to", "value", "data", "policy", "network"]
           .filter(key => has(tx, key))
           .map(key => [key, tx[key]]))
       : tx;
