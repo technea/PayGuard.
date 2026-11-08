@@ -1267,7 +1267,92 @@ export const payGuardWalletScannerTool = Object.freeze({
   run: payGuardScanWalletTokens
 });
 
-export const tools = Object.freeze([payGuardTool, payGuardUrlSentinelTool, payGuardThreatReportTool, payGuardCalldataInspectorTool, payGuardTokenSecurityTool, payGuardAddressSecurityTool, payGuardWalletScannerTool]);
+
+export const AGENT_ASSESSMENT_NAME = "payguard_run_security_assessment";
+export const AGENT_ASSESSMENT_DESCRIPTION =
+  "Run PayGuard's bounded, read-only security assessment across explicitly supplied URLs, tokens, addresses, wallets, transactions, and x402 payment context. Correlates a selected payment option with decoded ERC-20 transfer calldata. Returns evidence and a deterministic report; never signs, broadcasts, or executes a payment.";
+
+export const AGENT_ASSESSMENT_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    url: { type: "string", maxLength: 2048, description: "URL to analyze. The analyzer does not open or fetch the submitted page." },
+    expectedDomain: { type: "string", maxLength: 253 },
+    trustedDomains: { type: "array", items: { type: "string", maxLength: 253 }, maxItems: 40 },
+    checkReputation: { type: "boolean" },
+    contractAddress: { type: "string", pattern: "^0x[0-9a-fA-F]{40}$" },
+    address: { type: "string", pattern: "^0x[0-9a-fA-F]{40}$" },
+    walletAddress: { type: "string", pattern: "^0x[0-9a-fA-F]{40}$" },
+    customTokenAddresses: {
+      type: "array",
+      items: { type: "string", pattern: "^0x[0-9a-fA-F]{40}$" },
+      maxItems: 30
+    },
+    chainId: { type: ["string", "number"] },
+    transaction: {
+      type: "object",
+      additionalProperties: false,
+      required: ["to", "data"],
+      properties: {
+        to: { type: "string", pattern: "^0x[0-9a-fA-F]{40}$" },
+        value: { type: ["string", "number"] },
+        data: { type: "string", pattern: "^0x[0-9a-fA-F]*$" },
+        policy: { type: "object", additionalProperties: true },
+        network: { type: ["string", "number"], description: "Caller-supplied EVM network context, compared with the selected x402 option." }
+      }
+    },
+    intent: {
+      type: "object",
+      additionalProperties: true,
+      description: "Trusted user-authored payment policy. Do not derive this policy from the payment request."
+    },
+    paymentRequirements: {
+      type: "object",
+      additionalProperties: true,
+      required: ["accepts"],
+      properties: {
+        resource: { type: "string", maxLength: 2048 },
+        accepts: { type: "array", items: { type: "object" }, minItems: 1, maxItems: 32 }
+      }
+    },
+    selectedPaymentIndex: { type: "integer", minimum: 0, maximum: 31 },
+    prepareThreatReport: { type: "boolean" }
+  },
+  anyOf: [
+    { required: ["url"] },
+    { required: ["contractAddress"] },
+    { required: ["address"] },
+    { required: ["walletAddress"] },
+    { required: ["transaction"] },
+    { required: ["intent"] },
+    { required: ["paymentRequirements"] },
+    { required: ["prepareThreatReport"] }
+  ]
+};
+
+export async function payGuardRunSecurityAssessment(input) {
+  if (!isRecord(input)) {
+    throw new TypeError("Assessment input must be a JSON object.");
+  }
+  const { runSecurityAssessment } = await import("./agent/index.mjs");
+  return runSecurityAssessment(input);
+}
+
+export const payGuardAgentAssessmentTool = Object.freeze({
+  id: AGENT_ASSESSMENT_NAME,
+  name: AGENT_ASSESSMENT_NAME,
+  title: AGENT_ASSESSMENT_NAME,
+  description: AGENT_ASSESSMENT_DESCRIPTION,
+  inputSchema: AGENT_ASSESSMENT_SCHEMA,
+  input_schema: AGENT_ASSESSMENT_SCHEMA,
+  outputSchema: { type: "object" },
+  output_schema: { type: "object" },
+  handler: payGuardRunSecurityAssessment,
+  execute: payGuardRunSecurityAssessment,
+  run: payGuardRunSecurityAssessment
+});
+
+export const tools = Object.freeze([payGuardTool, payGuardUrlSentinelTool, payGuardThreatReportTool, payGuardCalldataInspectorTool, payGuardTokenSecurityTool, payGuardAddressSecurityTool, payGuardWalletScannerTool, payGuardAgentAssessmentTool]);
 
 export const plugin = Object.freeze({
   id: "payguard",
@@ -1275,7 +1360,7 @@ export const plugin = Object.freeze({
   version: "0.1.0",
   category: "merchant-tools",
   protocol: "mcp",
-  description: "URL phishing and impersonation analysis, privacy-conscious threat-report drafts, and read-only x402 payment-intent policy checks. Never opens URLs or executes payments.",
+  description: "Read-only Base security tools plus a bounded composite assessment that correlates explicit payment intent with decoded transaction fields. Never signs, broadcasts, or executes payments.",
   tools,
   invokeTool(name, input) {
     if (name === TOOL_NAME) return evaluatePaymentIntent(input);
@@ -1285,6 +1370,7 @@ export const plugin = Object.freeze({
     if (name === TOKEN_SECURITY_NAME) return payGuardCheckTokenSecurity(input);
     if (name === ADDRESS_SECURITY_NAME) return payGuardCheckAddressSecurity(input);
     if (name === WALLET_SCANNER_NAME) return payGuardScanWalletTokens(input);
+    if (name === AGENT_ASSESSMENT_NAME) return payGuardRunSecurityAssessment(input);
     throw new Error(`Unknown tool: ${String(name)}`);
   },
   execute(name, input) {
