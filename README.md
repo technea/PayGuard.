@@ -15,7 +15,7 @@ PayGuard provides read-only, advisory security intelligence before wallet signin
          v                                                   v
 +-------------------------+                         +-------------------------+
 |     For Human Users     |                         |   For Autonomous Agents |
-|  - Interactive Web App  |                         |  - 7 Native MCP Tools   |
+|  - Interactive Web App  |                         |  - 8 Native MCP Tools   |
 |  - Phishing URL Scanner |                         |  - In-Memory Anti-SSRF  |
 |  - Base Wallet Scanner  |                         |  - Calldata Decoder     |
 |  - Honeypot Auditing    |                         |  - GoPlus Threat Feeds  |
@@ -40,9 +40,9 @@ Traditional web security assumptions fail in Web3. PayGuard is engineered around
 
 ---
 
-## The Seven MCP Tools
+## The Eight MCP Tools
 
-PayGuard exposes **seven Model Context Protocol (MCP) tools** compatible with Claude Desktop, Cursor, and any MCP-compliant autonomous agent framework:
+PayGuard exposes **eight Model Context Protocol (MCP) tools** compatible with Claude Desktop, Cursor, and any MCP-compliant autonomous agent framework:
 
 | Tool | Capability |
 |------|------------|
@@ -53,6 +53,9 @@ PayGuard exposes **seven Model Context Protocol (MCP) tools** compatible with Cl
 | `payguard_check_token_security` | GoPlus honeypot, tax, and owner balance privilege assessment (Base Mainnet 8453) |
 | `payguard_check_address_security` | GoPlus address reputation screening (phishing, sanctions, cybercrime, mixers) |
 | `payguard_scan_wallet_tokens` | Two-tier discovery scanning Base wallet holdings for honeypots and impersonators |
+| `payguard_run_security_assessment` | Run bounded multi-signal checks and correlate a selected x402 payment option with decoded ERC-20 transfer calldata |
+
+The composite assessment returns a deterministic evidence report with `VERIFIED`, `RISK_DETECTED`, `UNVERIFIED`, `NOT_CHECKED`, and `ERROR` states. It does not call an LLM or perform transactions.
 
 All tools return structured JSON with a **verdict** (`PASS` / `REVIEW` / `BLOCK` / `UNVERIFIED`), **riskLevel**, and detailed **findings**.
 
