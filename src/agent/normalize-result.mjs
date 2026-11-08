@@ -12,6 +12,7 @@ import { createErrorEvidence } from "./evidence-record.mjs";
 
 function summarizeEvidence(result) {
   const findings = [];
+  if (!result || typeof result !== "object") return findings;
   const add = (code, severity) => {
     if (typeof code !== "string") return;
     findings.push({ code: code.slice(0, 120), severity: typeof severity === "string" ? severity.toUpperCase().slice(0, 20) : null });
