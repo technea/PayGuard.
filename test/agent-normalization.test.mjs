@@ -90,3 +90,35 @@ test('partial wallet discovery remains UNVERIFIED even when discovered tokens pa
   });
   assert.equal(result.status, 'UNVERIFIED');
 });
+
+
+test('calldata BLOCK is a risk finding while calldata REVIEW remains inconclusive', () => {
+  const blocked = normalizeToolResult('payguard_inspect_calldata', {
+    verdict: 'BLOCK', riskLevel: 'HIGH', reasons: ['UNLIMITED_ALLOWANCE_UINT256_MAX'],
+    checks: [{ id: 'allowance_size', status: 'WARN' }]
+  });
+  const review = normalizeToolResult('payguard_inspect_calldata', {
+    verdict: 'REVIEW', riskLevel: 'MEDIUM', reasons: ['UNSUPPORTED_SELECTOR'],
+    checks: [{ id: 'selector', status: 'WARN' }]
+  });
+  assert.equal(blocked.status, 'RISK_DETECTED');
+  assert.equal(review.status, 'UNVERIFIED');
+});
+
+test('token provider REVIEW remains UNVERIFIED instead of being overstated as malicious', () => {
+  const result = normalizeToolResult('payguard_check_token_security', {
+    verdict: 'REVIEW', riskLevel: 'MEDIUM', dataStatus: 'AVAILABLE',
+    findings: [{ code: 'MEDIUM_RISK', severity: 'medium' }]
+  });
+  assert.equal(result.status, 'UNVERIFIED');
+});
+
+test('wallet scanner summary risk counts and impersonation are preserved as risk signals', () => {
+  const result = normalizeToolResult('payguard_scan_wallet_tokens', {
+    status: 'SUCCESS',
+    discoveryMode: 'FULL_INDEXER',
+    summary: { totalTokensScanned: 1, highRiskCount: 0, suspiciousCount: 1, cleanCount: 0, unverifiedCount: 0 },
+    tokens: [{ verdict: 'REVIEW', riskLevel: 'MEDIUM', securityStatus: 'SUSPICIOUS', isImpersonation: true }]
+  });
+  assert.equal(result.status, 'RISK_DETECTED');
+});
