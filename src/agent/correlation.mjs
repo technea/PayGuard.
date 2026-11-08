@@ -22,7 +22,8 @@ function normalizeNetwork(value) {
   if (typeof value === "number" && Number.isSafeInteger(value) && value > 0) return `eip155:${value}`;
   if (typeof value !== "string" || !value.trim()) return null;
   const normalized = value.trim().toLowerCase();
-  return /^[0-9]+$/.test(normalized) ? `eip155:${normalized}` : normalized;
+  if (/^[0-9]+$/.test(normalized)) return `eip155:${normalized}`;
+  return /^eip155:[0-9]+$/.test(normalized) ? normalized : null;
 }
 
 function normalizeAmount(value) {
