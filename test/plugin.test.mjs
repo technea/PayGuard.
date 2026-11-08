@@ -78,7 +78,7 @@ test('malformed amount and recipient return BLOCK', () => {
   assert.equal(evaluatePaymentIntent(badRecipient).status, 'BLOCK');
 });
 test('plugin descriptor dispatches only the declared tool', () => {
-  assert.equal(plugin.tools.length, 7);
+  assert.equal(plugin.tools.length, 8);
   assert.equal(plugin.invokeTool('payguard_check_payment_intent', goodInput()).status, 'PASS');
   assert.throws(() => plugin.invokeTool('pay', {}), /Unknown tool/);
 });
@@ -154,7 +154,7 @@ test('Threat report redacts sensitive query values and is explicitly not submitt
   assert.ok(report.subject.url.includes('%5BREDACTED%5D') || report.subject.url.includes('%5BVALUE%20REDACTED%5D'));
 });
 test('plugin exposes the URL Sentinel and report tools', async () => {
-  assert.equal(plugin.tools.length, 7);
+  assert.equal(plugin.tools.length, 8);
   const result = await plugin.invokeTool('payguard_analyze_url', { url: 'https://paybox-login.attacker.example' });
   assert.equal(result.verdict, 'SUSPICIOUS');
   const report = await plugin.invokeTool('payguard_prepare_threat_report', { url: 'https://bad.example' });
@@ -339,7 +339,7 @@ test('Bundled distribution artifacts export valid PayBox plugin contract and too
     assert.equal(mod.default.id, 'payguard');
     assert.equal(mod.default.name, 'PayGuard');
     assert.equal(mod.default.protocol, 'mcp');
-    assert.equal(mod.default.tools.length, 7);
+    assert.equal(mod.default.tools.length, 8);
     for (const tool of mod.default.tools) {
       assert.ok(tool.name);
       assert.ok(tool.description);
@@ -406,7 +406,7 @@ test('MCP stdio tool discovery discovers tools without running them', async () =
   const toolsMsg = responses.find(r => r.id === 2);
 
   assert.equal(initMsg?.result?.serverInfo?.name, 'PayGuard');
-  assert.equal(toolsMsg?.result?.tools?.length, 7);
+  assert.equal(toolsMsg?.result?.tools?.length, 8);
   const names = toolsMsg.result.tools.map(t => t.name);
   assert.ok(names.includes('payguard_check_payment_intent'));
   assert.ok(names.includes('payguard_analyze_url'));
@@ -957,4 +957,16 @@ test('plugin exposes payguard_check_address_security and dispatches correctly', 
   });
   assert.equal(badAddrRes.verdict, 'UNVERIFIED');
   assert.ok(badAddrRes.reasonCodes.includes('INVALID_ADDRESS'));
+});
+
+test('plugin registers the composite read-only security assessment tool', async () => {
+  const tool = plugin.tools.find(item => item.name === 'payguard_run_security_assessment');
+  assert.ok(tool, 'composite agent assessment tool must be registered');
+  assert.equal(typeof tool.handler, 'function');
+  const result = await plugin.invokeTool('payguard_run_security_assessment', {
+    url: 'https://example.org'
+  });
+  assert.equal(result.report.overallStatus, 'UNVERIFIED');
+  assert.equal(result.plan[0].toolName, 'payguard_analyze_url');
+  assert.equal(result.report.evidence.length, 1);
 });

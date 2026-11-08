@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const distDir = new URL('../dist/', import.meta.url);
@@ -26,6 +26,7 @@ const rootIndexJs = new URL('../index.js', import.meta.url);
 const rootIndexCjs = new URL('../index.cjs', import.meta.url);
 
 await mkdir(distDir, { recursive: true });
+await cp(new URL('../src/agent/', import.meta.url), new URL('../dist/agent/', import.meta.url), { recursive: true });
 
 // 1. Read source
 const srcContent = await readFile(srcFile, 'utf8');
@@ -79,6 +80,9 @@ const cjsExport = Object.assign({}, plugin, {
   payGuardTokenSecurityTool: payGuardTokenSecurityTool,
   payGuardAddressSecurityTool: payGuardAddressSecurityTool,
   payGuardWalletScannerTool: payGuardWalletScannerTool,
+  payGuardAgentAssessmentTool: payGuardAgentAssessmentTool,
+  payGuardRunSecurityAssessment: payGuardRunSecurityAssessment,
+  AGENT_ASSESSMENT_NAME: AGENT_ASSESSMENT_NAME,
   evaluatePaymentIntent: evaluatePaymentIntent,
   createPayGuardX402Hook: createPayGuardX402Hook,
   registerPayGuardX402: registerPayGuardX402,
@@ -166,6 +170,9 @@ export declare const payGuardCalldataInspectorTool: any;
 export declare const payGuardTokenSecurityTool: any;
 export declare const payGuardAddressSecurityTool: any;
 export declare const payGuardWalletScannerTool: any;
+export declare const payGuardAgentAssessmentTool: any;
+export declare const AGENT_ASSESSMENT_NAME: string;
+export declare function payGuardRunSecurityAssessment(input: any): Promise<any>;
 export declare function evaluatePaymentIntent(input: any): any;
 export declare function createPayGuardX402Hook(options: { intent: Record<string, unknown>; onDecision?: (result: any, context: any) => void | Promise<void> }): (context: { paymentRequired?: any; selectedRequirements?: any }) => Promise<void | { abort: true; reason: string }>;
 export declare function registerPayGuardX402(client: { onBeforePaymentCreation(hook: (context: any) => Promise<any>): any }, options: { intent: Record<string, unknown>; onDecision?: (result: any, context: any) => void | Promise<void> }): any;
@@ -189,7 +196,13 @@ try {
   if (!modEsm.default || !Array.isArray(modEsm.default.tools)) {
     throw new Error("ESM default export is missing or does not contain a tools array.");
   }
-  console.log(`Verified dist/plugin.mjs (${modEsm.default.tools.length} tools exposed).`);
+  const agentTool = modEsm.default.tools.find(tool => tool.name === 'payguard_run_security_assessment');
+  if (!agentTool) throw new Error("Composite agent assessment tool is missing from the distributable.");
+  const agentSmoke = await modEsm.default.invokeTool("payguard_run_security_assessment", { url: "https://example.org" });
+  if (!agentSmoke?.report || agentSmoke.report.overallStatus !== "UNVERIFIED") {
+    throw new Error("Dist agent assessment smoke test did not return the expected conservative report.");
+  }
+  console.log(`Verified dist/plugin.mjs (${modEsm.default.tools.length} tools exposed, agent assessment smoke-tested).`);
 } catch (err) {
   console.error('Dynamic import verification failed on dist/plugin.mjs:', err);
   process.exit(1);
