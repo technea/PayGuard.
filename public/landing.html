@@ -4858,7 +4858,7 @@
     })();
 
     // Reveal key landing-page sections with GSAP as they enter the viewport.
-    (function initPremiumScrollMotion() {
+    window.addEventListener('load', function initPremiumScrollMotion() {
       const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const targets = document.querySelectorAll('.section-header, .inv-container-card, .guarantees-bar, .capability-sequence-box');
       targets.forEach(function(target) { target.classList.add('pg-reveal-target'); });
@@ -4893,7 +4893,7 @@
         });
       }, { threshold: 0.12, rootMargin: '0px 0px -36px 0px' });
       targets.forEach(function(target) { observer.observe(target); });
-    })();
+    });
 
     const cockpitTargetInput = document.getElementById('cockpitTargetInput');
     if (cockpitTargetInput) cockpitTargetInput.addEventListener('input', updateScannerControls);
