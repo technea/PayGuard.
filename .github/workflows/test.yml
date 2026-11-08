@@ -26,6 +26,8 @@ jobs:
         run: npm run build
       - name: Run tests
         run: npm test
+      - name: Run synthetic offline benchmark
+        run: npm run benchmark
       - name: Check distributable syntax
         run: node --check dist/plugin.mjs
       - name: Check CommonJS distributable syntax
