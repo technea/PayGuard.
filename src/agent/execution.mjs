@@ -9,6 +9,8 @@ import { createErrorEvidence, createNotCheckedEvidence } from "./evidence-record
 import { normalizeToolResult } from "./normalize-result.mjs";
 import { cloneJsonValue, canonicalJson } from "./canonical-json.mjs";
 
+const MIN_START_BUDGET_MS = 50;
+
 export const DEFAULT_EXECUTION_LIMITS = Object.freeze({
   maxConcurrency: 3,
   perToolTimeoutMs: 20_000,
@@ -77,9 +79,9 @@ export async function executeAssessmentPlan(plan, options = {}) {
       }
 
       const remaining = deadline - Date.now();
-      if (remaining <= 0) {
+      if (remaining <= MIN_START_BUDGET_MS) {
         records[index] = createNotCheckedEvidence(current.toolName, {
-          reason: "The total assessment deadline elapsed before this check could start."
+          reason: "The total assessment deadline left insufficient time to safely start this check."
         });
         continue;
       }
