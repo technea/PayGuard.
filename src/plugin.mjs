@@ -1325,8 +1325,7 @@ export const AGENT_ASSESSMENT_SCHEMA = {
     { required: ["walletAddress"] },
     { required: ["transaction"] },
     { required: ["intent"] },
-    { required: ["paymentRequirements"] },
-    { required: ["prepareThreatReport"] }
+    { required: ["paymentRequirements"] }
   ]
 };
 
