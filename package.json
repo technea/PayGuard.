@@ -37,7 +37,8 @@
     "build": "npm run build:css && node scripts/build.mjs",
     "demo": "node examples/url-sentinel-demo.mjs",
     "start": "node server.mjs",
-    "build:css": "node scripts/build-tailwind.mjs"
+    "build:css": "node scripts/build-tailwind.mjs",
+    "benchmark": "node scripts/run-agent-benchmark.mjs"
   },
   "engines": {
     "node": ">=20"
