@@ -9,7 +9,9 @@ const RISK_VERDICTS = new Set(["BLOCK", "SUSPICIOUS", "KNOWN_MALICIOUS", "RISK_D
 const UNKNOWN_VERDICTS = new Set(["REVIEW", "UNVERIFIED", "UNKNOWN", "NO_KNOWN_THREAT", "CAUTION"]);
 
 function walletHasRisk(result) {
+  if (Number(result.summary?.highRiskCount || 0) > 0 || Number(result.summary?.suspiciousCount || 0) > 0) return true;
   return Array.isArray(result.tokens) && result.tokens.some(token =>
+    token?.isImpersonation === true ||
     RISK_VERDICTS.has(String(token?.verdict || "").toUpperCase()) ||
     ["HIGH", "CRITICAL"].includes(String(token?.riskLevel || "").toUpperCase()) ||
     ["HIGH RISK", "SUSPICIOUS"].includes(String(token?.securityStatus || "").toUpperCase())
