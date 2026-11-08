@@ -57,7 +57,7 @@ PayGuard exposes **eight Model Context Protocol (MCP) tools** compatible with Cl
 
 The composite assessment returns a deterministic evidence report with `VERIFIED`, `RISK_DETECTED`, `UNVERIFIED`, `NOT_CHECKED`, and `ERROR` states. It does not call an LLM or perform transactions.
 
-All tools return structured JSON with a **verdict** (`PASS` / `REVIEW` / `BLOCK` / `UNVERIFIED`), **riskLevel**, and detailed **findings**.
+Individual scanner tools return structured JSON with a **verdict** (`PASS` / `REVIEW` / `BLOCK` / `UNVERIFIED`), **riskLevel**, and detailed **findings**.
 
 ---
 
