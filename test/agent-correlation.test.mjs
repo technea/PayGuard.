@@ -107,6 +107,51 @@ test('multiple payment alternatives require an explicit selectedPaymentIndex', a
   assert.equal(result.derivedChecks[0].status, 'UNVERIFIED');
 });
 
+test('explicitly selected payment alternative can be correlated', async () => {
+  const input = baseInput({ selectedPaymentIndex: 1 });
+  input.paymentRequirements.accepts.push({ ...input.paymentRequirements.accepts[0] });
+  const invoke = async (name) => {
+    if (name === 'payguard_check_payment_intent') {
+      return {
+        status: 'PASS',
+        candidateResults: [
+          { index: 0, status: 'PASS', checks: [] },
+          { index: 1, status: 'PASS', checks: [] }
+        ]
+      };
+    }
+    return invoker()(name);
+  };
+  const result = await runSecurityAssessment(input, { invokeTool: invoke });
+  assert.equal(result.derivedChecks[0].status, 'VERIFIED');
+  const correlation = result.report.evidence.find(item => item.source === 'payguard_agent_intent_transaction_correlation');
+  assert.equal(correlation.rawOutput.selectedPaymentIndex, 1);
+});
+
+test('transferFrom recipient field is correlated correctly', async () => {
+  const invoke = async (name) => {
+    if (name === 'payguard_check_payment_intent') {
+      return { status: 'PASS', candidateResults: [{ index: 0, status: 'PASS', checks: [] }] };
+    }
+    if (name === 'payguard_inspect_calldata') {
+      return {
+        verdict: 'PASS',
+        operation: 'ERC20_TRANSFER_FROM',
+        details: { tokenContract: ASSET, from: OTHER, to: RECIPIENT, amount: '5000000' },
+        checks: [{ id: 'calldata_decode', status: 'PASS' }]
+      };
+    }
+  };
+  const result = await runSecurityAssessment(baseInput(), { invokeTool: invoke });
+  assert.equal(result.derivedChecks[0].status, 'VERIFIED');
+});
+
+test('payment option REVIEW remains UNVERIFIED during correlation', async () => {
+  const result = await runSecurityAssessment(baseInput(), { invokeTool: invoker({ candidateStatus: 'REVIEW' }) });
+  assert.equal(result.derivedChecks[0].status, 'UNVERIFIED');
+  assert.equal(result.report.overallStatus, 'UNVERIFIED');
+});
+
 test('approval is not misrepresented as a completed payment transfer', async () => {
   const result = await runSecurityAssessment(baseInput(), { invokeTool: invoker({ operation: 'ERC20_APPROVE' }) });
   assert.equal(result.derivedChecks[0].status, 'UNVERIFIED');
