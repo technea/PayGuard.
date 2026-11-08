@@ -20,6 +20,10 @@
       "import": "./dist/plugin.mjs",
       "require": "./dist/plugin.cjs",
       "default": "./dist/plugin.mjs"
+    },
+    "./agent": {
+      "import": "./dist/agent/index.mjs",
+      "default": "./dist/agent/index.mjs"
     }
   },
   "files": [
