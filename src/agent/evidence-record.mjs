@@ -40,7 +40,7 @@ export function createErrorEvidence(toolName, error, options = {}) {
     errorCode: options.errorCode || "TOOL_EXECUTION_FAILED",
     startedAt: options.startedAt || null,
     completedAt: now,
-    durationMs: Number.isFinit(options.durationMs) && options.durationMs >= 0 ? options.durationMs : null,
+    durationMs: Number.isFinite(options.durationMs) && options.durationMs >= 0 ? options.durationMs : null,
     rawOutput: null,
     rawOutputSha256: null,
     evidence: [],
