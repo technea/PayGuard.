@@ -10,7 +10,7 @@ export { canonicalJson, cloneJsonValue } from "./canonical-json.mjs";
 export { sanitizeUntrustedText, extractUntrustedText } from "./untrusted-data.mjs";
 export { normalizeToolStatus, resolveStatus } from "./status.mjs";
 export { listAgentCompatibleTools, isKnownPayGuardTool, getToolDefinition } from "./tool-catalog.mjs";
-export { createNotCheckedEvidence, createErrorEvidence } from "./evidence-record.mjs";
+export { createNotCheckedEvidence, createErrorEvidence, createDerivedEvidence } from "./evidence-record.mjs";
 export { normalizeToolResult } from "./normalize-result.mjs";
 export { aggregateEvidence } from "./aggregate.mjs";
 export { buildEvidenceReport } from "./report.mjs";
