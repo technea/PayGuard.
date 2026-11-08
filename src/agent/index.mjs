@@ -1,8 +1,8 @@
 /**
  * @module agent
- * @section Public Phase B evidence API
- * Exposes deterministic evidence primitives only; no planner, model, REST route,
- * MCP tool registration, signing or transaction execution is included in Phase B.
+ * @section Public deterministic agent API
+ * Exposes evidence, planning, bounded orchestration, and correlation primitives.
+ * No model, public REST route, MCP tool registration, signing, or execution is included.
  */
 
 export { EVIDENCE_STATUSES, STATUS_PRECEDENCE, EVIDENCE_SCHEMA_VERSION, TOOL_CATALOG } from "./constants.mjs";
