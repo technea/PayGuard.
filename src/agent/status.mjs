@@ -18,7 +18,7 @@ function walletHasRisk(result) {
   );
 }
 
-const CALldata_RISK_CODES = new Set([
+const CALLDATA_RISK_CODES = new Set([
   "UNLIMITED_ALLOWANCE_UINT256_MAX",
   "UNUSUALLY_LARGE_ALLOWANCE",
   "TARGET_NOT_IN_ALLOWLIST",
@@ -26,7 +26,7 @@ const CALldata_RISK_CODES = new Set([
   "ALLOWANCE_EXCEEDS_POLICY_MAX",
   "RECIPIENT_NOT_IN_ALLOWLIST",
   "TRANSFER_EXCEEDS_POLICY_MAX",
-  "NATIVE_VALUE_EXCEEDS_POLICY_MAX"
+  "NATIVE_VALUE_EXCEEDS_POLICY"
 ]);
 
 function calldataHasRisk(result) {
