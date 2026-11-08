@@ -41,3 +41,52 @@ test('explicit execution failure is represented as ERROR', () => {
   const result = normalizeToolResult('payguard_scan_wallet_tokens', { status: 'ERROR', error: 'provider failed' });
   assert.equal(result.status, 'ERROR');
 });
+
+test('maps actual PayGuard URL verdicts without treating unknown as safe', () => {
+  const official = normalizeToolResult('payguard_analyze_url', {
+    verdict: 'EXPECTED_DOMAIN_MATCH', riskLevel: 'LOW', statusCategory: 'VERIFIED OFFICIAL'
+  });
+  const suspicious = normalizeToolResult('payguard_analyze_url', {
+    verdict: 'SUSPICIOUS', riskLevel: 'HIGH', statusCategory: 'HIGH RISK'
+  });
+  const noKnownThreat = normalizeToolResult('payguard_analyze_url', {
+    verdict: 'NO_KNOWN_THREAT', riskLevel: 'LOW'
+  });
+  assert.equal(official.status, 'VERIFIED');
+  assert.equal(suspicious.status, 'RISK_DETECTED');
+  assert.equal(noKnownThreat.status, 'UNVERIFIED');
+});
+
+test('maps actual payment-intent statuses conservatively', () => {
+  const pass = normalizeToolResult('payguard_check_payment_intent', {
+    status: 'PASS', paymentExecuted: false
+  });
+  const review = normalizeToolResult('payguard_check_payment_intent', {
+    status: 'REVIEW', paymentExecuted: false
+  });
+  const block = normalizeToolResult('payguard_check_payment_intent', {
+    status: 'BLOCK', paymentExecuted: false
+  });
+  assert.equal(pass.status, 'VERIFIED');
+  assert.equal(review.status, 'UNVERIFIED');
+  assert.equal(block.status, 'RISK_DETECTED');
+});
+
+test('provider dataStatus ERROR is not mistaken for a successful or merely unknown check', () => {
+  const result = normalizeToolResult('payguard_check_token_security', {
+    verdict: 'UNVERIFIED', dataStatus: 'ERROR', findings: [], reasonCodes: ['AUTH_FAILED']
+  });
+  assert.equal(result.status, 'ERROR');
+});
+
+test('partial wallet discovery remains UNVERIFIED even when discovered tokens pass', () => {
+  const result = normalizeToolResult('payguard_scan_wallet_tokens', {
+    status: 'SUCCESS',
+    discoveryMode: 'REGISTRY_AND_CUSTOM_PARTIAL',
+    summary: { totalTokensScanned: 7, highRiskCount: 0, suspiciousCount: 0, cleanCount: 7, unverifiedCount: 0 },
+    tokens: Array.from({ length: 7 }, () => ({
+      verdict: 'PASS', riskLevel: 'LOW', securityStatus: 'NO KNOWN ISSUES FOUND'
+    }))
+  });
+  assert.equal(result.status, 'UNVERIFIED');
+});
