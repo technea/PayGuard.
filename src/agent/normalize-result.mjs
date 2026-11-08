@@ -3,13 +3,8 @@
  * @section Tool result normalization
  * Retains a detached raw result and hash while exposing a bounded normalized view.
  */
-
 import { createHash } from "node:crypto";
-import {
-  EVIDENCE_SCHEMA_VERSION,
-  MAX_RAW_OUTPUT_CHARS,
-  TOOL_CATALOG
-} from "./constants.mjs";
+import { EVIDENCE_SCHEMA_VERSION, MAX_RAW_OUTPUT_CHARS, TOOL_CATALOG } from "./constants.mjs";
 import { canonicalJson, cloneJsonValue } from "./canonical-json.mjs";
 import { extractUntrustedText } from "./untrusted-data.mjs";
 import { normalizeToolStatus } from "./status.mjs";
@@ -38,14 +33,12 @@ function summarizeEvidence(result) {
 }
 
 export function normalizeToolResult(toolName, rawResult, options = {}) {
-  if (!Object.hasOwn(TOOL_CATALOG, toolName)) {
-    throw new TypeError(`Unknown PayGuard tool '${toolName}'.`);
-  }
+  if (!Object.hasOwn(TOOL_CATALOG, toolName)) throw new TypeError("Unknown PayGuard tool: " + toolName);
 
   const completedAt = options.completedAt || new Date().toISOString();
   const base = {
     schemaVersion: EVIDENCE_SCHEMA_VERSION,
-    id: options.id || `${toolName}:${completedAt}`,
+    id: options.id || toolName + ":" + completedAt,
     source: toolName,
     checkId: options.checkId || toolName,
     required: options.required !== false,
@@ -56,24 +49,29 @@ export function normalizeToolResult(toolName, rawResult, options = {}) {
 
   try {
     const canonical = canonicalJson(rawResult);
-    if (canonical.length > MAX_RAW_OUTPUT_CHARS) {
-      return createErrorEvidence(toolName, new Error("Output limit exceeded"), {
-        ...base,
-        errorCode: "RAW_OUTPUT_LIMIT_EXCEEDED"
-      });
-    }
-    const detachedRaw = cloneJsonValue(rawResult);
     const rawOutputSha256 = createHash("sha256").update(canonical, "utf8").digest("hex");
-    const normalized = normalizeToolStatus(toolName, rawResult);
-    const evidence = summarizeEvidence(rawResult);
+    if (canonical.length > MAX_RAW_OUTPUT_CHARS) {
+      return {
+        ...createErrorEvidence(toolName, new Error("Output limit exceeded"), {
+          ...base,
+          errorCode: "RAW_OUTPUT_LIMIT_EXCEEDED"
+        }),
+        rawOutputSha256,
+        rawOutputSizeChars: canonical.length,
+        rawOutputOmittedReason: "MAX_RAW_OUTPUT_CHARS_EXCEEDED"
+      };
+    }
 
+    const detachedRaw = cloneJsonValue(rawResult);
+    const normalized = normalizeToolStatus(toolName, rawResult);
     return {
       ...base,
       status: normalized.status,
       reason: normalized.reason,
       rawOutput: detachedRaw,
       rawOutputSha256,
-      evidence,
+      rawOutputSizeChars: canonical.length,
+      evidence: summarizeEvidence(rawResult),
       untrustedData: extractUntrustedText(rawResult)
     };
   } catch (error) {
