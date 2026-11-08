@@ -32,6 +32,7 @@ test('tool result keeps a detached raw snapshot and SHA-256 hash', () => {
   const record = normalizeToolResult(tool, raw);
   raw.nested.a = 999;
   assert.equal(record.rawOutput.nested.a, 1);
+  assert.deepEqual(Object.keys(record.rawOutput), ['verdict', 'dataStatus', 'nested']);
   assert.equal(record.rawOutputSha256, createHash('sha256').update('{"dataStatus":"AVAILABLE","nested":{"a":1,"b":2},"verdict":"PASS"}').digest('hex'));
   assert.equal(record.status, 'VERIFIED');
 });
