@@ -17,3 +17,4 @@ export { buildEvidenceReport } from "./report.mjs";
 export { buildAssessmentPlan } from "./plan.mjs";
 export { DEFAULT_EXECUTION_LIMITS, validateAssessmentInput, executeAssessmentPlan } from "./execution.mjs";
 export { runSecurityAssessment } from "./orchestrator.mjs";
+export { correlatePaymentAndTransaction, CORRELATION_SOURCE } from "./correlation.mjs";
