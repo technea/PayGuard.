@@ -154,7 +154,7 @@ test('Threat report redacts sensitive query values and is explicitly not submitt
   assert.ok(report.subject.url.includes('%5BREDACTED%5D') || report.subject.url.includes('%5BVALUE%20REDACTED%5D'));
 });
 test('plugin exposes the URL Sentinel and report tools', async () => {
-  assert.equal(plugin.tools.length, 7);
+  assert.equal(plugin.tools.length, 8);
   const result = await plugin.invokeTool('payguard_analyze_url', { url: 'https://paybox-login.attacker.example' });
   assert.equal(result.verdict, 'SUSPICIOUS');
   const report = await plugin.invokeTool('payguard_prepare_threat_report', { url: 'https://bad.example' });
@@ -339,7 +339,7 @@ test('Bundled distribution artifacts export valid PayBox plugin contract and too
     assert.equal(mod.default.id, 'payguard');
     assert.equal(mod.default.name, 'PayGuard');
     assert.equal(mod.default.protocol, 'mcp');
-    assert.equal(mod.default.tools.length, 7);
+    assert.equal(mod.default.tools.length, 8);
     for (const tool of mod.default.tools) {
       assert.ok(tool.name);
       assert.ok(tool.description);
@@ -406,7 +406,7 @@ test('MCP stdio tool discovery discovers tools without running them', async () =
   const toolsMsg = responses.find(r => r.id === 2);
 
   assert.equal(initMsg?.result?.serverInfo?.name, 'PayGuard');
-  assert.equal(toolsMsg?.result?.tools?.length, 7);
+  assert.equal(toolsMsg?.result?.tools?.length, 8);
   const names = toolsMsg.result.tools.map(t => t.name);
   assert.ok(names.includes('payguard_check_payment_intent'));
   assert.ok(names.includes('payguard_analyze_url'));
