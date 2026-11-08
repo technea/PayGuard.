@@ -110,12 +110,12 @@ test('calldata BLOCK is a risk finding while calldata REVIEW remains inconclusiv
   assert.equal(allowanceReview.status, 'RISK_DETECTED');
 });
 
-test('token provider REVIEW remains UNVERIFIED instead of being overstated as malicious', () => {
+test('token provider REVIEW is a risk finding without claiming maliciousness', () => {
   const result = normalizeToolResult('payguard_check_token_security', {
     verdict: 'REVIEW', riskLevel: 'MEDIUM', dataStatus: 'AVAILABLE',
     findings: [{ code: 'MEDIUM_RISK', severity: 'medium' }]
   });
-  assert.equal(result.status, 'UNVERIFIED');
+  assert.equal(result.status, 'RISK_DETECTED');
 });
 
 test('wallet scanner summary risk counts and impersonation are preserved as risk signals', () => {
