@@ -22,6 +22,7 @@
       "default": "./dist/plugin.mjs"
     },
     "./agent": {
+      "types": "./dist/agent/index.d.ts",
       "import": "./dist/agent/index.mjs",
       "default": "./dist/agent/index.mjs"
     }
