@@ -19,6 +19,8 @@ test('oversized output becomes ERROR instead of dropping provenance and passing'
   const result = normalizeToolResult('payguard_check_token_security', { text: 'x'.repeat(513_000) });
   assert.equal(result.status, 'ERROR');
   assert.equal(result.errorCode, 'RAW_OUTPUT_LIMIT_EXCEEDED');
+  assert.equal(typeof result.rawOutputSha256, 'string');
+  assert.equal(result.rawOutputOmittedReason, 'MAX_RAW_OUTPUT_CHARS_EXCEEDED');
 });
 
 test('explicit provider-unavailable payload stays UNVERIFIED, not ERROR or VERIFIED', () => {
