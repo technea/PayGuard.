@@ -23,6 +23,13 @@ test('oversized output becomes ERROR instead of dropping provenance and passing'
   assert.equal(result.rawOutputOmittedReason, 'MAX_RAW_OUTPUT_CHARS_EXCEEDED');
 });
 
+test('null tool output remains UNVERIFIED with preserved raw output', () => {
+  const result = normalizeToolResult('payguard_check_token_security', null);
+  assert.equal(result.status, 'UNVERIFIED');
+  assert.equal(result.rawOutput, null);
+  assert.equal(typeof result.rawOutputSha256, 'string');
+});
+
 test('explicit provider-unavailable payload stays UNVERIFIED, not ERROR or VERIFIED', () => {
   const result = normalizeToolResult('payguard_check_address_security', {
     verdict: 'UNVERIFIED', dataStatus: 'UNAVAILABLE', provider: 'goplus'
