@@ -66,8 +66,8 @@ An optional check ending in ERROR, UNVERIFIED, or NOT_CHECKED sets degraded: tru
 | Payment intent | PASS → VERIFIED; BLOCK → RISK_DETECTED; REVIEW → UNVERIFIED |
 | URL analysis | EXPECTED_DOMAIN_MATCH → VERIFIED; known malicious/suspicious/caution → RISK_DETECTED; no-known-threat → UNVERIFIED |
 | Threat report | Uses its underlying URL verdict; report creation is not a separate safety proof |
-| Calldata | PASS → VERIFIED; explicit failing check/reason → RISK_DETECTED; ambiguous review → UNVERIFIED |
-| Token/address | Provider-backed PASS with dataStatus AVAILABLE → VERIFIED; BLOCK/REVIEW → RISK_DETECTED; unavailable → UNVERIFIED |
+| Calldata | PASS → VERIFIED; BLOCK or known risk reason → RISK_DETECTED; unsupported/ambiguous review → UNVERIFIED |
+| Token/address | Provider-backed PASS with dataStatus AVAILABLE → VERIFIED; BLOCK/REVIEW with provider findings → RISK_DETECTED; unavailable → UNVERIFIED |
 | Wallet scan | Full-indexer scan without risk/unverified holdings → VERIFIED; flagged token → RISK_DETECTED; partial discovery → UNVERIFIED |
 
 A no-known-threat result, missing provider, unsupported chain, partial wallet scan, or unknown verdict is never promoted to VERIFIED.
