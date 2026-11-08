@@ -80,7 +80,7 @@ The hash is calculated over canonical JSON: object keys are sorted and array ord
 
 The separate untrustedData projection contains bounded strings labelled UNTRUSTED_DATA. It is sanitized for display only and must never be interpreted as instructions by a future model.
 
-Serialization failure or output above 512,000 characters becomes ERROR; provenance is not silently dropped to manufacture a pass.
+Serialization failure becomes ERROR. Output above 512,000 characters becomes ERROR while retaining the canonical SHA-256 digest and an explicit omission reason; the oversized raw body is not retained. This bounded exception is visible and cannot manufacture a pass.
 
 ## 7. Deterministic report
 
