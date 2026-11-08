@@ -101,8 +101,13 @@ test('calldata BLOCK is a risk finding while calldata REVIEW remains inconclusiv
     verdict: 'REVIEW', riskLevel: 'MEDIUM', reasons: ['UNSUPPORTED_SELECTOR'],
     checks: [{ id: 'selector', status: 'WARN' }]
   });
+  const allowanceReview = normalizeToolResult('payguard_inspect_calldata', {
+    verdict: 'REVIEW', riskLevel: 'MEDIUM', reasons: ['UNLIMITED_ALLOWANCE_UINT256_MAX'],
+    checks: [{ id: 'allowance_size', status: 'WARN' }]
+  });
   assert.equal(blocked.status, 'RISK_DETECTED');
   assert.equal(review.status, 'UNVERIFIED');
+  assert.equal(allowanceReview.status, 'RISK_DETECTED');
 });
 
 test('token provider REVIEW remains UNVERIFIED instead of being overstated as malicious', () => {
