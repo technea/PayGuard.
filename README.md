@@ -90,6 +90,18 @@ When started, access:
 
 ---
 
+## Synthetic Offline Benchmark
+
+Run the deterministic regression fixtures locally:
+
+```bash
+npm run benchmark
+```
+
+This uses hand-authored synthetic inputs only and makes no live provider calls. Its fixture metrics are not real-world detection accuracy or production security guarantees.
+
+---
+
 ## MCP Agent Integration
 
 Run PayGuard as a JSON-RPC 2.0 stdio server:
