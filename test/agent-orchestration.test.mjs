@@ -77,11 +77,11 @@ test('total deadline leaves queued checks explicitly NOT_CHECKED', async () => {
   }, {
     invokeTool: async () => new Promise(resolve => setTimeout(
       () => resolve({ verdict: 'EXPECTED_DOMAIN_MATCH', riskLevel: 'LOW' }),
-      30
+      300
     )),
     maxConcurrency: 1,
-    perToolTimeoutMs: 100,
-    totalTimeoutMs: 10
+    perToolTimeoutMs: 1_000,
+    totalTimeoutMs: 150
   });
   assert.equal(result.report.evidence[0].status, 'ERROR');
   assert.equal(result.report.evidence[1].status, 'NOT_CHECKED');
