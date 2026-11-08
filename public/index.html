@@ -1383,6 +1383,33 @@
       .tab-nav { scrollbar-width: thin; }
     }
 
+    @media (max-width: 900px) {
+      .check-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .form-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 640px) {
+      main { min-width: 0; padding-left: .85rem; padding-right: .85rem; }
+      .tab-nav { max-width: 100%; justify-content: flex-start; }
+      .tab-btn { flex: 0 0 auto; min-width: 128px; }
+      .check-grid,
+      .form-layout,
+      .guarantee-grid { grid-template-columns: minmax(0, 1fr); }
+      .check-card { min-width: 0; padding: .9rem; }
+      .check-card-header { align-items: flex-start; }
+      .check-friendly-name { line-height: 1.35; }
+      .code-preview { max-width: 100%; font-size: .76rem; }
+      footer { flex-wrap: wrap; gap: .8rem; padding: 1rem; }
+      .footer-links { flex-wrap: wrap; gap: .65rem 1rem; }
+    }
+
+    @media (max-width: 380px) {
+      .tab-btn { min-width: 116px; padding: .65rem .75rem; }
+      .glass-card { padding: .9rem; }
+      .metric-card { padding: .95rem; }
+      .check-badge { white-space: nowrap; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         scroll-behavior: auto !important;
