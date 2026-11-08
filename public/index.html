@@ -1241,6 +1241,49 @@
       }
     }
 
+
+    /* Refined motion: restrained, purposeful, and accessible. */
+    .glass-card,
+    .metric-card,
+    .check-card,
+    .guarantee-card,
+    .tab-btn,
+    .btn,
+    .preset-chip {
+      transition:
+        border-color 180ms ease,
+        background-color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms ease;
+    }
+
+    .glass-card:hover,
+    .metric-card:hover,
+    .check-card:hover,
+    .guarantee-card:hover {
+      border-color: rgba(148, 163, 184, 0.24);
+      transform: translateY(-2px);
+    }
+
+    .tab-btn:focus-visible,
+    .btn:focus-visible,
+    .preset-chip:focus-visible,
+    .input-box:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -1981,17 +2024,29 @@
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
   <script>
-    // Tab Switching
+    // Tab Switching — preserve the existing panel and application logic; animate only presentation.
     function switchTab(tabId) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      const panels = document.querySelectorAll('.tab-content');
+      panels.forEach(content => content.classList.remove('active'));
 
       const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
       if (targetBtn) targetBtn.classList.add('active');
 
       const targetPanel = document.getElementById('tab-' + tabId);
-      if (targetPanel) targetPanel.classList.add('active');
+      if (!targetPanel) return;
+      targetPanel.classList.add('active');
+
+      if (window.gsap && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const items = targetPanel.querySelectorAll('.metric-card, .glass-card, .check-card, .guarantee-card');
+        window.gsap.killTweensOf(items);
+        window.gsap.fromTo(items,
+          { y: 12, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.42, stagger: 0.055, ease: 'power2.out', clearProps: 'transform,opacity,visibility' }
+        );
+      }
     }
 
     // Telemetry auto-polling
