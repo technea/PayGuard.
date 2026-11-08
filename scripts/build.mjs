@@ -196,7 +196,13 @@ try {
   if (!modEsm.default || !Array.isArray(modEsm.default.tools)) {
     throw new Error("ESM default export is missing or does not contain a tools array.");
   }
-  console.log(`Verified dist/plugin.mjs (${modEsm.default.tools.length} tools exposed).`);
+  const agentTool = modEsm.default.tools.find(tool => tool.name === 'payguard_run_security_assessment');
+  if (!agentTool) throw new Error("Composite agent assessment tool is missing from the distributable.");
+  const agentSmoke = await modEsm.default.invokeTool("payguard_run_security_assessment", { url: "https://example.org" });
+  if (!agentSmoke?.report || agentSmoke.report.overallStatus !== "UNVERIFIED") {
+    throw new Error("Dist agent assessment smoke test did not return the expected conservative report.");
+  }
+  console.log(`Verified dist/plugin.mjs (${modEsm.default.tools.length} tools exposed, agent assessment smoke-tested).`);
 } catch (err) {
   console.error('Dynamic import verification failed on dist/plugin.mjs:', err);
   process.exit(1);
