@@ -38,6 +38,9 @@ export function normalizeToolStatus(toolName, result) {
   if (RISK_VERDICTS.has(explicit) || RISK_VERDICTS.has(verdict)) {
     return { status: "RISK_DETECTED", reason: "The tool returned an explicit risk verdict." };
   }
+  if (data === "ERROR") {
+    return { status: "ERROR", reason: "The tool reported a provider or data-processing error." };
+  }
   if (["UNAVAILABLE", "NOT_CONFIGURED", "UNSUPPORTED", "MALFORMED_INPUT", "INCOMPLETE"].includes(data)) {
     return { status: "UNVERIFIED", reason: "Tool data is unavailable, unsupported, or incomplete." };
   }
