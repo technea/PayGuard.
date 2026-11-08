@@ -92,6 +92,14 @@ test('missing network evidence remains UNVERIFIED', async () => {
   assert.equal(result.report.overallStatus, 'UNVERIFIED');
 });
 
+test('unsupported network identifiers remain UNVERIFIED instead of matching arbitrary strings', async () => {
+  const input = baseInput({ transaction: {
+    network: 'made-up-network', to: ASSET, data: '0x'
+  } });
+  const result = await runSecurityAssessment(input, { invokeTool: invoker() });
+  assert.equal(result.derivedChecks[0].status, 'UNVERIFIED');
+});
+
 test('multiple payment alternatives require an explicit selectedPaymentIndex', async () => {
   const input = baseInput();
   input.paymentRequirements.accepts.push({ ...input.paymentRequirements.accepts[0], payTo: OTHER });
