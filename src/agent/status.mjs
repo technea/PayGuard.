@@ -17,7 +17,7 @@ function walletHasRisk(result) {
 }
 
 function calldataHasRisk(result) {
-  if (result.verdict === "REVIEW" && Array.isArray(result.reasons) && result.reasons.length > 0) return true;
+  if (result.verdict === "BLOCK") return true;
   return Array.isArray(result.checks) && result.checks.some(check =>
     ["FAIL", "FAILED", "fail", "failed"].includes(String(check?.status || ""))
   );
@@ -69,7 +69,7 @@ export function normalizeToolStatus(toolName, result) {
   }
 
   if (toolName === "payguard_check_token_security" || toolName === "payguard_check_address_security") {
-    if (verdict === "REVIEW") return { status: "RISK_DETECTED", reason: "The provider-backed check returned review findings." };
+    if (verdict === "REVIEW") return { status: "UNVERIFIED", reason: "The provider returned review-level findings; this is inconclusive rather than a confirmed malicious verdict." };
     if (verdict === "PASS" && data === "AVAILABLE") {
       return { status: "VERIFIED", reason: "The provider returned data and implemented checks found no flagged issue; this is not a safety guarantee." };
     }
