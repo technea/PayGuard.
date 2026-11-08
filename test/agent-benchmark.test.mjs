@@ -7,7 +7,7 @@ test('synthetic offline benchmark is deterministic and makes no production accur
   assert.equal(result.benchmarkType, 'SYNTHETIC_OFFLINE');
   assert.equal(result.externalNetworkCalls, 0);
   assert.equal(result.realWorldAccuracyClaim, false);
-  assert.equal(result.summary.totalCases, 12);
+  assert.equal(result.summary.totalCases, 13);
   assert.equal(result.summary.fixtureMatchRate, 1);
   assert.equal(result.summary.syntheticRiskDetectionRate, 1);
   assert.equal(result.summary.syntheticFalsePositiveRate, 0);
