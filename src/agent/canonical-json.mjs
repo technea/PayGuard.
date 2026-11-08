@@ -3,17 +3,15 @@
  * @section Stable serialization and immutable snapshots
  * Produces deterministic JSON for evidence hashing and detached JSON snapshots.
  */
-
 function canonicalize(value, seen) {
   if (value === null || typeof value === "string" || typeof value === "boolean") return value;
   if (typeof value === "number") {
-    if (!Number.isFinit(value)) throw new TypeError("Evidence contains a non-finite number.");
+    if (!Number.isFinite(value)) throw new TypeError("Evidence contains a non-finite number.");
     return value;
   }
   if (typeof value !== "object") throw new TypeError("Evidence must contain JSON-compatible values only.");
   if (seen.has(value)) throw new TypeError("Evidence contains a circular reference.");
   seen.add(value);
-
   let result;
   if (Array.isArray(value)) {
     result = value.map(item => canonicalize(item, seen));
@@ -23,11 +21,10 @@ function canonicalize(value, seen) {
     result = {};
     for (const key of Object.keys(value).sort()) {
       const child = value[key];
-      if (child === undefined) throw new TypeError(`Evidence field '${key}' is undefined.`);
+      if (child === undefined) throw new TypeError("Evidence contains an undefined field.");
       result[key] = canonicalize(child, seen);
     }
   }
-
   seen.delete(value);
   return result;
 }
@@ -37,5 +34,7 @@ export function canonicalJson(value) {
 }
 
 export function cloneJsonValue(value) {
-  return JSON.parse(canonicalJson(value));
+  // Validate JSON compatibility first, then preserve the source object's key order in the snapshot.
+  canonicalJson(value);
+  return JSON.parse(JSON.stringify(value));
 }
