@@ -333,6 +333,76 @@ async function requestHandler(req, res) {
       return res.end(logo);
     }
 
+    // Serve the remaining public assets through the catch-all Vercel function.
+    // Without this handler, linked CSS and deferred JavaScript files resolve to the
+    // HTML fallback route, leaving the dashboard workspace unrendered and unstyled.
+    if ((req.method === "GET" || req.method === "HEAD") && parsed.pathname.startsWith("/assets/")) {
+      let decodedAssetPath;
+      try {
+        decodedAssetPath = decodeURIComponent(parsed.pathname);
+      } catch {
+        statusCode = 400;
+        res.writeHead(statusCode, {
+          "content-type": "text/plain; charset=utf-8",
+          "cache-control": "no-store",
+          "x-content-type-options": "nosniff"
+        });
+        return res.end("Invalid asset path.");
+      }
+
+      const publicRoot = path.resolve(process.cwd(), "public");
+      const assetPath = path.resolve(publicRoot, "." + decodedAssetPath);
+      if (!assetPath.startsWith(publicRoot + path.sep) || !existsSync(assetPath)) {
+        statusCode = 404;
+        res.writeHead(statusCode, {
+          "content-type": "text/plain; charset=utf-8",
+          "cache-control": "no-store",
+          "x-content-type-options": "nosniff"
+        });
+        return res.end("Asset not found.");
+      }
+
+      let asset;
+      try {
+        asset = readFileSync(assetPath);
+      } catch {
+        statusCode = 404;
+        res.writeHead(statusCode, {
+          "content-type": "text/plain; charset=utf-8",
+          "cache-control": "no-store",
+          "x-content-type-options": "nosniff"
+        });
+        return res.end("Asset not found.");
+      }
+
+      const contentTypes = {
+        ".css": "text/css; charset=utf-8",
+        ".js": "application/javascript; charset=utf-8",
+        ".mjs": "application/javascript; charset=utf-8",
+        ".json": "application/json; charset=utf-8",
+        ".svg": "image/svg+xml; charset=utf-8",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".webp": "image/webp",
+        ".gif": "image/gif",
+        ".ico": "image/x-icon",
+        ".woff": "font/woff",
+        ".woff2": "font/woff2",
+        ".ttf": "font/ttf",
+        ".otf": "font/otf"
+      };
+      const extension = path.extname(assetPath).toLowerCase();
+      statusCode = 200;
+      res.writeHead(statusCode, {
+        "content-type": contentTypes[extension] || "application/octet-stream",
+        "content-length": asset.length,
+        "cache-control": "public, max-age=300, must-revalidate",
+        "x-content-type-options": "nosniff"
+      });
+      return res.end(req.method === "HEAD" ? undefined : asset);
+    }
+
     const isBrowserRequest = (req.headers["accept"] || "").includes("text/html");
 
     // Documentation & Whitepaper & FAQ Viewer
