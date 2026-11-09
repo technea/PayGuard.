@@ -1724,6 +1724,117 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
       overflow-wrap: normal;
     }
 
+
+
+    /* Dashboard desktop/laptop header: give the primary links their own
+       full-width row so the brand, navigation, status and wallet never
+       compete for a single line. Mobile rules below 769px remain untouched. */
+    @media (min-width: 901px) and (max-width: 1599px) {
+      body > header,
+      header {
+        display: grid !important;
+        grid-template-columns: minmax(220px, 1fr) minmax(0, auto);
+        align-items: center;
+        column-gap: clamp(1rem, 2vw, 2rem);
+        row-gap: .85rem;
+        padding: .85rem clamp(1rem, 2.5vw, 2rem);
+      }
+
+      header > .brand {
+        grid-column: 1;
+        grid-row: 1;
+        min-width: 0;
+      }
+
+      header > .header-pills {
+        grid-column: 2;
+        grid-row: 1;
+        min-width: 0;
+        max-width: 100%;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: .5rem;
+      }
+
+      header > .top-nav-links {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        display: flex !important;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: nowrap;
+        gap: clamp(1rem, 2.2vw, 2rem) !important;
+        padding-top: .15rem;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+        scrollbar-width: thin;
+      }
+
+      header > .top-nav-links a {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        word-break: keep-all;
+        overflow-wrap: normal;
+      }
+
+      .header-pills > .live-status,
+      .header-pills > .pill-secondary,
+      #wallet-connect-btn {
+        flex: 0 0 auto;
+        white-space: nowrap;
+      }
+    }
+
+    @media (min-width: 769px) and (max-width: 900px) {
+      body > header,
+      header {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: center;
+        row-gap: .7rem;
+        padding: .8rem 1rem;
+      }
+
+      header > .brand,
+      header > .header-pills,
+      header > .top-nav-links {
+        grid-column: 1;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+      }
+
+      header > .brand { grid-row: 1; }
+
+      header > .header-pills {
+        grid-row: 2;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: .5rem;
+      }
+
+      header > .top-nav-links {
+        grid-row: 3;
+        display: flex !important;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        gap: 1rem !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+        padding-top: .1rem;
+      }
+
+      header > .top-nav-links a {
+        flex: 0 0 auto;
+        white-space: nowrap;
+      }
+    }
+
 </style>
 </head>
 <body>
