@@ -517,6 +517,104 @@
       }
     }
 
+  
+    /* Whitepaper/document hierarchy: readable editorial rhythm without changing source content. */
+    .doc-content {
+      max-width: 920px;
+      margin-inline: auto;
+      padding: clamp(1.25rem, 3.5vw, 3rem);
+      background: linear-gradient(180deg, rgba(17, 27, 42, .96), rgba(10, 17, 28, .96));
+      border-color: rgba(121, 169, 255, .16);
+      box-shadow: 0 18px 55px rgba(0, 0, 0, .22);
+    }
+    .doc-content > h1:first-child {
+      max-width: 16ch;
+      margin: 0 0 .65rem;
+      padding: 0;
+      border: 0;
+      font-size: clamp(2rem, 4.2vw, 3.15rem);
+      line-height: 1.06;
+      letter-spacing: -.055em;
+      text-wrap: balance;
+    }
+    .doc-content > h1:first-child + p {
+      max-width: 68ch;
+      margin: 0 0 .5rem;
+      color: #d6e4f7;
+      font-size: clamp(1.02rem, 1.7vw, 1.2rem);
+      line-height: 1.65;
+    }
+    .doc-content > h1:first-child ~ p:nth-of-type(2),
+    .doc-content > h1:first-child ~ p:nth-of-type(3) {
+      color: #91a5bc;
+      font-size: .84rem;
+      line-height: 1.7;
+    }
+    .doc-content h2 {
+      margin-top: 3rem;
+      padding: 1rem 0 .65rem;
+      border-bottom: 1px solid rgba(121, 169, 255, .18);
+      color: #edf4ff;
+      font-size: clamp(1.35rem, 2.5vw, 1.8rem);
+      line-height: 1.2;
+      letter-spacing: -.035em;
+      scroll-margin-top: 6rem;
+    }
+    .doc-content h3 {
+      margin-top: 1.8rem;
+      color: #c8dcf7;
+      font-size: clamp(1.02rem, 1.8vw, 1.2rem);
+      line-height: 1.35;
+      letter-spacing: -.02em;
+      scroll-margin-top: 6rem;
+    }
+    .doc-content h4 {
+      margin: 1.35rem 0 .45rem;
+      color: #a9c8ff;
+      font-size: .92rem;
+      letter-spacing: .015em;
+    }
+    .doc-content p { max-width: 76ch; line-height: 1.8; }
+    .doc-content strong { color: #eef5ff; font-weight: 700; }
+    .doc-content ul, .doc-content ol { padding-left: 1.35rem; }
+    .doc-content li { padding-left: .2rem; margin-bottom: .55rem; line-height: 1.72; }
+    .doc-content li::marker { color: #79a9ff; }
+    .doc-content hr { border-color: rgba(121, 169, 255, .18) !important; }
+    .doc-content .table-scroll {
+      margin: 1.35rem 0 1.8rem;
+      border: 1px solid rgba(121, 169, 255, .16);
+      border-radius: 10px;
+      background: rgba(7, 14, 24, .55);
+    }
+    .doc-content .table-scroll table { font-size: .86rem; line-height: 1.55; }
+    .doc-content .table-scroll th {
+      position: sticky;
+      top: 0;
+      background: #17263a;
+      color: #e8f1ff;
+      letter-spacing: .025em;
+    }
+    .doc-content .table-scroll td { color: #c3d0df; vertical-align: top; }
+    .doc-content .table-scroll tr:nth-child(even) { background: rgba(121, 169, 255, .035); }
+    .doc-content pre {
+      max-width: 100%;
+      border-color: rgba(121, 169, 255, .2);
+      background: #080f19;
+    }
+    .doc-content blockquote {
+      border-left-width: 3px;
+      border-left-color: #79a9ff;
+      background: rgba(121, 169, 255, .07);
+      color: #d5e3f5;
+    }
+    .doc-content a { color: #a9c8ff; border-bottom-color: rgba(169, 200, 255, .35); }
+    .doc-content a:hover { color: #d7e7ff; }
+    @media (max-width: 560px) {
+      .doc-content { padding: 1.1rem; }
+      .doc-content h2 { margin-top: 2.25rem; }
+      .doc-content .table-scroll table { font-size: .78rem; }
+    }
+
   </style>
 </head>
 <body>
