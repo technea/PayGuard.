@@ -2920,6 +2920,9 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
         });
         const result = await res.json();
         renderCalldataResult(result);
+        window.dispatchEvent(new CustomEvent('payguard:calldata-result', {
+          detail: { result, request: { to, value, data, policy } }
+        }));
       } catch (err) {
         alert('Calldata inspection request failed: ' + err.message);
       } finally {
