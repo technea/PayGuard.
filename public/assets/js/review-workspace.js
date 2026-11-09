@@ -67,8 +67,16 @@
 
     const result = detail.result || {};
     const verdict = String(result.verdict || "UNVERIFIED").toUpperCase();
+    const domainVerdicts = {
+      EXPECTED_DOMAIN_MATCH: "PASS",
+      NO_KNOWN_THREAT: "PASS",
+      CAUTION: "REVIEW",
+      KNOWN_MALICIOUS: "BLOCK",
+      SUSPICIOUS: "BLOCK"
+    };
+    const mappedVerdict = id === "domain" ? (domainVerdicts[verdict] || verdict) : verdict;
     const allowed = ["PASS", "REVIEW", "BLOCK"];
-    const normalized = allowed.includes(verdict) ? verdict : "UNVERIFIED";
+    const normalized = allowed.includes(mappedVerdict) ? mappedVerdict : "UNVERIFIED";
     const row = root.querySelector('[aria-controls="pg-evidence-' + id + '"]');
     if (!row) return;
 
@@ -88,7 +96,7 @@
       const notes = messages.length ? messages : reasons;
       explanation.textContent = notes.length
         ? notes.map(String).join(" · ")
-        : (normalized === "UNVERIFIED" ? "The provider returned no usable verdict. Treat this check as inconclusive." : "Provider returned a verdict; no additional finding details were supplied.");
+        : (result.summary || result.recommendation || (normalized === "UNVERIFIED" ? "The provider returned no usable verdict. Treat this check as inconclusive." : "Provider returned a verdict; no additional finding details were supplied."));
       panel.replaceChildren(source, explanation);
     }
     evidenceCount.add(id);
