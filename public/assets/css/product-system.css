@@ -662,3 +662,27 @@ body.pg-code-expanded { overflow:hidden; }
 @media (max-width:560px) {
   #pg-review-workspace .pg-panel::after { display:none; }
 }
+
+
+/* Reveal the review workspace on scroll when GSAP/ScrollTrigger cannot load. */
+@keyframes pg-workspace-fallback-reveal {
+  from { opacity: 0; transform: translate3d(0, 18px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+#pg-review-workspace.pg-workspace-in-view .pg-workspace-heading,
+#pg-review-workspace.pg-workspace-in-view .pg-panel {
+  animation: pg-workspace-fallback-reveal .68s cubic-bezier(.2,.8,.2,1) both;
+}
+#pg-review-workspace.pg-workspace-in-view .pg-review-grid .pg-panel:nth-child(2) { animation-delay: .12s; }
+#pg-review-workspace.pg-workspace-in-view .pg-trust-item {
+  animation: pg-workspace-fallback-reveal .42s cubic-bezier(.2,.8,.2,1) both;
+}
+#pg-review-workspace.pg-workspace-in-view .pg-trust-item:nth-child(1) { animation-delay: .2s; }
+#pg-review-workspace.pg-workspace-in-view .pg-trust-item:nth-child(2) { animation-delay: .27s; }
+#pg-review-workspace.pg-workspace-in-view .pg-trust-item:nth-child(3) { animation-delay: .34s; }
+#pg-review-workspace.pg-workspace-in-view .pg-trust-item:nth-child(4) { animation-delay: .41s; }
+@media (prefers-reduced-motion: reduce) {
+  #pg-review-workspace.pg-workspace-in-view .pg-workspace-heading,
+  #pg-review-workspace.pg-workspace-in-view .pg-panel,
+  #pg-review-workspace.pg-workspace-in-view .pg-trust-item { animation: none !important; }
+}

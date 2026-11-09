@@ -250,7 +250,8 @@
     if (selector) animateEvidenceUpdate(root.querySelector(selector));
   });
 
-  if (window.gsap) {
+  if (window.gsap && window.ScrollTrigger) {
+    window.gsap.registerPlugin(window.ScrollTrigger);
     const mm = window.gsap.matchMedia();
     mm.add({
       desktop: "(min-width: 901px) and (prefers-reduced-motion: no-preference)",
@@ -260,20 +261,38 @@
       const heading = root.querySelector(".pg-workspace-heading");
       const items = root.querySelectorAll(".pg-trust-item");
       const desktop = context.conditions.desktop;
-      const tl = window.gsap.timeline({ defaults: { ease: "power3.out" } });
+      const tl = window.gsap.timeline({
+        defaults: { ease: "power3.out" },
+        scrollTrigger: {
+          trigger: root,
+          start: desktop ? "top 82%" : "top 90%",
+          once: true,
+          toggleActions: "play none none none",
+          invalidateOnRefresh: true
+        }
+      });
       tl.fromTo(heading,
-        { autoAlpha: 0, y: 18 },
-        { autoAlpha: 1, y: 0, duration: .65 }
+        { autoAlpha: 0, y: 22 },
+        { autoAlpha: 1, y: 0, duration: .68 }
       ).fromTo(panels,
-        { autoAlpha: 0, y: desktop ? 30 : 18, scale: .985 },
-        { autoAlpha: 1, y: 0, scale: 1, duration: .72, stagger: desktop ? .16 : .1, clearProps: "opacity,transform,visibility" },
-        "-=.24"
+        { autoAlpha: 0, y: desktop ? 34 : 22, scale: .98 },
+        { autoAlpha: 1, y: 0, scale: 1, duration: .78, stagger: desktop ? .18 : .12, clearProps: "opacity,transform,visibility" },
+        "-=.2"
       ).fromTo(items,
-        { autoAlpha: 0, x: desktop ? 14 : 0, y: desktop ? 0 : 8 },
-        { autoAlpha: 1, x: 0, y: 0, duration: .38, stagger: .075, clearProps: "opacity,transform,visibility" },
-        "-=.28"
+        { autoAlpha: 0, x: desktop ? 16 : 0, y: desktop ? 0 : 9 },
+        { autoAlpha: 1, x: 0, y: 0, duration: .42, stagger: .085, clearProps: "opacity,transform,visibility" },
+        "-=.3"
       );
       return () => tl.kill();
     });
+  } else if ("IntersectionObserver" in window && !motionQuery.matches) {
+    // Native fallback: still reveal the workspace when it enters view if the GSAP CDN is unavailable.
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        root.classList.add("pg-workspace-in-view");
+        observer.disconnect();
+      }
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    observer.observe(root);
   }
 })();
