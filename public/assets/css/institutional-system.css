@@ -704,3 +704,82 @@ body:has(.sec-header) .json-viewer {
     padding-inline: clamp(1rem, 4vw, 1.5rem);
   }
 }
+
+
+/* Large desktop composition (1280px+).
+   Keep the landing page on a centered 7xl content rail, cap three-card
+   groups to readable widths, and restore deliberate vertical rhythm. */
+@media (min-width: 1280px) {
+  body:has(.sec-header) main,
+  body:has(.sec-header) main > .container,
+  body:has(.sec-header) .container,
+  body:has(.sec-header) .nav-container,
+  body:has(.sec-header) .dune-ribbon-content {
+    width: min(calc(100% - 3rem), 80rem) !important;
+    max-width: 80rem !important;
+    margin-inline: auto !important;
+    box-sizing: border-box;
+  }
+
+  body:has(.sec-header) .container,
+  body:has(.sec-header) .nav-container,
+  body:has(.sec-header) .dune-ribbon-content {
+    padding-inline: 2rem !important;
+  }
+
+  /* Three-item feature groups should remain three readable cards rather
+     than expanding into four tracks or stretching to the full content rail. */
+  body:has(.sec-header) .pillars-grid,
+  body:has(.sec-header) .realities-grid {
+    width: min(100%, 72rem);
+    max-width: 72rem;
+    margin-inline: auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    justify-items: center;
+    align-items: stretch;
+    gap: clamp(1.25rem, 1.8vw, 1.75rem) !important;
+  }
+
+  body:has(.sec-header) .pillar-card,
+  body:has(.sec-header) .reality-box {
+    width: 100%;
+    max-width: 24rem;
+    min-width: 0;
+    justify-self: center;
+  }
+
+  /* Give the hero, feature groups, scanner and footer consistent breathing
+     room on wide displays without changing the compact mobile rhythm. */
+  body:has(.sec-header) .hero-section {
+    padding-block: clamp(4rem, 5vw, 5.5rem) clamp(3.5rem, 4vw, 4.5rem);
+  }
+
+  body:has(.sec-header) #security-pillars,
+  body:has(.sec-header) #web3-realities,
+  body:has(.sec-header) #faq {
+    padding-block: clamp(4.25rem, 4.5vw, 5.25rem);
+  }
+
+  body:has(.sec-header) .section-header {
+    margin-bottom: clamp(2.25rem, 3vw, 3rem);
+  }
+
+  body:has(.sec-header) .inv-container-card {
+    width: min(calc(100% - 3rem), 80rem);
+    max-width: 80rem;
+    margin-inline: auto;
+  }
+
+  body:has(.sec-header) .site-footer {
+    margin-top: clamp(3rem, 4vw, 4.5rem);
+  }
+
+  body:has(.sec-header) .footer-grid {
+    width: min(calc(100% - 3rem), 80rem);
+    max-width: 80rem;
+    margin-inline: auto;
+    box-sizing: border-box;
+    padding-inline: 2rem;
+    gap: clamp(1.5rem, 2vw, 2.25rem);
+  }
+}
