@@ -408,3 +408,109 @@ body:has(.sec-header) :where(.inv-panel,.pillar-card,.agent-card,.reality-box,.f
   body:has(.sec-header) .scanner-actions-group { flex-wrap: wrap; }
   body:has(.sec-header) .scanner-actions-group > * { flex: 1 1 100%; }
 }
+
+
+/* Laptop-first responsive layout refinement (1024px–1440px).
+   Mirrors the requested Tailwind container/grid rhythm while keeping the
+   existing HTML/CSS/JS application and all security behaviour unchanged. */
+:where(body:not(:has(.sec-header)) main) {
+  width: min(100%, 80rem) !important;
+  max-width: 80rem !important;
+  margin-inline: auto !important;
+  padding-inline: 1rem !important;
+}
+@media (min-width: 640px) {
+  :where(body:not(:has(.sec-header)) main) { padding-inline: 1.5rem !important; }
+}
+@media (min-width: 1024px) {
+  :where(body:not(:has(.sec-header)) main) { padding-inline: 2rem !important; }
+}
+@media (min-width: 768px) {
+  body:not(:has(.sec-header)) main { gap: 1.5rem !important; }
+  body:not(:has(.sec-header)) .metric-grid,
+  body:not(:has(.sec-header)) .check-grid,
+  body:not(:has(.sec-header)) .guarantee-grid { gap: 1.5rem !important; }
+}
+
+/* Public-site wrappers use the same 1280px content boundary and Tailwind-like
+   px-4 / sm:px-6 / lg:px-8 gutters. */
+body:has(.sec-header) .container,
+body:has(.sec-header) .nav-container,
+body:has(.sec-header) .dune-ribbon-content {
+  width: min(100%, 80rem) !important;
+  max-width: 80rem !important;
+  margin-inline: auto !important;
+  padding-inline: 1rem !important;
+  box-sizing: border-box;
+}
+@media (min-width: 640px) {
+  body:has(.sec-header) .container,
+  body:has(.sec-header) .nav-container,
+  body:has(.sec-header) .dune-ribbon-content { padding-inline: 1.5rem !important; }
+}
+@media (min-width: 1024px) {
+  body:has(.sec-header) .container,
+  body:has(.sec-header) .nav-container,
+  body:has(.sec-header) .dune-ribbon-content { padding-inline: 2rem !important; }
+}
+@media (min-width: 768px) {
+  body:has(.sec-header) .pillars-grid,
+  body:has(.sec-header) .realities-grid,
+  body:has(.sec-header) .check-grid,
+  body:has(.sec-header) .guarantee-grid,
+  body:has(.sec-header) .form-layout { gap: 1.5rem !important; }
+}
+
+/* Fluid card steps: one column on small screens, two at sm, three at lg,
+   and four at xl. minmax(0, 1fr) prevents long labels from forcing overflow. */
+@media (min-width: 640px) {
+  body:has(.sec-header) .pillars-grid,
+  body:has(.sec-header) .realities-grid,
+  body:has(.sec-header) .check-grid,
+  body:has(.sec-header) .guarantee-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (min-width: 1024px) {
+  body:not(:has(.sec-header)) .metric-grid,
+  body:not(:has(.sec-header)) .check-grid,
+  body:not(:has(.sec-header)) .guarantee-grid,
+  body:has(.sec-header) .pillars-grid,
+  body:has(.sec-header) .realities-grid,
+  body:has(.sec-header) .check-grid,
+  body:has(.sec-header) .guarantee-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  body:has(.sec-header) .inv-stage-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr) !important;
+    gap: 1px;
+  }
+}
+@media (min-width: 1280px) {
+  body:not(:has(.sec-header)) .metric-grid,
+  body:not(:has(.sec-header)) .check-grid,
+  body:not(:has(.sec-header)) .guarantee-grid,
+  body:has(.sec-header) .pillars-grid,
+  body:has(.sec-header) .realities-grid,
+  body:has(.sec-header) .check-grid,
+  body:has(.sec-header) .guarantee-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Keep laptop hero hierarchy strong without oversized 13–15 inch headings. */
+@media (min-width: 768px) {
+  body:has(.sec-header) .hero-title {
+    font-size: clamp(2.25rem, 3.5vw, 3rem) !important;
+    line-height: 1.08;
+  }
+  body:has(.sec-header) .section-title {
+    font-size: clamp(2.25rem, 3.4vw, 3rem) !important;
+  }
+}
+
+/* Guard grid children against intrinsic-width text and code payloads. */
+body:has(.sec-header) :where(.pillars-grid,.realities-grid,.check-grid,.guarantee-grid,.form-layout,.inv-stage-grid) > *,
+body:not(:has(.sec-header)) :where(.metric-grid,.check-grid,.guarantee-grid,.form-layout) > * {
+  min-width: 0;
+}
