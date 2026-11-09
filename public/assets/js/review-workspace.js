@@ -52,10 +52,29 @@
     codeView.classList.toggle("is-expanded", expanded);
     document.body.classList.toggle("pg-code-expanded", expanded);
     expandButton.setAttribute("aria-pressed", String(expanded));
-    expandButton.innerHTML = expanded ? '<i class="fa-solid fa-compress"></i> Close expanded view' : '<i class="fa-solid fa-expand"></i> Expand';
+    expandButton.innerHTML = expanded
+      ? '<i class="fa-solid fa-compress"></i> Close expanded view'
+      : '<i class="fa-solid fa-expand"></i> Expand';
+
+    if (expanded) {
+      codeView.setAttribute("role", "dialog");
+      codeView.setAttribute("aria-modal", "true");
+      codeView.setAttribute("aria-label", "Expanded policy JSON viewer");
+      codeView.focus({ preventScroll: true });
+      if (codeStatus) codeStatus.textContent = "Expanded JSON viewer. Press Escape to close.";
+    } else {
+      codeView.removeAttribute("role");
+      codeView.removeAttribute("aria-modal");
+      codeView.setAttribute("aria-label", "Policy payload JSON");
+      expandButton.focus({ preventScroll: true });
+      if (codeStatus) codeStatus.textContent = "Expanded JSON viewer closed.";
+    }
   };
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && codeView.classList.contains("is-expanded")) setExpanded(false);
+    if (event.key === "Escape" && codeView.classList.contains("is-expanded")) {
+      event.preventDefault();
+      setExpanded(false);
+    }
   });
 
   const evidenceCount = new Set();
