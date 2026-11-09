@@ -542,6 +542,18 @@ textarea {
  .pg-trust-trigger { gap:.5rem; padding:.75rem .65rem; }
  .pg-trust-copy small { display:none; }
  .pg-unavailable { font-size:.54rem; }
+
+#pg-review-workspace .pg-live-summary { display:grid;grid-template-columns:minmax(7rem,.35fr) minmax(0,1fr);gap:.4rem .8rem;margin:0; }
+#pg-review-workspace .pg-live-summary dt { color:#8fa8bf;font:600 .68rem "JetBrains Mono",monospace; }
+#pg-review-workspace .pg-live-summary dd { min-width:0;margin:0;color:#e0eaf5;overflow-wrap:anywhere; }
+#pg-review-workspace .pg-mode-content ul { margin:.45rem 0 0;padding-left:1.2rem; }
+#pg-review-workspace .pg-mode-content li { margin:.2rem 0; }
+#pg-review-workspace .pg-evidence-status--pass { color:#a7e0c4;background:rgba(36,132,91,.16);border-color:rgba(82,190,143,.3); }
+#pg-review-workspace .pg-evidence-status--review { color:#f2d39b;background:rgba(166,111,31,.16);border-color:rgba(210,160,79,.3); }
+#pg-review-workspace .pg-evidence-status--block { color:#ffb1b7;background:rgba(173,53,68,.16);border-color:rgba(226,91,107,.32); }
+#pg-review-workspace .pg-evidence-status--unknown { color:#a7b3c2; }
+@media(max-width:560px) { #pg-review-workspace .pg-live-summary { grid-template-columns:minmax(0,1fr);gap:.15rem; } #pg-review-workspace .pg-live-summary dd { margin-bottom:.4rem; } }
+
  .pg-code-panel .pg-panel-head { align-items:flex-start; flex-direction:column; }
  .pg-code-actions { width:100%; }
  .pg-code-actions button { flex:1; }
