@@ -3925,6 +3925,14 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
       );
     });
 
+    /* Laptop and desktop only: preserve full-width content with a modest
+       horizontal gutter. Mobile spacing above remains untouched. */
+    @media (min-width: 769px) {
+      main {
+        padding-inline: clamp(1rem, 1.5vw, 1.5rem) !important;
+      }
+    }
+
 </script>
 <script src="/assets/js/review-workspace.js" defer></script>
 </body>
