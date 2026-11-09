@@ -75,9 +75,25 @@
 
     if (stateTag) stateTag.textContent = "CALLDATA CHECK COMPLETE";
     if (trustTag) trustTag.textContent = "LATEST CHECK LOADED";
-    if (calldataStatus) calldataStatus.textContent = verdict === "PASS" || verdict === "REVIEW" || verdict === "BLOCK"
-      ? "POLICY " + verdict
-      : "UNVERIFIED";
+    if (calldataStatus) {
+      calldataStatus.textContent = verdict === "PASS" || verdict === "REVIEW" || verdict === "BLOCK"
+        ? "POLICY " + verdict
+        : "UNVERIFIED";
+      calldataStatus.className = "pg-unavailable pg-evidence-status pg-evidence-status--" +
+        (["PASS", "REVIEW", "BLOCK"].includes(verdict) ? verdict.toLowerCase() : "unknown");
+    }
+
+    const diffCards = root.querySelectorAll(".pg-diff-side");
+    if (diffCards[0]) {
+      diffCards[0].querySelector("strong").textContent = request.to || "Target unavailable";
+      diffCards[0].querySelector("p").textContent = "Native value (wei): " + String(request.value || "0") +
+        ". Token transfers and balance deltas are not returned by this inspector.";
+    }
+    if (diffCards[1]) {
+      diffCards[1].querySelector("strong").textContent = "POLICY " + verdict;
+      diffCards[1].querySelector("p").textContent = operation +
+        ". This is a policy result, not an independent contract audit or balance simulation.";
+    }
 
     if (summary) {
       const lines = [
