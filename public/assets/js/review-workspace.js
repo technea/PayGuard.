@@ -58,6 +58,72 @@
     if (event.key === "Escape" && codeView.classList.contains("is-expanded")) setExpanded(false);
   });
 
+  window.addEventListener("payguard:calldata-result", (event) => {
+    const detail = event.detail || {};
+    const result = detail.result || {};
+    const request = detail.request || {};
+    const verdict = String(result.verdict || "UNVERIFIED").toUpperCase();
+    const operation = String(result.operation || "UNKNOWN_OPERATION");
+    const summary = root.querySelector('[data-content="summary"]');
+    const raw = root.querySelector('[data-content="raw"]');
+    const code = root.querySelector("#pg-code-content");
+    const note = root.querySelector(".pg-code-note");
+    const stateTag = root.querySelector(".pg-state-panel .pg-state-tag");
+    const trustTag = root.querySelector(".pg-trust-panel .pg-state-tag");
+    const calldataRow = root.querySelector('[aria-controls="pg-evidence-calldata"]');
+    const calldataStatus = calldataRow && calldataRow.querySelector(".pg-unavailable");
+
+    if (stateTag) stateTag.textContent = "CALldata CHECK COMPLETE";
+    if (trustTag) trustTag.textContent = "LATEST CHECK LOADED";
+    if (calldataStatus) calldataStatus.textContent = verdict === "PASS" || verdict === "REVIEW" || verdict === "BLOCK"
+      ? "POLICY " + verdict
+      : "UNVERIFIED";
+
+    if (summary) {
+      const lines = [
+        ["Operation", operation],
+        ["Policy verdict", verdict],
+        ["Contract target", request.to || "Not supplied"],
+        ["Native value (wei)", request.value || "0"]
+      ];
+      const reasons = Array.isArray(result.reasons) ? result.reasons : [];
+      summary.replaceChildren();
+      const list = document.createElement("dl");
+      list.className = "pg-live-summary";
+      lines.forEach(([label, value]) => {
+        const term = document.createElement("dt");
+        const description = document.createElement("dd");
+        term.textContent = label;
+        description.textContent = String(value);
+        list.append(term, description);
+      });
+      summary.append(list);
+      if (reasons.length) {
+        const heading = document.createElement("strong");
+        heading.textContent = "Review notes";
+        const reasonList = document.createElement("ul");
+        reasons.forEach(reason => {
+          const item = document.createElement("li");
+          item.textContent = String(reason);
+          reasonList.append(item);
+        });
+        summary.append(heading, reasonList);
+      }
+    }
+
+    if (raw) {
+      const rawCode = document.createElement("code");
+      rawCode.textContent = request.data || "No calldata was supplied.";
+      raw.replaceChildren(rawCode);
+    }
+    if (code) {
+      code.textContent = JSON.stringify({ request, result }, null, 2);
+      code.closest(".pg-code-view")?.setAttribute("aria-label", "Live calldata request and policy result JSON");
+    }
+    if (note) note.textContent = "Live calldata check loaded. Provider evidence not included in this response remains unavailable.";
+    if (codeStatus) codeStatus.textContent = "Live calldata result loaded. Policy verdicts do not replace an independent contract audit.";
+  });
+
   root.addEventListener("click", async (event) => {
     const target = event.target instanceof Element ? event.target : event.target.parentElement;
     if (!target) return;
