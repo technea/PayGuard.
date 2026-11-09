@@ -58,6 +58,46 @@
     if (event.key === "Escape" && codeView.classList.contains("is-expanded")) setExpanded(false);
   });
 
+  const evidenceCount = new Set();
+  window.addEventListener("payguard:evidence-result", (event) => {
+    const detail = event.detail || {};
+    const id = String(detail.id || "");
+    const item = evidence.find(entry => entry.id === id);
+    if (!item) return;
+
+    const result = detail.result || {};
+    const verdict = String(result.verdict || "UNVERIFIED").toUpperCase();
+    const allowed = ["PASS", "REVIEW", "BLOCK"];
+    const normalized = allowed.includes(verdict) ? verdict : "UNVERIFIED";
+    const row = root.querySelector('[aria-controls="pg-evidence-' + id + '"]');
+    if (!row) return;
+
+    const status = row.querySelector(".pg-unavailable");
+    const panel = root.querySelector("#pg-evidence-" + id);
+    if (status) {
+      status.textContent = normalized;
+      status.className = "pg-unavailable pg-evidence-status pg-evidence-status--" + normalized.toLowerCase();
+    }
+    if (panel) {
+      const source = document.createElement("p");
+      source.textContent = item.source + " · " + String(detail.subject || "Subject not supplied");
+      const explanation = document.createElement("small");
+      const findings = Array.isArray(result.findings) ? result.findings : [];
+      const reasons = Array.isArray(result.reasons) ? result.reasons : [];
+      const messages = findings.map(entry => entry && entry.message).filter(Boolean);
+      const notes = messages.length ? messages : reasons;
+      explanation.textContent = notes.length
+        ? notes.map(String).join(" · ")
+        : (normalized === "UNVERIFIED" ? "The provider returned no usable verdict. Treat this check as inconclusive." : "Provider returned a verdict; no additional finding details were supplied.");
+      panel.replaceChildren(source, explanation);
+    }
+    evidenceCount.add(id);
+    const trustTag = root.querySelector(".pg-trust-panel .pg-state-tag");
+    if (trustTag) trustTag.textContent = evidenceCount.size + " / 4 EVIDENCE CHECKS LOADED";
+    const note = root.querySelector(".pg-matrix-note");
+    if (note) note.textContent = "Evidence is provider-specific and time-bound. A PASS means no configured flags were returned; it is not a guarantee of safety.";
+  });
+
   window.addEventListener("payguard:calldata-result", (event) => {
     const detail = event.detail || {};
     const result = detail.result || {};
