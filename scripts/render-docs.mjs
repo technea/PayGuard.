@@ -64,7 +64,7 @@ export function markdownToHtml(markdown) {
       .replace(/&[^;]+;/g, " ")
       .replace(/<[^>]*>/g, "")
       .normalize("NFKD")
-      .replace(/[\\u0300-\\u036f]/g, "")
+      .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "") || "section";
     const count = headingIds.get(base) || 0;
@@ -151,10 +151,12 @@ export function markdownToHtml(markdown) {
   });
 
   // Turn a document's numbered Contents list into a navigable, accessible table of contents.
-  output = output.replace(/(<h2 id="contents">\\s*Contents\\s*<\\/h2>\\s*)<ol>([\\s\\S]*?)<\\/ol>/i, (_match, heading, items) => {
+  output = output.replace(/(<h2 id="contents">\s*Contents\s*<\/h2>\s*)<ol>([\s\S]*?)<\/ol>/i, (_match, heading, items) => {
+    let sectionNumber = 0;
     const linkedItems = items.replace(/<li>([\\s\\S]*?)<\\/li>/g, (_item, label) => {
+      sectionNumber += 1;
       const plainLabel = label.replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").trim();
-      const target = createContentsTarget(plainLabel);
+      const target = createContentsTarget(`${sectionNumber}. ${plainLabel}`);
       return `<li><a href="#${target}">${label}</a></li>`;
     });
     return `${heading}<nav class="doc-toc" aria-label="Whitepaper contents"><ol>${linkedItems}</ol></nav>`;
@@ -170,7 +172,7 @@ function createContentsTarget(label) {
     .replace(/&[^;]+;/g, " ")
     .replace(/<[^>]*>/g, "")
     .normalize("NFKD")
-    .replace(/[\\u0300-\\u036f]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "") || "section";
 }
