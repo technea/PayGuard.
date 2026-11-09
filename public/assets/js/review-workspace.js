@@ -104,6 +104,7 @@
     if (trustTag) trustTag.textContent = evidenceCount.size + " / 4 EVIDENCE CHECKS LOADED";
     const note = root.querySelector(".pg-matrix-note");
     if (note) note.textContent = "Evidence is provider-specific and time-bound. A PASS means no configured flags were returned; it is not a guarantee of safety.";
+    animateEvidenceUpdate(row.closest(".pg-trust-item"));
   });
 
   window.addEventListener("payguard:calldata-result", (event) => {
@@ -186,6 +187,8 @@
     }
     if (note) note.textContent = "Live calldata check loaded. Provider evidence not included in this response remains unavailable.";
     if (codeStatus) codeStatus.textContent = "Live calldata result loaded. Policy verdicts do not replace an independent contract audit.";
+    animateEvidenceUpdate(root.querySelector(".pg-state-panel"));
+    animateEvidenceUpdate(root.querySelector(".pg-trust-panel"));
   });
 
   root.addEventListener("click", async (event) => {
@@ -232,7 +235,45 @@
     }
   });
 
-  if (window.gsap && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    window.gsap.from(root.querySelectorAll(".pg-panel"), { y: 14, opacity: 0, duration: .55, stagger: .1, ease: "power2.out", clearProps: "all" });
+  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const animateEvidenceUpdate = (element) => {
+    if (!element || motionQuery.matches) return;
+    element.classList.remove("pg-motion-updated");
+    void element.offsetWidth;
+    element.classList.add("pg-motion-updated");
+    window.setTimeout(() => element.classList.remove("pg-motion-updated"), 900);
+  };
+
+  // Animate meaningful state changes, not fabricated security activity.
+  root.addEventListener("payguard:motion-update", (event) => {
+    const selector = event.detail && event.detail.selector;
+    if (selector) animateEvidenceUpdate(root.querySelector(selector));
+  });
+
+  if (window.gsap) {
+    const mm = window.gsap.matchMedia();
+    mm.add({
+      desktop: "(min-width: 901px) and (prefers-reduced-motion: no-preference)",
+      compact: "(max-width: 900px) and (prefers-reduced-motion: no-preference)"
+    }, (context) => {
+      const panels = root.querySelectorAll(".pg-panel");
+      const heading = root.querySelector(".pg-workspace-heading");
+      const items = root.querySelectorAll(".pg-trust-item");
+      const desktop = context.conditions.desktop;
+      const tl = window.gsap.timeline({ defaults: { ease: "power3.out" } });
+      tl.fromTo(heading,
+        { autoAlpha: 0, y: 18 },
+        { autoAlpha: 1, y: 0, duration: .65 }
+      ).fromTo(panels,
+        { autoAlpha: 0, y: desktop ? 30 : 18, scale: .985 },
+        { autoAlpha: 1, y: 0, scale: 1, duration: .72, stagger: desktop ? .16 : .1, clearProps: "opacity,transform,visibility" },
+        "-=.24"
+      ).fromTo(items,
+        { autoAlpha: 0, x: desktop ? 14 : 0, y: desktop ? 0 : 8 },
+        { autoAlpha: 1, x: 0, y: 0, duration: .38, stagger: .075, clearProps: "opacity,transform,visibility" },
+        "-=.28"
+      );
+      return () => tl.kill();
+    });
   }
 })();
