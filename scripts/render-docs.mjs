@@ -189,11 +189,15 @@ function formatInline(str) {
   // Markdown links
   s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, href) => {
     let target = href;
-    if (target.endsWith(".md")) {
-      target = target.replace(/\.md$/, "");
-      if (!target.startsWith("/") && !target.startsWith("http")) {
+    if (target.endsWith(".md") && !target.startsWith("http")) {
+      if (!target.startsWith("/")) {
+        // README links are written relative to the repository root (for example,
+        // docs/architecture.md), while the public documentation routes already
+        // include the /docs prefix.
+        target = target.replace(/^(?:\.\/)?docs\//, "");
         target = "/docs/" + target;
       }
+      target = target.replace(/\.md$/, "");
     }
     const isExt = target.startsWith("http");
     return `<a href="${escapeHtml(target)}"${isExt ? ' target="_blank" rel="noopener noreferrer"' : ""}>${escapeHtml(label)}</a>`;

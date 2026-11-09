@@ -32,3 +32,20 @@ test("duplicate headings receive unique fragment identifiers", () => {
   assert.match(html, /id="overview"/);
   assert.match(html, /id="overview-2"/);
 });
+
+test("repository-root docs links resolve to canonical public documentation routes", () => {
+  const html = markdownToHtml([
+    "[Architecture Overview](docs/architecture.md)",
+    "[Security Model](docs/security-model.md)",
+    "[FAQ](docs/faq.md)",
+    "[Absolute Docs Link](/docs/api-reference.md)",
+    "[Relative Doc Link](getting-started.md)"
+  ].join("\n\n"));
+
+  assert.match(html, /href="\/docs\/architecture"/);
+  assert.match(html, /href="\/docs\/security-model"/);
+  assert.match(html, /href="\/docs\/faq"/);
+  assert.match(html, /href="\/docs\/api-reference"/);
+  assert.match(html, /href="\/docs\/getting-started"/);
+  assert.doesNotMatch(html, /href="\/docs\/docs\//);
+});
