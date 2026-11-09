@@ -40,12 +40,28 @@
     <section class="pg-panel pg-code-panel" aria-labelledby="pg-code-title">
       <div class="pg-panel-head"><div><p class="pg-eyebrow">INSPECTABLE OUTPUT</p><h3 id="pg-code-title">Policy payload viewer</h3></div><div class="pg-code-actions"><button type="button" data-code-action="format">Format JSON</button><button type="button" data-code-action="copy"><i class="fa-regular fa-copy"></i> Copy</button><button type="button" data-code-action="expand"><i class="fa-solid fa-expand"></i> Expand</button></div></div>
       <p class="pg-muted pg-code-note">Example schema only — no live scan payload is loaded.</p>
-      <pre class="pg-code-view"><code id="pg-code-content">{ "chainId": 8453, "status": "awaiting_scan", "evidence": [] }</code></pre>
+      <p class="pg-code-status" role="status" aria-live="polite">Example schema only. No live scan payload is loaded.</p>
+      <pre class="pg-code-view" tabindex="0" aria-label="Example policy JSON"><code id="pg-code-content">{ "chainId": 8453, "status": "awaiting_scan", "evidence": [] }</code></pre>
     </section>
   `;
 
+  const codeStatus = root.querySelector(".pg-code-status");
+  const codeView = root.querySelector(".pg-code-view");
+  const expandButton = root.querySelector('[data-code-action="expand"]');
+  const setExpanded = (expanded) => {
+    codeView.classList.toggle("is-expanded", expanded);
+    document.body.classList.toggle("pg-code-expanded", expanded);
+    expandButton.setAttribute("aria-pressed", String(expanded));
+    expandButton.innerHTML = expanded ? '<i class="fa-solid fa-compress"></i> Close expanded view' : '<i class="fa-solid fa-expand"></i> Expand';
+  };
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement && !codeView.classList.contains("is-expanded")) setExpanded(false);
+  });
+
   root.addEventListener("click", async (event) => {
-    const mode = event.target.closest("[data-mode]");
+    const target = event.target instanceof Element ? event.target : event.target.parentElement;
+    if (!target) return;
+    const mode = target.closest("[data-mode]");
     if (mode) {
       root.querySelectorAll("[data-mode]").forEach(button => {
         const active = button === mode;
@@ -54,7 +70,7 @@
       });
       root.querySelectorAll("[data-content]").forEach(panel => { panel.hidden = panel.dataset.content !== mode.dataset.mode; });
     }
-    const trigger = event.target.closest(".pg-trust-trigger");
+    const trigger = target.closest(".pg-trust-trigger");
     if (trigger) {
       const panel = document.getElementById(trigger.getAttribute("aria-controls"));
       const open = trigger.getAttribute("aria-expanded") !== "true";
@@ -62,7 +78,7 @@
       panel.hidden = !open;
       trigger.closest(".pg-trust-item").classList.toggle("is-open", open);
     }
-    const action = event.target.closest("[data-code-action]");
+    const action = target.closest("[data-code-action]");
     if (!action) return;
     const code = root.querySelector("#pg-code-content");
     if (action.dataset.codeAction === "format" || action.dataset.codeAction === "minify") {
@@ -72,16 +88,22 @@
         code.textContent = JSON.stringify(parsed, null, compact ? 0 : 2);
         action.dataset.codeAction = compact ? "format" : "minify";
         action.textContent = compact ? "Format JSON" : "Minify JSON";
-      } catch (_) { action.textContent = "Invalid JSON"; }
+        codeStatus.textContent = compact ? "JSON minified." : "JSON formatted.";
+      } catch (_) { codeStatus.textContent = "This example is not valid JSON and could not be formatted."; }
     } else if (action.dataset.codeAction === "copy") {
       try {
         await navigator.clipboard.writeText(code.textContent);
         action.innerHTML = '<i class="fa-solid fa-check"></i> Copied';
+        codeStatus.textContent = "JSON copied to clipboard.";
         window.setTimeout(() => { action.innerHTML = '<i class="fa-regular fa-copy"></i> Copy'; }, 1500);
-      } catch (_) { action.textContent = "Copy unavailable"; }
+      } catch (_) { codeStatus.textContent = "Clipboard access is unavailable in this browser context."; }
     } else if (action.dataset.codeAction === "expand") {
-      const pre = root.querySelector(".pg-code-view");
-      if (pre.requestFullscreen) pre.requestFullscreen().catch(() => {});
+      const expanded = codeView.classList.contains("is-expanded") || document.fullscreenElement === codeView;
+      if (expanded) {
+        if (document.fullscreenElement === codeView && document.exitFullscreen) document.exitFullscreen().catch(() => setExpanded(false));
+        else setExpanded(false);
+      } else if (codeView.requestFullscreen) codeView.requestFullscreen().then(() => setExpanded(true)).catch(() => setExpanded(true));
+      else setExpanded(true);
     }
   });
 
