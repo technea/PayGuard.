@@ -56,11 +56,25 @@ export function markdownToHtml(markdown) {
   });
 
   // Headings
-  text = text.replace(/^#### (.*?)$/gm, (_m, h) => `<h4>${formatInline(h)}</h4>`);
-  text = text.replace(/^### (.*?)$/gm, (_m, h) => `<h3>${formatInline(h)}</h3>`);
-  text = text.replace(/^## (.*?)$/gm, (_m, h) => `<h2>${formatInline(h)}</h2>`);
-  text = text.replace(/^# (.*?)$/gm, (_m, h) => `<h1>${formatInline(h)}</h1>`);
-
+  const headingIds = new Map();
+  const createHeadingId = (heading) => {
+    const base = heading
+      .toLowerCase()
+      .replace(/&amp;/g, " and ")
+      .replace(/&[^;]+;/g, " ")
+      .replace(/<[^>]*>/g, "")
+      .normalize("NFKD")
+      .replace(/[\\u0300-\\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "section";
+    const count = headingIds.get(base) || 0;
+    headingIds.set(base, count + 1);
+    return count ? `${base}-${count + 1}` : base;
+  };
+  text = text.replace(/^#### (.*?)$/gm, (_m, h) => `<h4 id="${createHeadingId(h)}">${formatInline(h)}</h4>`);
+  text = text.replace(/^### (.*?)$/gm, (_m, h) => `<h3 id="${createHeadingId(h)}">${formatInline(h)}</h3>`);
+  text = text.replace(/^## (.*?)$/gm, (_m, h) => `<h2 id="${createHeadingId(h)}">${formatInline(h)}</h2>`);
+  text = text.replace(/^# (.*?)$/gm, (_m, h) => `<h1 id="${createHeadingId(h)}">${formatInline(h)}</h1>`);
   // Horizontal rules
   text = text.replace(/^---$/gm, '<hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:2rem 0;">');
 
@@ -136,7 +150,29 @@ export function markdownToHtml(markdown) {
     output = output.replace(`__PAYGUARD_CODEBLOCK_${i}__`, cb);
   });
 
+  // Turn a document's numbered Contents list into a navigable, accessible table of contents.
+  output = output.replace(/(<h2 id="contents">\\s*Contents\\s*<\\/h2>\\s*)<ol>([\\s\\S]*?)<\\/ol>/i, (_match, heading, items) => {
+    const linkedItems = items.replace(/<li>([\\s\\S]*?)<\\/li>/g, (_item, label) => {
+      const plainLabel = label.replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").trim();
+      const target = createContentsTarget(plainLabel);
+      return `<li><a href="#${target}">${label}</a></li>`;
+    });
+    return `${heading}<nav class="doc-toc" aria-label="Whitepaper contents"><ol>${linkedItems}</ol></nav>`;
+  });
+
   return output;
+}
+
+function createContentsTarget(label) {
+  return label
+    .toLowerCase()
+    .replace(/&amp;/g, " and ")
+    .replace(/&[^;]+;/g, " ")
+    .replace(/<[^>]*>/g, "")
+    .normalize("NFKD")
+    .replace(/[\\u0300-\\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") || "section";
 }
 
 function formatInline(str) {
