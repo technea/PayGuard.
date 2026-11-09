@@ -527,3 +527,180 @@ body:has(.sec-header) :where(.pillars-grid,.realities-grid,.check-grid,.guarante
 body:not(:has(.sec-header)) :where(.metric-grid,.check-grid,.guarantee-grid,.form-layout) > * {
   min-width: 0;
 }
+
+
+/* Laptop layout correction — landing page only (1024px–1280px).
+   Keep the three-card sections at three columns; avoid the previous
+   four-column override at 1280px that left an empty track. */
+@media (min-width: 1024px) and (max-width: 1280px) {
+  body:has(.sec-header) .pillars-grid,
+  body:has(.sec-header) .realities-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 1.5rem !important;
+  }
+
+  body:has(.sec-header) .pillar-card,
+  body:has(.sec-header) .reality-box {
+    min-width: 0;
+    padding: clamp(1.25rem, 1.7vw, 1.75rem);
+  }
+
+  body:has(.sec-header) .footer-grid {
+    width: min(100%, 80rem);
+    max-width: 80rem;
+    box-sizing: border-box;
+    padding-inline: 2rem;
+    gap: clamp(1.25rem, 2vw, 2rem);
+    grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr));
+  }
+
+  body:has(.sec-header) .nav-container {
+    gap: .85rem;
+  }
+
+  body:has(.sec-header) .nav-links {
+    gap: clamp(.55rem, 1vw, .85rem);
+    flex-wrap: wrap;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  body:has(.sec-header) .nav-link {
+    font-size: .76rem;
+    white-space: nowrap;
+  }
+
+  body:has(.sec-header) .nav-actions {
+    gap: .5rem;
+    flex-shrink: 0;
+  }
+
+  body:has(.sec-header) .inv-stage-grid {
+    grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr) !important;
+    gap: 1px;
+  }
+
+  body:has(.sec-header) .inv-stage-grid > .inv-panel:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  body:has(.sec-header) .inv-panel {
+    min-width: 0;
+    padding: clamp(1rem, 1.5vw, 1.4rem);
+  }
+
+  body:has(.sec-header) .inv-panel-header {
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+
+  body:has(.sec-header) .security-layer-row {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  body:has(.sec-header) .entity-val,
+  body:has(.sec-header) .verdict-summary-text,
+  body:has(.sec-header) .guidance-box {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* At the wider end of the laptop range the three cockpit stages fit side
+   by side without forcing the verdict panel onto a separate row. */
+@media (min-width: 1200px) and (max-width: 1280px) {
+  body:has(.sec-header) .inv-stage-grid {
+    grid-template-columns: minmax(0, .95fr) minmax(0, 1.15fr) minmax(0, .95fr) !important;
+  }
+
+  body:has(.sec-header) .inv-stage-grid > .inv-panel:nth-child(3) {
+    grid-column: auto;
+  }
+}
+
+/* Flex children must be allowed to shrink before their text can create
+   horizontal page overflow. */
+body:has(.sec-header) :where(.nav-container,.nav-links,.nav-actions,.hero-cta-group,
+  .capability-sequence-box,.seq-prompt-wrapper,.guarantees-bar,.footer-grid,
+  .footer-bottom,.footer-bottom-links,.inv-topbar,.inv-tab-nav,.inv-tabs-group) {
+  min-width: 0;
+}
+
+body:has(.sec-header) .hero-cta-group,
+body:has(.sec-header) .guarantees-bar,
+body:has(.sec-header) .footer-bottom,
+body:has(.sec-header) .footer-bottom-links {
+  flex-wrap: wrap;
+}
+
+body:has(.sec-header) .capability-sequence-box {
+  flex-wrap: wrap;
+}
+
+body:has(.sec-header) .seq-text-container {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Scroll long technical values inside their own panel, never at page level.
+   The report body is a <pre>; preserve JSON formatting and provide a local
+   horizontal scrollbar for long keys, hashes and encoded values. */
+body:has(.sec-header) .report-modal-card {
+  width: min(100% - 2rem, 56rem);
+  max-width: calc(100vw - 2rem);
+  min-width: 0;
+  overflow: hidden;
+}
+
+body:has(.sec-header) .report-modal-body {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  max-height: min(65vh, 42rem);
+  overflow: auto;
+  white-space: pre;
+  overflow-wrap: normal;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+}
+
+body:has(.sec-header) .inv-container-card,
+body:has(.sec-header) .inv-panel,
+body:has(.sec-header) .inv-panel :where(.entity-field,.topology-box,.verdict-card,.guidance-box) {
+  min-width: 0;
+}
+
+body:has(.sec-header) .inv-panel :where(.entity-val,.topology-nodes,.layer-text-wrap,
+  .verdict-summary-text,.guidance-box) {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+body:has(.sec-header) pre,
+body:has(.sec-header) .report-modal-body,
+body:has(.sec-header) [data-code-viewer],
+body:has(.sec-header) .calldata-box,
+body:has(.sec-header) .json-viewer {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+@media (min-width: 1024px) and (max-width: 1099px) {
+  body:has(.sec-header) .footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1023px) {
+  body:has(.sec-header) .footer-grid {
+    width: min(100%, 80rem);
+    max-width: 80rem;
+    box-sizing: border-box;
+    padding-inline: clamp(1rem, 4vw, 1.5rem);
+  }
+}
