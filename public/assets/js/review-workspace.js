@@ -19,8 +19,8 @@
       <section class="pg-panel pg-state-panel" aria-labelledby="pg-state-title">
         <div class="pg-panel-head"><div><p class="pg-eyebrow">TRANSACTION IMPACT</p><h3 id="pg-state-title">State diff</h3></div><span class="pg-state-tag">AWAITING SCAN DATA</span></div>
         <div class="pg-diff-columns">
-          <div class="pg-diff-side"><span class="pg-diff-label">SENT ASSETS & GAS</span><strong>—</strong><p>Asset outflow and gas estimates appear after a supported transaction analysis.</p></div>
-          <div class="pg-diff-side"><span class="pg-diff-label">NET BALANCE & ALLOWANCES</span><strong>—</strong><p>Balance deltas and approval exposure are not inferred without decoded transaction data.</p></div>
+          <div class="pg-diff-side"><span class="pg-diff-label">CONTRACT TARGET</span><strong>—</strong><p>Asset outflow and gas estimates appear after a supported transaction analysis.</p></div>
+          <div class="pg-diff-side"><span class="pg-diff-label">POLICY VERDICT</span><strong>—</strong><p>Balance deltas and approval exposure are not inferred without decoded transaction data.</p></div>
         </div>
         <div class="pg-toggle-row" role="group" aria-label="Calldata display mode">
           <button type="button" class="pg-mode-btn is-active" data-mode="summary" aria-pressed="true">Human summary</button>
@@ -56,6 +56,136 @@
   };
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && codeView.classList.contains("is-expanded")) setExpanded(false);
+  });
+
+  const evidenceCount = new Set();
+  window.addEventListener("payguard:evidence-result", (event) => {
+    const detail = event.detail || {};
+    const id = String(detail.id || "");
+    const item = evidence.find(entry => entry.id === id);
+    if (!item) return;
+
+    const result = detail.result || {};
+    const verdict = String(result.verdict || "UNVERIFIED").toUpperCase();
+    const domainVerdicts = {
+      EXPECTED_DOMAIN_MATCH: "PASS",
+      NO_KNOWN_THREAT: "PASS",
+      CAUTION: "REVIEW",
+      KNOWN_MALICIOUS: "BLOCK",
+      SUSPICIOUS: "BLOCK"
+    };
+    const mappedVerdict = id === "domain" ? (domainVerdicts[verdict] || verdict) : verdict;
+    const allowed = ["PASS", "REVIEW", "BLOCK"];
+    const normalized = allowed.includes(mappedVerdict) ? mappedVerdict : "UNVERIFIED";
+    const row = root.querySelector('[aria-controls="pg-evidence-' + id + '"]');
+    if (!row) return;
+
+    const status = row.querySelector(".pg-unavailable");
+    const panel = root.querySelector("#pg-evidence-" + id);
+    if (status) {
+      status.textContent = normalized;
+      status.className = "pg-unavailable pg-evidence-status pg-evidence-status--" + normalized.toLowerCase();
+    }
+    if (panel) {
+      const source = document.createElement("p");
+      source.textContent = item.source + " · " + String(detail.subject || "Subject not supplied");
+      const explanation = document.createElement("small");
+      const findings = Array.isArray(result.findings) ? result.findings : [];
+      const reasons = Array.isArray(result.reasons) ? result.reasons : [];
+      const messages = findings.map(entry => entry && entry.message).filter(Boolean);
+      const notes = messages.length ? messages : reasons;
+      explanation.textContent = notes.length
+        ? notes.map(String).join(" · ")
+        : (result.summary || result.recommendation || (normalized === "UNVERIFIED" ? "The provider returned no usable verdict. Treat this check as inconclusive." : "Provider returned a verdict; no additional finding details were supplied."));
+      panel.replaceChildren(source, explanation);
+    }
+    evidenceCount.add(id);
+    const trustTag = root.querySelector(".pg-trust-panel .pg-state-tag");
+    if (trustTag) trustTag.textContent = evidenceCount.size + " / 4 EVIDENCE CHECKS LOADED";
+    const note = root.querySelector(".pg-matrix-note");
+    if (note) note.textContent = "Evidence is provider-specific and time-bound. A PASS means no configured flags were returned; it is not a guarantee of safety.";
+  });
+
+  window.addEventListener("payguard:calldata-result", (event) => {
+    const detail = event.detail || {};
+    const result = detail.result || {};
+    const request = detail.request || {};
+    const verdict = String(result.verdict || "UNVERIFIED").toUpperCase();
+    const operation = String(result.operation || "UNKNOWN_OPERATION");
+    const summary = root.querySelector('[data-content="summary"]');
+    const raw = root.querySelector('[data-content="raw"]');
+    const code = root.querySelector("#pg-code-content");
+    const note = root.querySelector(".pg-code-note");
+    const stateTag = root.querySelector(".pg-state-panel .pg-state-tag");
+    const trustTag = root.querySelector(".pg-trust-panel .pg-state-tag");
+    const calldataRow = root.querySelector('[aria-controls="pg-evidence-calldata"]');
+    const calldataStatus = calldataRow && calldataRow.querySelector(".pg-unavailable");
+
+    if (stateTag) stateTag.textContent = "CALLDATA CHECK COMPLETE";
+    if (trustTag) trustTag.textContent = "LATEST CHECK LOADED";
+    if (calldataStatus) {
+      calldataStatus.textContent = verdict === "PASS" || verdict === "REVIEW" || verdict === "BLOCK"
+        ? "POLICY " + verdict
+        : "UNVERIFIED";
+      calldataStatus.className = "pg-unavailable pg-evidence-status pg-evidence-status--" +
+        (["PASS", "REVIEW", "BLOCK"].includes(verdict) ? verdict.toLowerCase() : "unknown");
+    }
+
+    const diffCards = root.querySelectorAll(".pg-diff-side");
+    if (diffCards[0]) {
+      diffCards[0].querySelector("strong").textContent = request.to || "Target unavailable";
+      diffCards[0].querySelector("p").textContent = "Native value (wei): " + String(request.value || "0") +
+        ". Token transfers and balance deltas are not returned by this inspector.";
+    }
+    if (diffCards[1]) {
+      diffCards[1].querySelector("strong").textContent = "POLICY " + verdict;
+      diffCards[1].querySelector("p").textContent = operation +
+        ". This is a policy result, not an independent contract audit or balance simulation.";
+    }
+
+    if (summary) {
+      const lines = [
+        ["Operation", operation],
+        ["Policy verdict", verdict],
+        ["Contract target", request.to || "Not supplied"],
+        ["Native value (wei)", request.value || "0"]
+      ];
+      const reasons = Array.isArray(result.reasons) ? result.reasons : [];
+      summary.replaceChildren();
+      const list = document.createElement("dl");
+      list.className = "pg-live-summary";
+      lines.forEach(([label, value]) => {
+        const term = document.createElement("dt");
+        const description = document.createElement("dd");
+        term.textContent = label;
+        description.textContent = String(value);
+        list.append(term, description);
+      });
+      summary.append(list);
+      if (reasons.length) {
+        const heading = document.createElement("strong");
+        heading.textContent = "Review notes";
+        const reasonList = document.createElement("ul");
+        reasons.forEach(reason => {
+          const item = document.createElement("li");
+          item.textContent = String(reason);
+          reasonList.append(item);
+        });
+        summary.append(heading, reasonList);
+      }
+    }
+
+    if (raw) {
+      const rawCode = document.createElement("code");
+      rawCode.textContent = request.data || "No calldata was supplied.";
+      raw.replaceChildren(rawCode);
+    }
+    if (code) {
+      code.textContent = JSON.stringify({ request, result }, null, 2);
+      code.closest(".pg-code-view")?.setAttribute("aria-label", "Live calldata request and policy result JSON");
+    }
+    if (note) note.textContent = "Live calldata check loaded. Provider evidence not included in this response remains unavailable.";
+    if (codeStatus) codeStatus.textContent = "Live calldata result loaded. Policy verdicts do not replace an independent contract audit.";
   });
 
   root.addEventListener("click", async (event) => {

@@ -2314,6 +2314,7 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
         });
         const data = await res.json();
         renderSentinelResult(data);
+        window.dispatchEvent(new CustomEvent('payguard:evidence-result', { detail: { id: 'domain', result: data, subject: url } }));
       } catch (err) {
         alert('Scan request failed: ' + err.message);
       } finally {
@@ -2920,6 +2921,9 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
         });
         const result = await res.json();
         renderCalldataResult(result);
+        window.dispatchEvent(new CustomEvent('payguard:calldata-result', {
+          detail: { result, request: { to, value, data, policy } }
+        }));
       } catch (err) {
         alert('Calldata inspection request failed: ' + err.message);
       } finally {
@@ -3024,6 +3028,7 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
         });
         const result = await res.json();
         renderTokenResult(result);
+        window.dispatchEvent(new CustomEvent('payguard:evidence-result', { detail: { id: 'contract', result, subject: contractAddress } }));
       } catch (err) {
         alert('Token security query failed: ' + err.message);
       } finally {
@@ -3126,6 +3131,7 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
         });
         const result = await res.json();
         renderAddressResult(result);
+        window.dispatchEvent(new CustomEvent('payguard:evidence-result', { detail: { id: 'counterparty', result, subject: address } }));
       } catch (err) {
         alert('Address security query failed: ' + err.message);
       } finally {
