@@ -444,7 +444,7 @@ body:has(.sec-header) .dune-ribbon-content {
 @media (min-width: 1024px) {
   body:has(.sec-header) .container,
   body:has(.sec-header) .nav-container,
-  body:has(.sec-header) .dune-ribbon-content { padding-inline: 2rem !important; }
+  body:has(.sec-header) .dune-ribbon-content { padding-inline: 1.25rem !important; }
 }
 
 /* One → two → three → four columns. minmax(0,1fr) prevents long labels,
@@ -724,7 +724,7 @@ body:has(.sec-header) .json-viewer {
   body:has(.sec-header) .container,
   body:has(.sec-header) .nav-container,
   body:has(.sec-header) .dune-ribbon-content {
-    padding-inline: 2rem !important;
+    padding-inline: 1.25rem !important;
   }
 
   /* Three-item feature groups should remain three readable cards rather
