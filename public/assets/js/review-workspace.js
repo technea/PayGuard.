@@ -104,6 +104,7 @@
     if (trustTag) trustTag.textContent = evidenceCount.size + " / 4 EVIDENCE CHECKS LOADED";
     const note = root.querySelector(".pg-matrix-note");
     if (note) note.textContent = "Evidence is provider-specific and time-bound. A PASS means no configured flags were returned; it is not a guarantee of safety.";
+    animateEvidenceUpdate(row.closest(".pg-trust-item"));
   });
 
   window.addEventListener("payguard:calldata-result", (event) => {
@@ -186,6 +187,8 @@
     }
     if (note) note.textContent = "Live calldata check loaded. Provider evidence not included in this response remains unavailable.";
     if (codeStatus) codeStatus.textContent = "Live calldata result loaded. Policy verdicts do not replace an independent contract audit.";
+    animateEvidenceUpdate(root.querySelector(".pg-state-panel"));
+    animateEvidenceUpdate(root.querySelector(".pg-trust-panel"));
   });
 
   root.addEventListener("click", async (event) => {
