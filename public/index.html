@@ -1707,7 +1707,24 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
       }
     }
 
-  </style>
+  
+    
+    /* Dashboard brand lockup — keep the product name on one line at every
+       desktop/laptop width; flex sizing must not split the wordmark. */
+    header > .brand {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    header > .brand > div,
+    header > .brand .brand-title,
+    header > .brand .brand-tag {
+      flex-shrink: 0;
+      white-space: nowrap;
+      word-break: keep-all;
+      overflow-wrap: normal;
+    }
+
+</style>
 </head>
 <body>
   <div id="wallet-connect-status" class="wallet-connect-status" role="status" aria-live="polite" aria-atomic="true"></div>
