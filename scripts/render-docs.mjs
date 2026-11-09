@@ -156,8 +156,8 @@ export function markdownToHtml(markdown) {
     const linkedItems = items.replace(/<li>([\s\S]*?)<\/li>/g, (_item, label) => {
       sectionNumber += 1;
       const plainLabel = label.replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").trim();
-      const target = createContentsTarget(\`${sectionNumber}. \${plainLabel}\`);
-      return \`<li><a href="#\${target}">\${label}</a></li>\`;
+      const target = createContentsTarget(sectionNumber + ". " + plainLabel);
+      return '<li><a href="#' + target + '">' + label + '</a></li>';
     });
     return `${heading}<nav class="doc-toc" aria-label="Whitepaper contents"><ol>${linkedItems}</ol></nav>`;
   });
