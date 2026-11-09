@@ -19,8 +19,8 @@
       <section class="pg-panel pg-state-panel" aria-labelledby="pg-state-title">
         <div class="pg-panel-head"><div><p class="pg-eyebrow">TRANSACTION IMPACT</p><h3 id="pg-state-title">State diff</h3></div><span class="pg-state-tag">AWAITING SCAN DATA</span></div>
         <div class="pg-diff-columns">
-          <div class="pg-diff-side"><span class="pg-diff-label">SENT ASSETS & GAS</span><strong>—</strong><p>Asset outflow and gas estimates appear after a supported transaction analysis.</p></div>
-          <div class="pg-diff-side"><span class="pg-diff-label">NET BALANCE & ALLOWANCES</span><strong>—</strong><p>Balance deltas and approval exposure are not inferred without decoded transaction data.</p></div>
+          <div class="pg-diff-side"><span class="pg-diff-label">CONTRACT TARGET</span><strong>—</strong><p>Asset outflow and gas estimates appear after a supported transaction analysis.</p></div>
+          <div class="pg-diff-side"><span class="pg-diff-label">POLICY VERDICT</span><strong>—</strong><p>Balance deltas and approval exposure are not inferred without decoded transaction data.</p></div>
         </div>
         <div class="pg-toggle-row" role="group" aria-label="Calldata display mode">
           <button type="button" class="pg-mode-btn is-active" data-mode="summary" aria-pressed="true">Human summary</button>
