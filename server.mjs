@@ -12,6 +12,10 @@ import {
 import { BAZAAR_DISCOVERY_METADATA, build402Challenge, verifyPaymentProof } from "./paybox.mjs";
 
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const SERVER_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));
+const PUBLIC_DIRECTORY = path.resolve(SERVER_DIRECTORY, "public");
 import { renderDocPage } from "./scripts/render-docs.mjs";
 
 function loadDashboardHtml() {
@@ -350,9 +354,8 @@ async function requestHandler(req, res) {
         return res.end("Invalid asset path.");
       }
 
-      const publicRoot = path.resolve(process.cwd(), "public");
-      const assetPath = path.resolve(publicRoot, "." + decodedAssetPath);
-      if (!assetPath.startsWith(publicRoot + path.sep) || !existsSync(assetPath)) {
+      const assetPath = path.resolve(PUBLIC_DIRECTORY, "." + decodedAssetPath);
+      if (!assetPath.startsWith(PUBLIC_DIRECTORY + path.sep) || !existsSync(assetPath)) {
         statusCode = 404;
         res.writeHead(statusCode, {
           "content-type": "text/plain; charset=utf-8",
