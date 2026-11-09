@@ -54,8 +54,8 @@
     expandButton.setAttribute("aria-pressed", String(expanded));
     expandButton.innerHTML = expanded ? '<i class="fa-solid fa-compress"></i> Close expanded view' : '<i class="fa-solid fa-expand"></i> Expand';
   };
-  document.addEventListener("fullscreenchange", () => {
-    if (!document.fullscreenElement && !codeView.classList.contains("is-expanded")) setExpanded(false);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && codeView.classList.contains("is-expanded")) setExpanded(false);
   });
 
   root.addEventListener("click", async (event) => {
@@ -98,12 +98,7 @@
         window.setTimeout(() => { action.innerHTML = '<i class="fa-regular fa-copy"></i> Copy'; }, 1500);
       } catch (_) { codeStatus.textContent = "Clipboard access is unavailable in this browser context."; }
     } else if (action.dataset.codeAction === "expand") {
-      const expanded = codeView.classList.contains("is-expanded") || document.fullscreenElement === codeView;
-      if (expanded) {
-        if (document.fullscreenElement === codeView && document.exitFullscreen) document.exitFullscreen().catch(() => setExpanded(false));
-        else setExpanded(false);
-      } else if (codeView.requestFullscreen) codeView.requestFullscreen().then(() => setExpanded(true)).catch(() => setExpanded(true));
-      else setExpanded(true);
+      setExpanded(!codeView.classList.contains("is-expanded"));
     }
   });
 
