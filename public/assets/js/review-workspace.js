@@ -73,7 +73,7 @@
     const calldataRow = root.querySelector('[aria-controls="pg-evidence-calldata"]');
     const calldataStatus = calldataRow && calldataRow.querySelector(".pg-unavailable");
 
-    if (stateTag) stateTag.textContent = "CALldata CHECK COMPLETE";
+    if (stateTag) stateTag.textContent = "CALLDATA CHECK COMPLETE";
     if (trustTag) trustTag.textContent = "LATEST CHECK LOADED";
     if (calldataStatus) calldataStatus.textContent = verdict === "PASS" || verdict === "REVIEW" || verdict === "BLOCK"
       ? "POLICY " + verdict
