@@ -1485,6 +1485,31 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
   .action-guidance-card { gap:.65rem; }
 }
 
+
+    /* Dashboard paired panels: preserve two-column density on wide screens,
+       but never squeeze form fields and service panels on narrow devices. */
+    .payment-compare-grid,
+    .bazaar-layout {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+      gap: 1.25rem;
+      width: 100%;
+      min-width: 0;
+    }
+    .payment-compare-grid > *,
+    .bazaar-layout > * {
+      min-width: 0;
+      max-width: 100%;
+    }
+    @media (max-width: 768px) {
+      .payment-compare-grid,
+      .bazaar-layout {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1rem;
+      }
+    }
+
 </style>
 </head>
 <body>
@@ -1770,7 +1795,7 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
           <button class="preset-chip" onclick="setPaymentPreset('review')"><i class="fa-solid fa-clipboard-question" style="color: var(--amber);"></i> Incomplete Policy Rules (REVIEW)</button>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+        <div class="payment-compare-grid">
           <div class="form-group">
             <label class="form-label"><span><i class="fa-solid fa-user-shield" style="color: var(--emerald); margin-right: 0.35rem;"></i> User Trusted Policy (Intent)</span></label>
             <textarea id="policy-intent-input" class="input-box"></textarea>
@@ -2190,7 +2215,7 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
           </div>
         </div>
 
-        <div class="bazaar-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+        <div class="bazaar-layout">
           <div>
             <div style="font-weight: 700; margin-bottom: 0.75rem; color: #ffffff;"><i class="fa-solid fa-cube" style="color: var(--cyan); margin-right: 0.35rem;"></i> Discovered Security Endpoints</div>
             <div id="bazaar-endpoints-list" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
