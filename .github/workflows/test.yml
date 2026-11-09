@@ -34,4 +34,24 @@ jobs:
         run: node -e "const p = require('./dist/index.cjs'); if (typeof p.createPayGuardX402Hook !== 'function' || typeof p.registerPayGuardX402 !== 'function') process.exit(1); console.log('CommonJS x402 adapter exports verified.');"
       - name: Verify plugin exports
         run: >-
-          node --input-type=module -e "import('./dist/plugin.mjs').then(({default: p}) => { if (!p || p.tools.length !== 3) process.exit(1); console.log(p.tools.map(t => t.name).join(', ')); })"
+          node --input-type=module -e "
+          import('./dist/plugin.mjs').then(({default: p}) => {
+            const required = [
+              'payguard_check_payment_intent',
+              'payguard_analyze_url',
+              'payguard_prepare_threat_report',
+              'payguard_inspect_calldata',
+              'payguard_check_token_security',
+              'payguard_check_address_security',
+              'payguard_scan_wallet_tokens'
+            ];
+            if (!p || !Array.isArray(p.tools) || p.tools.length < required.length) process.exit(1);
+            const names = p.tools.map(t => t.name);
+            if (new Set(names).size !== names.length) process.exit(1);
+            const missing = required.filter(name => !names.includes(name));
+            if (missing.length) {
+              console.error('Missing required plugin tools:', missing.join(', '));
+              process.exit(1);
+            }
+            console.log('Verified plugin exports:', names.join(', '));
+          }).catch(error => { console.error(error); process.exit(1); })"
