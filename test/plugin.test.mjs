@@ -413,7 +413,13 @@ test('MCP stdio tool discovery discovers tools without running them', async () =
   assert.ok(names.includes('payguard_prepare_threat_report'));
   assert.ok(names.includes('payguard_check_token_security'));
   assert.ok(names.includes('payguard_check_address_security'));
+  assert.ok(names.includes('payguard_scan_wallet_tokens'));
   assert.ok(names.includes('payguard_near_security_intelligence'));
+
+  // Test functional dispatch of NEAR tool via plugin.invokeTool
+  const nearDispatch = await plugin.invokeTool('payguard_near_security_intelligence', { accountId: 'INVALID_UPPERCASE' });
+  assert.equal(nearDispatch.status, 'INVALID_ACCOUNT_ID');
+  assert.equal(nearDispatch.verdict, 'HIGH');
 });
 
 

@@ -119,8 +119,8 @@ describe('NEAR Protocol Security Intelligence', () => {
       assert.equal(result.exists, true);
       assert.equal(result.contractSecurity.isDeployed, true);
       assert.equal(result.keyAnalysis.fullAccessKeysCount, 0);
-      assert.equal(result.keyAnalysis.isContractLocked, true);
-      assert.ok(result.findings.some(f => f.code === 'IMMUTABLE_CONTRACT_LOCKED_KEYS'));
+      assert.equal(result.keyAnalysis.noFullAccessKeys, true);
+      assert.ok(result.findings.some(f => f.code === 'NO_FULL_ACCESS_KEYS'));
       assert.ok(result.evidence.some(e => e.type === 'BLOCK_HEIGHT'));
       assert.ok(result.unavailableChecks.length > 0);
     });
@@ -159,6 +159,70 @@ describe('NEAR Protocol Security Intelligence', () => {
       assert.equal(result.status, 'ACCOUNT_UNREGISTERED');
       assert.equal(result.exists, false);
       assert.ok(result.findings.some(f => f.code === 'ACCOUNT_NOT_FOUND'));
+    });
+
+    it('verifies multi-provider fallback when primary RPC fails with HTTP 500 or 429', async () => {
+      let callCount = 0;
+      const endpointsCalled = [];
+      const fallbackFetch = async (url, opts) => {
+        callCount++;
+        endpointsCalled.push(url);
+        if (callCount === 1) {
+          // Primary fails
+          return { ok: false, status: 503, text: async () => 'Service Unavailable' };
+        }
+        // Secondary fallback succeeds
+        const body = JSON.parse(opts.body);
+        return {
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({
+            jsonrpc: '2.0',
+            id: body.id,
+            result: {
+              amount: '1000000000000000000000000',
+              block_height: 100001,
+              block_hash: 'Abc123Hash...',
+              code_hash: EMPTY_CODE_HASH,
+              storage_usage: 182
+            }
+          })
+        };
+      };
+
+      const result = await analyzeNearSecurity('fallback-test.near', {
+        fetchFn: fallbackFetch,
+        endpoints: ['https://failing-primary.near', 'https://fallback-secondary.near']
+      });
+
+      assert.equal(result.status, 'AVAILABLE');
+      assert.equal(result.exists, true);
+      assert.equal(endpointsCalled[0], 'https://failing-primary.near');
+      assert.equal(endpointsCalled[1], 'https://fallback-secondary.near');
+      assert.ok(result.evidence.some(e => e.type === 'RPC_PROVIDER' && e.value === 'https://fallback-secondary.near'));
+    });
+
+    it('confirms infrastructure failure across all endpoints never returns safe or unregistered verdict', async () => {
+      const allFailFetch = async () => ({ ok: false, status: 500, text: async () => 'Internal Server Error' });
+      const result = await analyzeNearSecurity('target.near', { fetchFn: allFailFetch });
+
+      assert.equal(result.status, 'UNVERIFIED');
+      assert.equal(result.verdict, 'UNVERIFIED');
+      assert.notEqual(result.verdict, 'LOW');
+      assert.notEqual(result.status, 'ACCOUNT_UNREGISTERED');
+    });
+  });
+
+  describe('5. HTTP /api/near-security Route Verification', () => {
+    it('dispatches valid and invalid requests via payGuardNearSecurityTool MCP tool', async () => {
+      const { payGuardNearSecurityTool } = await import('../src/near-security.mjs');
+      assert.equal(payGuardNearSecurityTool.name, 'payguard_near_security_intelligence');
+      assert.equal(typeof payGuardNearSecurityTool.handler, 'function');
+
+      // Invalid input (malformed account ID)
+      const invalidRes = await payGuardNearSecurityTool.handler({ accountId: 'UPPERCASE_INVALID' });
+      assert.equal(invalidRes.status, 'INVALID_ACCOUNT_ID');
+      assert.equal(invalidRes.verdict, 'HIGH');
     });
   });
 

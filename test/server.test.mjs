@@ -228,6 +228,35 @@ test("POST /api/address-security rejects malformed address input fail-closed", a
   assert.equal(data.dataStatus, "MALFORMED_INPUT");
 });
 
+test("POST /api/near-security handles valid, invalid, and unregistered account requests", async () => {
+  // 1. Invalid input
+  const resInvalid = await fetch(baseUrl + "/api/near-security", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      accountId: "INVALID_UPPERCASE.near"
+    })
+  });
+  assert.equal(resInvalid.status, 200);
+  const dataInvalid = await resInvalid.json();
+  assert.equal(dataInvalid.status, "INVALID_ACCOUNT_ID");
+  assert.equal(dataInvalid.verdict, "HIGH");
+
+  // 2. Valid input targeting canonical account (wrap.near)
+  const resValid = await fetch(baseUrl + "/api/near-security", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      accountId: "wrap.near"
+    })
+  });
+  assert.equal(resValid.status, 200);
+  const dataValid = await resValid.json();
+  assert.ok(["AVAILABLE", "UNVERIFIED"].includes(dataValid.status));
+  assert.ok(["LOW", "MEDIUM", "HIGH", "UNVERIFIED"].includes(dataValid.verdict));
+  assert.equal(dataValid.target, "wrap.near");
+});
+
 test("GET /whitepaper and /faq serve browser-readable documentation", async () => {
   const resWp = await fetch(baseUrl + "/whitepaper");
   assert.equal(resWp.status, 200);

@@ -470,20 +470,20 @@ export async function analyzeNearSecurity(input, options = {}) {
       totalKeys: keys.length,
       fullAccessKeysCount: fullAccessKeys.length,
       functionCallKeysCount: functionCallKeys.length,
-      isContractLocked: isContract && fullAccessKeys.length === 0
+      noFullAccessKeys: isContract && fullAccessKeys.length === 0
     };
 
     if (isContract && fullAccessKeys.length === 0) {
       findings.push({
-        code: "IMMUTABLE_CONTRACT_LOCKED_KEYS",
+        code: "NO_FULL_ACCESS_KEYS",
         severity: "info",
-        message: "Smart contract has 0 FullAccess keys: contract code cannot be arbitrarily upgraded or drained via owner key"
+        message: "Smart contract has 0 FullAccess keys: contract code cannot be directly replaced via DeployContract transaction action (note: contract methods may still perform self-updates or internal state mutation)"
       });
     } else if (isContract && fullAccessKeys.length > 0) {
       findings.push({
         code: "CONTRACT_HAS_FULL_ACCESS_KEY",
         severity: "low",
-        message: `Contract possesses ${fullAccessKeys.length} FullAccess key(s). Contract code can be upgraded or state deleted by key holders.`
+        message: `Contract possesses ${fullAccessKeys.length} FullAccess key(s). Contract code can be upgraded, keys rotated, or state deleted by key holders.`
       });
     }
   } else {
