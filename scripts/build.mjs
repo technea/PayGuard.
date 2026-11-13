@@ -7,6 +7,7 @@ const srcCalldataFile = new URL('../src/calldata-inspector.mjs', import.meta.url
 const srcTokenSecurityFile = new URL('../src/token-security.mjs', import.meta.url);
 const srcAddressSecurityFile = new URL('../src/address-security.mjs', import.meta.url);
 const srcWalletScannerFile = new URL('../src/wallet-token-scanner.mjs', import.meta.url);
+const srcNearSecurityFile = new URL('../src/near-security.mjs', import.meta.url);
 const destPluginMjs = new URL('../dist/plugin.mjs', import.meta.url);
 const destIndexMjs = new URL('../dist/index.mjs', import.meta.url);
 const destIndexJs = new URL('../dist/index.js', import.meta.url);
@@ -21,6 +22,8 @@ const destAddressSecurityMjs = new URL('../dist/address-security.mjs', import.me
 const destAddressSecurityCjs = new URL('../dist/address-security.cjs', import.meta.url);
 const destWalletScannerMjs = new URL('../dist/wallet-token-scanner.mjs', import.meta.url);
 const destWalletScannerCjs = new URL('../dist/wallet-token-scanner.cjs', import.meta.url);
+const destNearSecurityMjs = new URL('../dist/near-security.mjs', import.meta.url);
+const destNearSecurityCjs = new URL('../dist/near-security.cjs', import.meta.url);
 const destDts = new URL('../dist/index.d.ts', import.meta.url);
 const rootIndexJs = new URL('../index.js', import.meta.url);
 const rootIndexCjs = new URL('../index.cjs', import.meta.url);
@@ -33,6 +36,7 @@ const calldataContent = await readFile(srcCalldataFile, 'utf8');
 const tokenSecurityContent = await readFile(srcTokenSecurityFile, 'utf8');
 const addressSecurityContent = await readFile(srcAddressSecurityFile, 'utf8');
 const walletScannerContent = await readFile(srcWalletScannerFile, 'utf8');
+const nearSecurityContent = await readFile(srcNearSecurityFile, 'utf8');
 
 // Verify that the source is self-contained with no external npm imports
 const importMatches = [...srcContent.matchAll(/^(?:import|export)\s+.*?\s+from\s+['"]([^'"]+)['"]/gm)].map(m => m[1]);
@@ -53,6 +57,7 @@ await writeFile(destCalldataMjs, calldataContent, 'utf8');
 await writeFile(destTokenSecurityMjs, tokenSecurityContent, 'utf8');
 await writeFile(destAddressSecurityMjs, addressSecurityContent, 'utf8');
 await writeFile(destWalletScannerMjs, walletScannerContent, 'utf8');
+await writeFile(destNearSecurityMjs, nearSecurityContent, 'utf8');
 
 // 3. Generate CommonJS bundles (index.cjs, plugin.cjs, calldata-inspector.cjs, token-security.cjs, address-security.cjs)
 function toCommonJS(esmCode) {
@@ -79,6 +84,7 @@ const cjsExport = Object.assign({}, plugin, {
   payGuardTokenSecurityTool: payGuardTokenSecurityTool,
   payGuardAddressSecurityTool: payGuardAddressSecurityTool,
   payGuardWalletScannerTool: payGuardWalletScannerTool,
+  payGuardNearSecurityTool: payGuardNearSecurityTool,
   evaluatePaymentIntent: evaluatePaymentIntent,
   createPayGuardX402Hook: createPayGuardX402Hook,
   registerPayGuardX402: registerPayGuardX402,
@@ -87,6 +93,8 @@ const cjsExport = Object.assign({}, plugin, {
   payGuardInspectCalldata: payGuardInspectCalldata,
   payGuardCheckTokenSecurity: payGuardCheckTokenSecurity,
   payGuardCheckAddressSecurity: payGuardCheckAddressSecurity,
+  payGuardScanWalletTokens: payGuardScanWalletTokens,
+  payGuardAnalyzeNearSecurity: payGuardAnalyzeNearSecurity,
   startMcpServer: startMcpServer
 });
 module.exports = cjsExport;
@@ -135,6 +143,16 @@ function toAddressSecurityCJS(esmCode) {
   return cjs;
 }
 
+function toNearSecurityCJS(esmCode) {
+  let cjs = esmCode
+    .replace(/^export\s+async\s+function\s+([a-zA-Z0-9_$]+)/gm, 'async function $1')
+    .replace(/^export\s+function\s+([a-zA-Z0-9_$]+)/gm, 'function $1')
+    .replace(/^export\s+const\s+([a-zA-Z0-9_$]+)/gm, 'const $1')
+    .replace(/^export\s+default\s+([a-zA-Z0-9_$]+);?/gm, '');
+  cjs += `\nmodule.exports = { parseNearAccountId, callNearRpc, analyzeNearAccountNameHeuristics, formatYoctoNear, analyzeNearSecurity, payGuardNearSecurityTool, DEFAULT_NEAR_RPC_ENDPOINTS, DEFAULT_RPC_TIMEOUT_MS, MAX_RPC_RESPONSE_BYTES, EMPTY_CODE_HASH, NEAR_CANONICAL_ACCOUNTS, NEAR_OFFICIAL_DOMAINS, SUSPICIOUS_NEAR_KEYWORDS, KNOWN_TRUSTED_CONTRACT_HASHES, NEAR_AGENT_TOOL_NAME, NEAR_AGENT_TOOL_DESCRIPTION, NEAR_AGENT_INPUT_SCHEMA, default: analyzeNearSecurity };\n`;
+  return cjs;
+}
+
 const cjsContent = toCommonJS(srcContent);
 await writeFile(destIndexCjs, cjsContent, 'utf8');
 await writeFile(destPluginCjs, cjsContent, 'utf8');
@@ -142,6 +160,7 @@ await writeFile(destCalldataCjs, toCalldataCJS(calldataContent), 'utf8');
 await writeFile(destTokenSecurityCjs, toTokenSecurityCJS(tokenSecurityContent), 'utf8');
 await writeFile(destAddressSecurityCjs, toAddressSecurityCJS(addressSecurityContent), 'utf8');
 await writeFile(destWalletScannerCjs, toWalletScannerCJS(walletScannerContent), 'utf8');
+await writeFile(destNearSecurityCjs, toNearSecurityCJS(nearSecurityContent), 'utf8');
 
 // 4. Generate TypeScript declaration
 const dtsContent = `export interface PayGuardPlugin {
@@ -166,6 +185,7 @@ export declare const payGuardCalldataInspectorTool: any;
 export declare const payGuardTokenSecurityTool: any;
 export declare const payGuardAddressSecurityTool: any;
 export declare const payGuardWalletScannerTool: any;
+export declare const payGuardNearSecurityTool: any;
 export declare function evaluatePaymentIntent(input: any): any;
 export declare function createPayGuardX402Hook(options: { intent: Record<string, unknown>; onDecision?: (result: any, context: any) => void | Promise<void> }): (context: { paymentRequired?: any; selectedRequirements?: any }) => Promise<void | { abort: true; reason: string }>;
 export declare function registerPayGuardX402(client: { onBeforePaymentCreation(hook: (context: any) => Promise<any>): any }, options: { intent: Record<string, unknown>; onDecision?: (result: any, context: any) => void | Promise<void> }): any;
@@ -175,6 +195,7 @@ export declare function payGuardInspectCalldata(input: any): Promise<any>;
 export declare function payGuardCheckTokenSecurity(input: any, options?: any): Promise<any>;
 export declare function payGuardCheckAddressSecurity(input: any, options?: any): Promise<any>;
 export declare function payGuardScanWalletTokens(input: any, options?: any): Promise<any>;
+export declare function payGuardAnalyzeNearSecurity(input: any, options?: any): Promise<any>;
 export declare function startMcpServer(targetPlugin?: any): void;
 `;
 await writeFile(destDts, dtsContent, 'utf8');
