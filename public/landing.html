@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -2940,6 +2940,290 @@ main > section, main > section.container { width:100%; max-width:100%; min-width
   .pg-map-core { width:68px !important; height:68px !important; }
 }
 
+/* Enhanced nav link hover — animated underline */
+.nav-link {
+  position: relative;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  padding-bottom: 2px;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: var(--cyan);
+  transition: width 0.22s cubic-bezier(0.16,1,0.3,1);
+  border-radius: 2px;
+}
+.nav-link:hover::after, .nav-link.active::after { width: 100%; }
+.nav-link:hover, .nav-link.active { color: #fff; }
+
+/* Scrolled state */
+header.sec-header.scrolled {
+  background: rgba(4, 7, 18, 0.98);
+  border-bottom-color: rgba(0, 240, 255, 0.15);
+  box-shadow: 0 1px 20px rgba(0,0,0,0.5);
+}
+
+/* Connect Wallet button — blue gradient */
+.btn-connect-wallet {
+  background: linear-gradient(135deg, #1a4fff 0%, #0066ff 60%, #00a8ff 100%);
+  color: #fff;
+  border: 1px solid rgba(0, 120, 255, 0.5);
+  box-shadow: 0 0 18px rgba(0, 102, 255, 0.3);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.btn-connect-wallet:hover {
+  background: linear-gradient(135deg, #2050ff 0%, #0077ff 60%, #00b8ff 100%);
+  box-shadow: 0 0 28px rgba(0, 102, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   HERO SPLIT LAYOUT
+   ========================================================= */
+.hero-split { padding: 3rem 0 2rem; }
+.hero-split-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 3rem;
+  min-height: 520px;
+}
+@media (max-width: 1024px) {
+  .hero-split-container { grid-template-columns: 1fr; gap: 2rem; }
+  .hero-globe-col { display: flex; justify-content: center; order: -1; }
+}
+
+.hero-content-col { text-align: left; }
+.hero-content-col .hero-title { text-align: left; margin-left: 0; }
+.hero-content-col .hero-desc { text-align: left; margin-left: 0; margin-right: 0; }
+.hero-content-col .capability-sequence-box { margin-left: 0; }
+.hero-content-col .hero-cta-group { justify-content: flex-start; }
+
+/* Stats bar */
+.hero-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 1.75rem;
+  flex-wrap: wrap;
+}
+.hero-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+}
+.hero-stat strong { display: block; font-size: 0.95rem; font-weight: 700; color: #fff; }
+.hero-stat small { display: block; font-size: 0.72rem; color: var(--text-muted); }
+.hero-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--border-subtle);
+}
+
+/* =========================================================
+   ANIMATED GLOBE
+   ========================================================= */
+.hero-globe-col {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.globe-wrapper {
+  position: relative;
+  width: 500px;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 1280px) {
+  .globe-wrapper { width: 420px; height: 420px; }
+  .globe-canvas { width: 420px !important; height: 420px !important; }
+}
+@media (max-width: 768px) {
+  .globe-wrapper { width: 300px; height: 300px; }
+  .globe-canvas { width: 300px !important; height: 300px !important; }
+}
+
+.globe-canvas {
+  position: relative;
+  z-index: 3;
+  border-radius: 50%;
+}
+
+.globe-ambient-glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+}
+.globe-glow-outer {
+  width: 110%;
+  height: 110%;
+  background: radial-gradient(circle, rgba(0,80,255,0.18) 0%, rgba(0,40,180,0.08) 50%, transparent 70%);
+  filter: blur(30px);
+  animation: globePulseOuter 4s ease-in-out infinite alternate;
+}
+.globe-glow-mid {
+  width: 90%;
+  height: 90%;
+  background: radial-gradient(circle, rgba(0,120,255,0.22) 0%, rgba(0,60,200,0.1) 50%, transparent 70%);
+  filter: blur(15px);
+  animation: globePulseMid 3s ease-in-out infinite alternate;
+}
+
+@keyframes globePulseOuter {
+  from { opacity: 0.7; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1.04); }
+}
+@keyframes globePulseMid {
+  from { opacity: 0.6; transform: scale(1); }
+  to { opacity: 0.9; transform: scale(1.06); }
+}
+
+/* Orbital rings */
+.globe-orbit {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 180, 255, 0.25);
+  pointer-events: none;
+  z-index: 4;
+}
+.globe-orbit-1 {
+  width: 102%;
+  height: 30%;
+  top: 35%;
+  animation: orbitSpin1 8s linear infinite;
+  border-color: rgba(0, 160, 255, 0.35);
+  box-shadow: 0 0 8px rgba(0, 160, 255, 0.15);
+}
+.globe-orbit-2 {
+  width: 80%;
+  height: 100%;
+  left: 10%;
+  animation: orbitSpin2 12s linear infinite reverse;
+  border-color: rgba(0, 200, 255, 0.2);
+}
+.globe-orbit-3 {
+  width: 50%;
+  height: 100%;
+  left: 25%;
+  animation: orbitSpin3 16s linear infinite;
+  border-color: rgba(100, 200, 255, 0.15);
+}
+
+@keyframes orbitSpin1 {
+  from { transform: rotateX(75deg) rotateZ(0deg); }
+  to { transform: rotateX(75deg) rotateZ(360deg); }
+}
+@keyframes orbitSpin2 {
+  from { transform: rotateY(60deg) rotateZ(0deg); }
+  to { transform: rotateY(60deg) rotateZ(360deg); }
+}
+@keyframes orbitSpin3 {
+  from { transform: rotateX(45deg) rotateY(20deg) rotateZ(0deg); }
+  to { transform: rotateX(45deg) rotateY(20deg) rotateZ(360deg); }
+}
+
+/* Particles */
+.globe-particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  pointer-events: none;
+}
+.globe-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(0, 220, 255, 0.9);
+  box-shadow: 0 0 6px rgba(0, 220, 255, 0.8);
+  animation: particleFloat linear infinite;
+}
+
+@keyframes particleFloat {
+  0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 0.8; }
+  100% { transform: translateY(-80px) translateX(var(--tx, 20px)) scale(0.3); opacity: 0; }
+}
+
+/* Ground glow beneath globe */
+.globe-ground-glow {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70%;
+  height: 40px;
+  background: radial-gradient(ellipse at center, rgba(0, 100, 255, 0.4) 0%, transparent 70%);
+  filter: blur(12px);
+  z-index: 2;
+  pointer-events: none;
+  animation: groundGlowPulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes groundGlowPulse {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
+}
+
+/* =========================================================
+   HERO FEATURE CARDS ROW
+   ========================================================= */
+.hero-feature-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 2.5rem;
+}
+@media (max-width: 768px) {
+  .hero-feature-cards { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .hero-feature-cards { grid-template-columns: 1fr; }
+}
+.hero-feature-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.1rem 1.35rem;
+  background: rgba(10, 16, 36, 0.8);
+  transition: background 0.2s ease;
+}
+.hero-feature-card:hover { background: rgba(15, 25, 50, 0.9); }
+.hero-feature-card i {
+  font-size: 1.3rem;
+  color: var(--cyan);
+  min-width: 20px;
+}
+.hero-feature-card strong { display: block; font-size: 0.88rem; color: #fff; font-weight: 600; }
+.hero-feature-card small { font-size: 0.75rem; color: var(--text-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .globe-orbit, .globe-ambient-glow, .globe-particle,
+  .globe-ground-glow, .globe-canvas { animation: none !important; }
+}
+
 </style>
 </head>
 <body>
@@ -2954,7 +3238,8 @@ main > section, main > section.container { width:100%; max-width:100%; min-width
   </div>
 
   <!-- Header Navigation -->
-  <header class="sec-header">
+  <!-- Header Navigation -->
+  <header class="sec-header" id="mainHeader">
     <div class="nav-container">
       <a href="/" class="brand">
         <div class="brand-icon">
@@ -2964,28 +3249,24 @@ main > section, main > section.container { width:100%; max-width:100%; min-width
           <span>PayGuard</span>
           <span class="brand-badge">v0.1.0</span>
         </div>
-        <span class="brand-motto-label">Verify Before You Trust</span>
       </a>
 
       <nav class="nav-links" aria-label="Primary navigation">
-        <a href="/" class="nav-link active" aria-current="page"><i class="fa-solid fa-house"></i> Home</a>
-        <a href="/dashboard" class="nav-link"><i class="fa-solid fa-gauge-high"></i> Security Tools</a>
-        <a href="/whitepaper" class="nav-link"><i class="fa-solid fa-file-contract"></i> Whitepaper</a>
-        <a href="/docs" class="nav-link"><i class="fa-solid fa-book"></i> Technical Docs</a>
-        <a href="#faq" class="nav-link"><i class="fa-solid fa-circle-question"></i> FAQ</a>
+        <a href="/" class="nav-link active" aria-current="page">Product</a>
+        <a href="/dashboard" class="nav-link">Security</a>
+        <a href="/docs" class="nav-link">Developers</a>
+        <a href="/whitepaper" class="nav-link">Docs</a>
       </nav>
 
       <div class="nav-actions">
-        <div class="net-pulse-chip">
-          <span class="net-pulse-dot"></span>
-          <span>BASE (8453) LIVE</span>
-        </div>
-        <a href="/dashboard" class="btn btn-cyan nav-dashboard-cta" title="Launch Security Console">
-          <i class="fa-solid fa-sliders"></i> Open Dashboard
+        <a href="/dashboard" class="btn btn-surface nav-dashboard-cta" title="Open Security Console">
+          <i class="fa-solid fa-gauge-high"></i> Dashboard
         </a>
+        <button class="btn btn-connect-wallet" id="landingConnectWallet" onclick="window.location='/dashboard'" title="Connect Wallet">
+          <i class="fa-solid fa-wallet"></i> Connect Wallet
+        </button>
         <button class="mobile-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobileNavPanel">
           <span class="menu-toggle-icon"><i class="fa-solid fa-bars" aria-hidden="true"></i></span>
-          <span class="menu-toggle-label">Menu</span>
         </button>
       </div>
 
@@ -2997,27 +3278,22 @@ main > section, main > section.container { width:100%; max-width:100%; min-width
         <div class="mobile-nav-links">
           <a href="/" class="mobile-nav-link" aria-current="page">
             <span class="mobile-nav-icon"><i class="fa-solid fa-house"></i></span>
-            <span class="mobile-nav-copy"><strong>Home</strong><small>PayGuard overview</small></span>
+            <span class="mobile-nav-copy"><strong>Product</strong><small>PayGuard overview</small></span>
             <i class="fa-solid fa-arrow-up-right-from-square mobile-nav-arrow"></i>
           </a>
           <a href="/dashboard" class="mobile-nav-link">
-            <span class="mobile-nav-icon"><i class="fa-solid fa-gauge-high"></i></span>
-            <span class="mobile-nav-copy"><strong>Security Tools</strong><small>Run scans and inspect risks</small></span>
+            <span class="mobile-nav-icon"><i class="fa-solid fa-shield-halved"></i></span>
+            <span class="mobile-nav-copy"><strong>Security</strong><small>Run scans and inspect risks</small></span>
+            <i class="fa-solid fa-arrow-up-right-from-square mobile-nav-arrow"></i>
+          </a>
+          <a href="/docs" class="mobile-nav-link">
+            <span class="mobile-nav-icon"><i class="fa-solid fa-code"></i></span>
+            <span class="mobile-nav-copy"><strong>Developers</strong><small>APIs and agent integration</small></span>
             <i class="fa-solid fa-arrow-up-right-from-square mobile-nav-arrow"></i>
           </a>
           <a href="/whitepaper" class="mobile-nav-link">
             <span class="mobile-nav-icon"><i class="fa-solid fa-file-contract"></i></span>
-            <span class="mobile-nav-copy"><strong>Whitepaper</strong><small>Product architecture and scope</small></span>
-            <i class="fa-solid fa-arrow-up-right-from-square mobile-nav-arrow"></i>
-          </a>
-          <a href="/docs" class="mobile-nav-link">
-            <span class="mobile-nav-icon"><i class="fa-solid fa-book"></i></span>
-            <span class="mobile-nav-copy"><strong>Technical Docs</strong><small>APIs and agent integration</small></span>
-            <i class="fa-solid fa-arrow-up-right-from-square mobile-nav-arrow"></i>
-          </a>
-          <a href="#faq" class="mobile-nav-link">
-            <span class="mobile-nav-icon"><i class="fa-solid fa-circle-question"></i></span>
-            <span class="mobile-nav-copy"><strong>FAQ</strong><small>Security model and limitations</small></span>
+            <span class="mobile-nav-copy"><strong>Docs</strong><small>Product architecture and scope</small></span>
             <i class="fa-solid fa-arrow-up-right-from-square mobile-nav-arrow"></i>
           </a>
         </div>
@@ -3040,96 +3316,103 @@ main > section, main > section.container { width:100%; max-width:100%; min-width
 
   <main>
     <!-- HERO SECTION -->
-    <section class="hero-section">
-      <div class="container">
-        <div class="hero-status-pill">
-          <span class="sec-dot"></span>
-          <span>BASE-FIRST SECURITY</span>
-          <span style="color:var(--border-medium)">|</span>
-          <span>BASE MAINNET (8453)</span>
-          <span style="color:var(--border-medium)">|</span>
-          <span>READ-ONLY SECURITY CHECKS</span>
-        </div>
-
-        <h1 class="hero-title">
-          <span class="brand-accent">PayGuard</span> &mdash; Verify Before You Trust.
-        </h1>
-
-        <!-- Coordinated Capability Sequence Terminal (Smooth Text Transition) -->
-        <div class="capability-sequence-box" aria-label="Active Security Capability Readout">
-          <div class="seq-prompt-wrapper">
-            <span class="seq-prompt"><i class="fa-solid fa-terminal"></i> capability:~$</span>
-            <div class="seq-text-container">
-              <span class="seq-text" id="seqText">Verify Websites.</span>
-            </div>
-            <span class="seq-cursor">_</span>
+    <!-- HERO SECTION -->
+    <section class="hero-section hero-split">
+      <div class="container hero-split-container">
+        <!-- Left: Text content -->
+        <div class="hero-content-col">
+          <div class="hero-status-pill">
+            <span class="sec-dot"></span>
+            <span>WEB3 SECURITY INTELLIGENCE</span>
+            <span style="color:var(--border-medium)">|</span>
+            <span>BASE MAINNET (8453)</span>
           </div>
-          <span class="seq-module-tag" id="seqModuleTag">URL SENTINEL ACTIVE</span>
-        </div>
 
-        <p class="hero-desc">
-          Check websites, Base tokens, wallet addresses and transaction data before you connect or sign.
-        </p>
+          <h1 class="hero-title">
+            <span class="brand-accent">PayGuard</span><br>Verify Before You Trust.
+          </h1>
 
-        <div class="pg-architecture-visual relative mx-auto grid w-full max-w-5xl grid-cols-1 items-center gap-5 overflow-hidden rounded-2xl border border-cyan-300/20 bg-slate-950/75 p-4 text-left shadow-2xl lg:grid-cols-[0.88fr_1.12fr] md:p-6" aria-label="Illustrative PayGuard security architecture">
-          <div class="pg-visual-copy relative z-10">
-            <span class="pg-visual-kicker">BASE SECURITY PIPELINE <span> / 8453</span></span>
-            <h2 class="pg-visual-title">Check before you connect.</h2>
-            <p class="pg-visual-description">One place to check a website, token contract, wallet or transaction.</p>
-            <div class="pg-flow-list">
-              <div class="pg-flow-item"><span class="pg-flow-index" aria-hidden="true">01</span><span><strong>Parse</strong><small>Read the URL, address or transaction data</small></span><i class="fa-solid fa-arrow-right"></i></div>
-              <div class="pg-flow-item"><span class="pg-flow-index" aria-hidden="true">02</span><span><strong>Check</strong><small>Compare registry and security signals</small></span><i class="fa-solid fa-arrow-right"></i></div>
-              <div class="pg-flow-item"><span class="pg-flow-index" aria-hidden="true">03</span><span><strong>Review</strong><small>See findings and what was not checked</small></span><i class="fa-solid fa-arrow-right"></i></div>
+          <!-- Capability Sequence Terminal -->
+          <div class="capability-sequence-box" aria-label="Active Security Capability Readout">
+            <div class="seq-prompt-wrapper">
+              <span class="seq-prompt"><i class="fa-solid fa-terminal"></i> capability:~$</span>
+              <div class="seq-text-container">
+                <span class="seq-text" id="seqText">Verify Websites.</span>
+              </div>
+              <span class="seq-cursor">_</span>
+            </div>
+            <span class="seq-module-tag" id="seqModuleTag">URL SENTINEL ACTIVE</span>
+          </div>
+
+          <p class="hero-desc">
+            The ultimate security layer for AI agents and Web3 payments on Base and beyond.
+          </p>
+
+          <div class="hero-cta-group">
+            <a href="/dashboard" class="btn btn-cyan">
+              <i class="fa-solid fa-shield-halved"></i> Connect Wallet
+            </a>
+            <button class="btn btn-surface" onclick="document.getElementById('investigation-center').scrollIntoView({behavior:'smooth'})">
+              <i class="fa-solid fa-play"></i> Watch Demo
+            </button>
+          </div>
+
+          <!-- Stats bar -->
+          <div class="hero-stats-bar">
+            <div class="hero-stat">
+              <i class="fa-solid fa-shield-halved" style="color:var(--cyan)"></i>
+              <div><strong>155+</strong><small>Security Checks</small></div>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+              <i class="fa-solid fa-network-wired" style="color:var(--cyan)"></i>
+              <div><strong>Base</strong><small>Powered by Base</small></div>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+              <i class="fa-solid fa-bolt" style="color:var(--cyan)"></i>
+              <div><strong>Real-Time</strong><small>Protection</small></div>
             </div>
           </div>
-          <div class="pg-network-stage relative min-h-[250px] overflow-hidden rounded-xl border border-white/10 bg-slate-900/40 md:min-h-[300px]" aria-hidden="true">
-            <div class="pg-network-grid"></div>
-            <div class="pg-radar-ring pg-radar-ring-one"></div>
-            <div class="pg-radar-ring pg-radar-ring-two"></div>
-            <div class="pg-radar-ring pg-radar-ring-three"></div>
-            <svg class="pg-network-lines" viewBox="0 0 600 340" preserveAspectRatio="xMidYMid meet">
-              <defs>
-                <linearGradient id="pgLineGradient" x1="0" x2="1" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.08"/>
-                  <stop offset="50%" stop-color="#00f0ff" stop-opacity="0.72"/>
-                  <stop offset="100%" stop-color="#818cf8" stop-opacity="0.12"/>
-                </linearGradient>
-              </defs>
-              <path d="M85 85 L248 160 L480 72 M85 85 L205 270 L480 270 M248 160 L480 72 M248 160 L205 270 M248 160 L480 270" fill="none" stroke="url(#pgLineGradient)" stroke-width="1.5" stroke-dasharray="5 7"/>
-              <path d="M85 85 L248 160 L480 270" fill="none" stroke="#00f0ff" stroke-opacity=".18" stroke-width="4"/>
-            </svg>
-            <div class="pg-map-node pg-map-node-one"><span class="pg-map-dot"></span><strong>URL / DOMAIN</strong><small>LEXICAL CHECKS</small></div>
-            <div class="pg-map-node pg-map-node-two"><span class="pg-map-dot"></span><strong>TOKEN / CONTRACT</strong><small>GOPLUS SIGNALS</small></div>
-            <div class="pg-map-node pg-map-node-three"><span class="pg-map-dot"></span><strong>CALLDATA</strong><small>SELECTOR + APPROVAL</small></div>
-            <div class="pg-map-node pg-map-node-four"><span class="pg-map-dot"></span><strong>COUNTERPARTY</strong><small>ADDRESS REPUTATION</small></div>
-            <div class="pg-map-core">
-              <span class="pg-core-orbit"></span>
-              <i class="fa-solid fa-shield-halved"></i>
-              <strong>PAYGUARD</strong>
-              <small>ADVISORY ENGINE</small>
-            </div>
-            <div class="pg-scan-beam"></div>
-            <div class="pg-map-caption"><span><i class="fa-solid fa-circle-nodes"></i> 8 ANALYSIS LAYERS</span><span>ILLUSTRATIVE ARCHITECTURE</span></div>
+        </div>
+
+        <!-- Right: Animated Globe -->
+        <div class="hero-globe-col" aria-hidden="true">
+          <div class="globe-wrapper">
+            <!-- Ambient glow layers -->
+            <div class="globe-ambient-glow globe-glow-outer"></div>
+            <div class="globe-ambient-glow globe-glow-mid"></div>
+            <!-- Globe SVG canvas -->
+            <canvas class="globe-canvas" id="globeCanvas" width="560" height="560"></canvas>
+            <!-- Orbital rings -->
+            <div class="globe-orbit globe-orbit-1"></div>
+            <div class="globe-orbit globe-orbit-2"></div>
+            <div class="globe-orbit globe-orbit-3"></div>
+            <!-- Light particles -->
+            <div class="globe-particles" id="globeParticles"></div>
+            <!-- Bottom ambient light -->
+            <div class="globe-ground-glow"></div>
           </div>
-          <p class="pg-visual-footnote"><i class="fa-solid fa-circle-info"></i> Illustrative overview. Submit a target below to run a check.</p>
         </div>
+      </div>
 
-
-        <div class="hero-cta-group">
-          <a href="#investigation-center" class="btn btn-cyan">
-            <i class="fa-solid fa-magnifying-glass-chart"></i> Check a target
-          </a>
-          <a href="/dashboard" class="btn btn-surface">
-            <i class="fa-solid fa-gauge-high"></i> Open Dashboard
-          </a>
+      <!-- Feature cards row -->
+      <div class="container hero-feature-cards">
+        <div class="hero-feature-card">
+          <i class="fa-solid fa-shield-halved"></i>
+          <div><strong>Detect Fake Sites</strong><small>Verify official sources</small></div>
         </div>
-
-        <div class="guarantees-bar">
-          <div class="guarantee-item"><i class="fa-solid fa-lock"></i> Zero Private Key Custody</div>
-          <div class="guarantee-item"><i class="fa-solid fa-shield-halved"></i> URL target is never opened</div>
-          <div class="guarantee-item"><i class="fa-solid fa-circle-check"></i> 17 curated Base domains</div>
-          <div class="guarantee-item"><i class="fa-solid fa-coins"></i> GoPlus Token &amp; Tax Screening</div>
-          <div class="guarantee-item"><i class="fa-solid fa-microchip"></i> 7 Native MCP Tools</div>
+        <div class="hero-feature-card">
+          <i class="fa-solid fa-coins"></i>
+          <div><strong>Analyze Tokens</strong><small>Spot risky assets</small></div>
+        </div>
+        <div class="hero-feature-card">
+          <i class="fa-solid fa-lock"></i>
+          <div><strong>Control Payments</strong><small>Set smart limits</small></div>
+        </div>
+        <div class="hero-feature-card">
+          <i class="fa-solid fa-chart-line"></i>
+          <div><strong>Get Intelligence</strong><small>See full security insights</small></div>
         </div>
       </div>
     </section>
@@ -5140,5 +5423,186 @@ main > section, main > section.container { width:100%; max-width:100%; min-width
     renderScenarios();
     renderInvestigationView();
   </script>
-</body>
+
+  <script>
+    // Navbar scroll opacity
+    (function(){
+      const hdr = document.querySelector('header.sec-header');
+      if(!hdr) return;
+      window.addEventListener('scroll', () => {
+        hdr.classList.toggle('scrolled', window.scrollY > 20);
+      }, {passive: true});
+    })();
+
+    // ── Animated Globe Canvas ────────────────────────────────
+    (function(){
+      const canvas = document.getElementById('globeCanvas');
+      if (!canvas) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+      const cx = W/2, cy = H/2, R = W * 0.44;
+      let angle = 0;
+
+      // Geographic point data (lat/lon pairs for network nodes on Earth)
+      const geoPoints = [
+        [40.7, -74], [51.5, -0.1], [35.7, 139.7], [48.9, 2.3],
+        [1.3, 103.8], [-33.9, 151.2], [55.8, 37.6], [19.1, 72.9],
+        [23.1, 113.3], [37.6, -122], [41.9, 12.5], [25.2, 55.3],
+        [22.3, 114.2], [-23.5, -46.6], [59.9, 10.8], [52.4, 13.4],
+        [34.1, -118], [45.5, -73.6], [30, 31.2], [28.6, 77.2],
+        [43.7, -79.4], [33.6, -84.4], [47.4, 8.5], [60.2, 25],
+      ];
+
+      function latLonTo3D(lat, lon, r, rot) {
+        const phi = (90 - lat) * Math.PI / 180;
+        const theta = (lon + rot) * Math.PI / 180;
+        return {
+          x: r * Math.sin(phi) * Math.cos(theta),
+          y: r * Math.cos(phi),
+          z: r * Math.sin(phi) * Math.sin(theta)
+        };
+      }
+
+      function project(x, y, z) {
+        const fov = W * 1.1;
+        const dist = fov / (fov + z);
+        return {
+          px: cx + x * dist,
+          py: cy - y * dist,
+          scale: dist,
+          visible: z > -R * 0.4
+        };
+      }
+
+      function drawGlobe() {
+        ctx.clearRect(0, 0, W, H);
+
+        // Globe base gradient
+        const bg = ctx.createRadialGradient(cx - R*0.25, cy - R*0.25, R*0.05, cx, cy, R);
+        bg.addColorStop(0, 'rgba(10, 50, 160, 0.95)');
+        bg.addColorStop(0.3, 'rgba(5, 20, 100, 0.92)');
+        bg.addColorStop(0.65, 'rgba(2, 8, 60, 0.95)');
+        bg.addColorStop(1, 'rgba(0, 0, 20, 0.98)');
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, 0, Math.PI * 2);
+        ctx.fillStyle = bg;
+        ctx.fill();
+
+        // Latitude lines
+        const rot = angle * 180 / Math.PI;
+        for (let lat = -80; lat <= 80; lat += 20) {
+          ctx.beginPath();
+          let first = true;
+          for (let lon = -180; lon <= 180; lon += 3) {
+            const p3 = latLonTo3D(lat, lon, R, rot);
+            const pt = project(p3.x, p3.y, p3.z);
+            if (pt.visible) {
+              if (first) { ctx.moveTo(pt.px, pt.py); first = false; }
+              else ctx.lineTo(pt.px, pt.py);
+            } else { first = true; }
+          }
+          ctx.strokeStyle = `rgba(0, 150, 255, ${Math.abs(lat) < 20 ? 0.18 : 0.1})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+
+        // Longitude lines
+        for (let lon = 0; lon < 360; lon += 20) {
+          ctx.beginPath();
+          let first = true;
+          for (let lat = -90; lat <= 90; lat += 3) {
+            const p3 = latLonTo3D(lat, lon, R, rot);
+            const pt = project(p3.x, p3.y, p3.z);
+            if (pt.visible) {
+              if (first) { ctx.moveTo(pt.px, pt.py); first = false; }
+              else ctx.lineTo(pt.px, pt.py);
+            } else { first = true; }
+          }
+          ctx.strokeStyle = 'rgba(0, 120, 255, 0.1)';
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+
+        // Network connection lines
+        const visible3D = geoPoints.map(([lat, lon]) => {
+          const p = latLonTo3D(lat, lon, R, rot);
+          const proj = project(p.x, p.y, p.z);
+          return { ...proj, lat, lon };
+        }).filter(p => p.visible);
+
+        for (let i = 0; i < visible3D.length; i++) {
+          for (let j = i+1; j < Math.min(i+3, visible3D.length); j++) {
+            const a = visible3D[i], b = visible3D[j];
+            const dist = Math.hypot(a.px - b.px, a.py - b.py);
+            if (dist < 200) {
+              ctx.beginPath();
+              ctx.moveTo(a.px, a.py);
+              ctx.lineTo(b.px, b.py);
+              ctx.strokeStyle = `rgba(0, 200, 255, ${0.12 * (1 - dist/200)})`;
+              ctx.lineWidth = 0.6;
+              ctx.stroke();
+            }
+          }
+        }
+
+        // Network node points
+        visible3D.forEach(pt => {
+          const brightness = (pt.scale - 0.5) * 2;
+          const size = pt.scale * 3.5;
+          ctx.beginPath();
+          ctx.arc(pt.px, pt.py, size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(0, 220, 255, ${0.6 * brightness})`;
+          ctx.fill();
+          // Glow ring
+          ctx.beginPath();
+          ctx.arc(pt.px, pt.py, size * 2.2, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(0, 180, 255, ${0.12 * brightness})`;
+          ctx.fill();
+        });
+
+        // Edge highlight (limb lighting)
+        const edgeGrad = ctx.createRadialGradient(cx, cy, R * 0.72, cx, cy, R * 1.0);
+        edgeGrad.addColorStop(0, 'rgba(0, 150, 255, 0)');
+        edgeGrad.addColorStop(0.75, 'rgba(0, 150, 255, 0.04)');
+        edgeGrad.addColorStop(0.9, 'rgba(0, 180, 255, 0.22)');
+        edgeGrad.addColorStop(1, 'rgba(0, 220, 255, 0.45)');
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, 0, Math.PI * 2);
+        ctx.fillStyle = edgeGrad;
+        ctx.fill();
+
+        // Specular highlight
+        const specular = ctx.createRadialGradient(cx - R*0.3, cy - R*0.3, 0, cx - R*0.1, cy - R*0.15, R*0.6);
+        specular.addColorStop(0, 'rgba(100, 200, 255, 0.18)');
+        specular.addColorStop(0.4, 'rgba(50, 150, 255, 0.05)');
+        specular.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, 0, Math.PI * 2);
+        ctx.fillStyle = specular;
+        ctx.fill();
+
+        angle += 0.0025;
+        requestAnimationFrame(drawGlobe);
+      }
+
+      drawGlobe();
+
+      // Spawn particles
+      const container = document.getElementById('globeParticles');
+      if (container) {
+        for (let i = 0; i < 12; i++) {
+          const p = document.createElement('div');
+          p.className = 'globe-particle';
+          const startAngle = Math.random() * 360;
+          const startR = (0.3 + Math.random() * 0.4) * 240;
+          const left = 50 + startR * Math.cos(startAngle * Math.PI/180) / 2.4;
+          const top = 50 + startR * Math.sin(startAngle * Math.PI/180) / 2.4;
+          const tx = (Math.random() - 0.5) * 40;
+          p.style.cssText = `left:${left}%;top:${top}%;--tx:${tx}px;animation-duration:${3+Math.random()*4}s;animation-delay:${Math.random()*5}s;`;
+          container.appendChild(p);
+        }
+      }
+    })();
+  </script></body>
 </html>
