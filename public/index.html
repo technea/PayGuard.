@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1930,7 +1930,7 @@ header .pill-secondary {
         <div class="pulse-dot"></div>
         <span id="service-status-text"><i class="fa-solid fa-circle-check" style="margin-right: 0.25rem;"></i> Active • Read-Only Mode</span>
       </div>
-      <div class="pill-secondary"><i class="fa-solid fa-shield-halved" style="color: var(--cyan); margin-right: 0.35rem;"></i> 7 MCP Tools Active</div>
+      <div class="pill-secondary"><i class="fa-solid fa-shield-halved" style="color: var(--cyan); margin-right: 0.35rem;"></i> 8 MCP Tools Active</div>
       <span id="wallet-network-badge"><i class="fa-solid fa-circle-nodes"></i> Base Mainnet</span>
       <button id="wallet-connect-btn" onclick="walletConnect()">
         <i class="fa-solid fa-wallet"></i> <span id="wallet-btn-label">Connect Wallet</span>
@@ -1964,6 +1964,9 @@ header .pill-secondary {
       </button>
       <button class="tab-btn" onclick="switchTab('threat-report')">
         <i class="fa-solid fa-file-shield"></i> Threat Reports
+      </button>
+      <button class="tab-btn" onclick="switchTab('near-security')">
+        <i class="fa-solid fa-atom"></i> NEAR Security
       </button>
       <button class="tab-btn" onclick="switchTab('system-health')">
         <i class="fa-solid fa-heart-pulse"></i> System Health
@@ -2024,7 +2027,7 @@ header .pill-secondary {
             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; font-size: 0.8rem;">
               <span class="pill-secondary" style="color: var(--emerald); border-color: rgba(16, 185, 129, 0.3);"><i class="fa-solid fa-check"></i> 100% Free & Non-Custodial</span>
               <span class="pill-secondary" style="color: var(--cyan); border-color: rgba(0, 240, 255, 0.3);"><i class="fa-solid fa-shield-virus"></i> Zero-SSRF In-Memory URL Parsing</span>
-              <span class="pill-secondary" style="color: var(--violet); border-color: rgba(129, 140, 248, 0.3);"><i class="fa-solid fa-robot"></i> 7 Native MCP Tools</span>
+              <span class="pill-secondary" style="color: var(--violet); border-color: rgba(129, 140, 248, 0.3);"><i class="fa-solid fa-robot"></i> 8 Native MCP Tools</span>
             </div>
           </div>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -2596,6 +2599,81 @@ header .pill-secondary {
       </div>
     </section>
 
+    <!-- TAB: NEAR PROTOCOL SECURITY INTELLIGENCE -->
+    <section id="tab-near-security" class="tab-content">
+      <div class="glass-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><i class="fa-solid fa-atom" style="color: var(--cyan);"></i> NEAR Protocol Security Intelligence</div>
+            <div class="card-subtitle">Account existence, access-key analysis, contract code-hash auditing, and impersonation detection on NEAR Mainnet via FastNear RPC.</div>
+          </div>
+        </div>
+
+        <div class="action-guidance-card" style="margin-bottom:1.25rem">
+          <i class="fa-solid fa-shield-halved action-guidance-icon"></i>
+          <div>
+            <div class="action-guidance-title">Read-Only NEAR Protocol Agent (Phase 1)</div>
+            <div class="action-guidance-text">Validates NEAR account IDs (named, implicit ED25519, ETH-implicit), retrieves finalized state via FastNear RPC with dRPC fallback, analyzes access keys, detects homoglyph impersonation, and compares contract code hashes against a canonical registry. Zero private-key access &mdash; purely advisory.</div>
+          </div>
+        </div>
+
+        <div class="preset-bar">
+          <span class="preset-label"><i class="fa-solid fa-flask" style="color: var(--cyan); margin-right: 0.25rem;"></i> Sample Accounts:</span>
+          <button class="preset-chip" onclick="setNearPreset('wrap.near')"><i class="fa-solid fa-circle-check" style="color: var(--emerald);"></i> wrap.near (Canonical)</button>
+          <button class="preset-chip" onclick="setNearPreset('aurora')"><i class="fa-solid fa-circle-check" style="color: var(--emerald);"></i> aurora (Bridge)</button>
+          <button class="preset-chip" onclick="setNearPreset('v2.ref-finance.near')"><i class="fa-solid fa-circle-check" style="color: var(--emerald);"></i> v2.ref-finance.near</button>
+          <button class="preset-chip" onclick="setNearPreset('wràp.near')"><i class="fa-solid fa-mask" style="color: var(--rose);"></i> wràp.near (Homoglyph)</button>
+          <button class="preset-chip" onclick="setNearPreset('nonexistent-account-xyz-404.near')"><i class="fa-solid fa-question" style="color: var(--amber);"></i> Unknown Account</button>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1.25rem">
+          <label class="form-label" for="near-account-id"><span><i class="fa-solid fa-atom" style="color: var(--cyan); margin-right: 0.35rem;"></i> NEAR Account ID to Inspect</span></label>
+          <input type="text" id="near-account-id" class="input-box" placeholder="alice.near, implicit64hexaccount, 0xEthImplicit..." value="wrap.near" autocomplete="off" spellcheck="false">
+        </div>
+
+        <div style="margin-bottom:1.5rem">
+          <button class="btn" id="btn-near-scan" onclick="runNearSecurity()">
+            <i class="fa-solid fa-atom"></i> Run NEAR Security Analysis
+          </button>
+        </div>
+
+        <div id="near-verdict-container" style="display:none">
+          <div id="near-verdict-hero" class="verdict-hero PASS">
+            <div style="display:flex;align-items:center;gap:1.25rem">
+              <div class="verdict-icon-box" id="near-icon-box"><i class="fa-solid fa-circle-check"></i></div>
+              <div>
+                <div class="verdict-title" id="near-verdict-title">NEAR Account Verified</div>
+                <div class="verdict-plain-summary" id="near-verdict-summary">Account exists and no security flags detected.</div>
+              </div>
+            </div>
+            <div id="near-risk-badge" class="verdict-risk-tag low"><i class="fa-solid fa-shield"></i> LOW Risk</div>
+          </div>
+
+          <div class="action-guidance-card" id="near-guidance-box" style="margin-top:1rem">
+            <i class="fa-solid fa-circle-info action-guidance-icon"></i>
+            <div>
+              <div class="action-guidance-title">NEAR Security Assessment</div>
+              <div class="action-guidance-text" id="near-action-text">Review the findings below before interacting with this account.</div>
+            </div>
+          </div>
+
+          <div class="checks-section-heading" style="margin-top:1.5rem">
+            <i class="fa-solid fa-list-check" style="color:var(--cyan)"></i> Security Findings &amp; Evidence
+          </div>
+          <div id="near-findings-grid" class="check-grid"></div>
+
+          <div id="near-metadata-box" style="margin-top:1.25rem;display:none">
+            <div class="checks-section-heading"><i class="fa-solid fa-database" style="color:var(--violet)"></i> Account Metadata</div>
+            <div id="near-metadata-content" class="code-preview" style="font-size:0.8rem;max-height:220px;overflow:auto;white-space:pre"></div>
+          </div>
+
+          <div id="near-coverage-box" style="margin-top:1rem">
+            <div class="checks-section-heading"><i class="fa-solid fa-clipboard-check" style="color:var(--text-dim)"></i> Coverage Matrix</div>
+            <div id="near-coverage-content" style="font-size:0.8rem;color:var(--text-muted)"></div>
+          </div>
+        </div>
+      </div>
+    </section>
     <!-- TAB 8: SYSTEM HEALTH & TELEMETRY -->
     <section id="tab-system-health" class="tab-content">
       <div class="glass-card">
@@ -4091,6 +4169,124 @@ header .pill-secondary {
       }
     }, 250);
 
+
+    // ── NEAR Protocol Security Intelligence ──────────────────────
+    function setNearPreset(accountId) {
+      document.getElementById('near-account-id').value = accountId;
+      runNearSecurity();
+    }
+
+    async function runNearSecurity() {
+      const accountId = (document.getElementById('near-account-id').value || '').trim();
+      if (!accountId) { alert('Enter a NEAR account ID.'); return; }
+      const btn = document.getElementById('btn-near-scan');
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Analyzing NEAR Account...';
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/near-security', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ accountId })
+        });
+        const data = await res.json();
+        renderNearResult(data);
+        window.dispatchEvent(new CustomEvent('payguard:near-result', { detail: { accountId, result: data } }));
+      } catch (err) {
+        alert('NEAR security scan failed: ' + err.message);
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-atom"></i> Run NEAR Security Analysis';
+        btn.disabled = false;
+        updateTelemetry();
+      }
+    }
+
+    function renderNearResult(data) {
+      const container = document.getElementById('near-verdict-container');
+      const hero = document.getElementById('near-verdict-hero');
+      const iconBox = document.getElementById('near-icon-box');
+      const title = document.getElementById('near-verdict-title');
+      const summary = document.getElementById('near-verdict-summary');
+      const riskBadge = document.getElementById('near-risk-badge');
+      const guidance = document.getElementById('near-action-text');
+      const findingsGrid = document.getElementById('near-findings-grid');
+      const metaBox = document.getElementById('near-metadata-box');
+      const metaContent = document.getElementById('near-metadata-content');
+      const coverageContent = document.getElementById('near-coverage-content');
+      container.style.display = 'block';
+
+      const verdict = (data.verdict || data.assessment?.verdict || 'UNVERIFIED').toUpperCase();
+      const findings = Array.isArray(data.findings) ? data.findings
+        : Array.isArray(data.assessment?.findings) ? data.assessment.findings : [];
+      hero.className = 'verdict-hero';
+
+      const verdictMap = {
+        LOW: { cls:'PASS', icon:'fa-shield', badgeCls:'low', badgeLabel:'LOW Risk', titleTxt:'NEAR Account — Low Risk', guidance:'No significant security flags detected. Always verify independently before sending funds.' },
+        MEDIUM: { cls:'REVIEW', icon:'fa-triangle-exclamation', badgeCls:'medium', badgeLabel:'MEDIUM Risk', titleTxt:'NEAR Account — Elevated Risk', guidance:'Moderate risk signals detected. Review the findings carefully before interacting.' },
+        HIGH: { cls:'BLOCK', icon:'fa-shield-xmark', badgeCls:'high', badgeLabel:'HIGH Risk', titleTxt:'NEAR Account — HIGH Risk', guidance:'High-risk indicators found. Exercise extreme caution.' },
+        UNVERIFIED: { cls:'UNVERIFIED', icon:'fa-triangle-exclamation', badgeCls:'medium', badgeLabel:'UNVERIFIED', titleTxt:'NEAR Account — Unverified', guidance:'The account could not be fully verified. Provider may be unavailable or account does not exist.' },
+        INVALID: { cls:'BLOCK', icon:'fa-ban', badgeCls:'high', badgeLabel:'INVALID', titleTxt:'Invalid NEAR Account ID', guidance:'The supplied account ID violates NEAR protocol naming rules.' }
+      };
+      const vm = verdictMap[verdict] || verdictMap['UNVERIFIED'];
+      hero.classList.add(vm.cls);
+      iconBox.innerHTML = '<i class="fa-solid ' + vm.icon + '"></i>';
+      title.textContent = data.assessment?.accountId ? vm.titleTxt + ' — ' + data.assessment.accountId : vm.titleTxt;
+      riskBadge.className = 'verdict-risk-tag ' + vm.badgeCls;
+      riskBadge.innerHTML = '<i class="fa-solid fa-shield"></i> ' + vm.badgeLabel;
+      summary.textContent = data.summary || data.assessment?.summary || 'NEAR Protocol security assessment complete.';
+      guidance.textContent = data.recommendation || data.assessment?.recommendation || vm.guidance;
+
+      // Findings
+      findingsGrid.innerHTML = findings.length === 0
+        ? '<div style="color:var(--text-muted);font-size:0.9rem;padding:0.75rem 0"><i class="fa-solid fa-circle-check" style="color:var(--emerald);margin-right:0.5rem"></i>No adverse findings detected.</div>'
+        : findings.map(f => {
+          const sev = (f.severity || '').toLowerCase();
+          const cls = sev === 'critical' || sev === 'high' ? 'fail' : sev === 'medium' ? 'warn' : 'pass';
+          const icon = cls === 'fail' ? 'fa-circle-xmark' : cls === 'warn' ? 'fa-triangle-exclamation' : 'fa-circle-check';
+          const label = cls === 'fail' ? (sev === 'critical' ? 'CRITICAL' : 'HIGH') : cls === 'warn' ? 'MEDIUM' : 'INFO';
+          return <div class="check-card ">
+            <div class="check-card-header">
+              <div class="check-title-group"><i class="fa-solid fa-atom" style="color:var(--cyan);font-size:0.95rem"></i><span class="check-friendly-name"></span></div>
+              <span class="check-badge"><i class="fa-solid "></i> </span>
+            </div>
+            <div class="check-explain"></div>
+            
+            <div class="check-tech-id">Category: </div>
+          </div>;
+        }).join('');
+
+      // Metadata
+      const account = data.account || data.assessment?.account;
+      if (account) {
+        const meta = {
+          accountId: data.assessment?.accountId || '',
+          status: account.status,
+          balance: account.balanceNear || account.balance,
+          storageBytes: account.storageBytes,
+          codeHash: account.codeHash,
+          blockHeight: account.blockHeight,
+          blockHash: account.blockHash,
+          fullAccessKeys: account.fullAccessKeyCount,
+          functionCallKeys: account.functionCallKeyCount
+        };
+        Object.keys(meta).forEach(k => { if (meta[k] === undefined || meta[k] === null) delete meta[k]; });
+        metaContent.textContent = JSON.stringify(meta, null, 2);
+        metaBox.style.display = 'block';
+      } else {
+        metaBox.style.display = 'none';
+      }
+
+      // Coverage matrix
+      const coverage = data.coverage || data.assessment?.coverage || {};
+      const covEntries = Object.entries(coverage);
+      coverageContent.innerHTML = covEntries.length === 0
+        ? '<span style="color:var(--text-dim)">No coverage matrix available.</span>'
+        : covEntries.map(([k, v]) => {
+          const done = v === true || v === 'done' || v === 'available';
+          const ic = done ? 'fa-circle-check' : 'fa-circle-xmark';
+          const col = done ? 'var(--emerald)' : 'var(--text-dim)';
+          return <span style="display:inline-flex;align-items:center;gap:0.3rem;margin-right:1rem;margin-bottom:0.35rem"><i class="fa-solid " style="color:"></i></span>;
+        }).join('');
+    }
 
     // Progressive dashboard entrance motion. Core UI remains usable if GSAP is unavailable.
     window.addEventListener('load', function () {

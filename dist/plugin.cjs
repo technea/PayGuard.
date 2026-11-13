@@ -5,7 +5,8 @@
 const { inspectCalldata } = require('./calldata-inspector.cjs');
 const { checkTokenSecurity } = require('./token-security.cjs');
 const { checkAddressSecurity } = require('./address-security.cjs');
-import { scanBaseWalletTokens } from "./wallet-token-scanner.mjs";
+const { scanBaseWalletTokens } = require('./wallet-token-scanner.cjs');
+const { analyzeNearSecurity, NEAR_AGENT_TOOL_NAME, NEAR_AGENT_TOOL_DESCRIPTION, NEAR_AGENT_INPUT_SCHEMA, payGuardNearSecurityTool } = require('./near-security.cjs');
 /**
  * PayGuard: policy-based x402 payment-intent checker.
  *
@@ -1257,6 +1258,10 @@ async function payGuardScanWalletTokens(input, options = {}) {
   }, options);
 }
 
+async function payGuardAnalyzeNearSecurity(input, options = {}) {
+  return analyzeNearSecurity(input, options);
+}
+
 const payGuardWalletScannerTool = Object.freeze({
   id: WALLET_SCANNER_NAME,
   name: WALLET_SCANNER_NAME,
@@ -1271,7 +1276,18 @@ const payGuardWalletScannerTool = Object.freeze({
   run: payGuardScanWalletTokens
 });
 
-const tools = Object.freeze([payGuardTool, payGuardUrlSentinelTool, payGuardThreatReportTool, payGuardCalldataInspectorTool, payGuardTokenSecurityTool, payGuardAddressSecurityTool, payGuardWalletScannerTool]);
+
+
+const tools = Object.freeze([
+  payGuardTool,
+  payGuardUrlSentinelTool,
+  payGuardThreatReportTool,
+  payGuardCalldataInspectorTool,
+  payGuardTokenSecurityTool,
+  payGuardAddressSecurityTool,
+  payGuardWalletScannerTool,
+  payGuardNearSecurityTool
+]);
 
 const plugin = Object.freeze({
   id: "payguard",
@@ -1279,7 +1295,7 @@ const plugin = Object.freeze({
   version: "0.1.0",
   category: "merchant-tools",
   protocol: "mcp",
-  description: "URL phishing and impersonation analysis, privacy-conscious threat-report drafts, and read-only x402 payment-intent policy checks. Never opens URLs or executes payments.",
+  description: "URL phishing and impersonation analysis, privacy-conscious threat-report drafts, NEAR Protocol intelligence, and read-only x402 payment-intent policy checks. Never opens URLs or executes payments.",
   tools,
   invokeTool(name, input) {
     if (name === TOOL_NAME) return evaluatePaymentIntent(input);
@@ -1289,6 +1305,7 @@ const plugin = Object.freeze({
     if (name === TOKEN_SECURITY_NAME) return payGuardCheckTokenSecurity(input);
     if (name === ADDRESS_SECURITY_NAME) return payGuardCheckAddressSecurity(input);
     if (name === WALLET_SCANNER_NAME) return payGuardScanWalletTokens(input);
+    if (name === NEAR_AGENT_TOOL_NAME) return payGuardAnalyzeNearSecurity(input);
     throw new Error(`Unknown tool: ${String(name)}`);
   },
   execute(name, input) {
@@ -1470,6 +1487,8 @@ const cjsExport = Object.assign({}, plugin, {
   payGuardCalldataInspectorTool: payGuardCalldataInspectorTool,
   payGuardTokenSecurityTool: payGuardTokenSecurityTool,
   payGuardAddressSecurityTool: payGuardAddressSecurityTool,
+  payGuardWalletScannerTool: payGuardWalletScannerTool,
+  payGuardNearSecurityTool: payGuardNearSecurityTool,
   evaluatePaymentIntent: evaluatePaymentIntent,
   createPayGuardX402Hook: createPayGuardX402Hook,
   registerPayGuardX402: registerPayGuardX402,
@@ -1478,6 +1497,8 @@ const cjsExport = Object.assign({}, plugin, {
   payGuardInspectCalldata: payGuardInspectCalldata,
   payGuardCheckTokenSecurity: payGuardCheckTokenSecurity,
   payGuardCheckAddressSecurity: payGuardCheckAddressSecurity,
+  payGuardScanWalletTokens: payGuardScanWalletTokens,
+  payGuardAnalyzeNearSecurity: payGuardAnalyzeNearSecurity,
   startMcpServer: startMcpServer
 });
 module.exports = cjsExport;

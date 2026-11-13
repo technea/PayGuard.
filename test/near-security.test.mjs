@@ -120,7 +120,7 @@ describe('NEAR Protocol Security Intelligence', () => {
       assert.equal(result.contractSecurity.isDeployed, true);
       assert.equal(result.keyAnalysis.fullAccessKeysCount, 0);
       assert.equal(result.keyAnalysis.noFullAccessKeys, true);
-      assert.ok(result.findings.some(f => f.code === 'NO_FULL_ACCESS_KEYS'));
+      assert.ok(result.findings.some(f => f.ruleId === 'NEAR_FACT_NO_FULL_ACCESS_KEYS'));
       assert.ok(result.evidence.some(e => e.type === 'BLOCK_HEIGHT'));
       assert.ok(result.unavailableChecks.length > 0);
     });
@@ -158,7 +158,7 @@ describe('NEAR Protocol Security Intelligence', () => {
       const result = await analyzeNearSecurity('nonexistent-claim.near', { fetchFn: mockFetch });
       assert.equal(result.status, 'ACCOUNT_UNREGISTERED');
       assert.equal(result.exists, false);
-      assert.ok(result.findings.some(f => f.code === 'ACCOUNT_NOT_FOUND'));
+      assert.ok(result.findings.some(f => f.ruleId === 'NEAR_STATE_ACCOUNT_UNREGISTERED'));
     });
 
     it('verifies multi-provider fallback when primary RPC fails with HTTP 500 or 429', async () => {
@@ -192,7 +192,8 @@ describe('NEAR Protocol Security Intelligence', () => {
 
       const result = await analyzeNearSecurity('fallback-test.near', {
         fetchFn: fallbackFetch,
-        endpoints: ['https://failing-primary.near', 'https://fallback-secondary.near']
+        endpoints: ['https://failing-primary.near', 'https://fallback-secondary.near'],
+        retries: 0
       });
 
       assert.equal(result.status, 'AVAILABLE');
@@ -223,6 +224,191 @@ describe('NEAR Protocol Security Intelligence', () => {
       const invalidRes = await payGuardNearSecurityTool.handler({ accountId: 'UPPERCASE_INVALID' });
       assert.equal(invalidRes.status, 'INVALID_ACCOUNT_ID');
       assert.equal(invalidRes.verdict, 'HIGH');
+    });
+  });
+
+  describe('6. Deterministic Security Rules NR-001 through NR-005 Verification', () => {
+    it('NR-002: flags keyless account without smart contract as info finding without automatic risk', async () => {
+      const mockFetch = async (url, opts) => {
+        const body = JSON.parse(opts.body);
+        if (body.params?.request_type === 'view_account') {
+          return {
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({
+              jsonrpc: '2.0',
+              id: body.id,
+              result: {
+                amount: '1000000000000000000000000',
+                block_height: 100,
+                block_hash: 'Hash100',
+                code_hash: EMPTY_CODE_HASH,
+                storage_usage: 182
+              }
+            })
+          };
+        }
+        if (body.params?.request_type === 'view_access_key_list') {
+          return {
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({
+              jsonrpc: '2.0',
+              id: body.id,
+              result: { keys: [] }
+            })
+          };
+        }
+      };
+
+      const res = await analyzeNearSecurity('keyless-user.near', { fetchFn: mockFetch });
+      assert.equal(res.status, 'AVAILABLE');
+      assert.equal(res.verdict, 'LOW');
+      assert.ok(res.findings.some(f => f.ruleId === 'NEAR_AUTH_ZERO_ACCESS_KEYS'));
+      const finding = res.findings.find(f => f.ruleId === 'NEAR_AUTH_ZERO_ACCESS_KEYS');
+      assert.equal(finding.severity, 'INFO');
+    });
+
+    it('NR-003: flags more than 3 FullAccess keys as INFO fact without automatic high risk', async () => {
+      const mockFetch = async (url, opts) => {
+        const body = JSON.parse(opts.body);
+        if (body.params?.request_type === 'view_account') {
+          return {
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({
+              jsonrpc: '2.0',
+              id: body.id,
+              result: {
+                amount: '10000000000000000000000000',
+                block_height: 100,
+                block_hash: 'Hash100',
+                code_hash: EMPTY_CODE_HASH,
+                storage_usage: 182
+              }
+            })
+          };
+        }
+        if (body.params?.request_type === 'view_access_key_list') {
+          return {
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({
+              jsonrpc: '2.0',
+              id: body.id,
+              result: {
+                keys: [
+                  { public_key: 'ed25519:k1', access_key: { permission: 'FullAccess' } },
+                  { public_key: 'ed25519:k2', access_key: { permission: 'FullAccess' } },
+                  { public_key: 'ed25519:k3', access_key: { permission: 'FullAccess' } },
+                  { public_key: 'ed25519:k4', access_key: { permission: 'FullAccess' } }
+                ]
+              }
+            })
+          };
+        }
+      };
+
+      const res = await analyzeNearSecurity('multikey.near', { fetchFn: mockFetch });
+      assert.equal(res.status, 'AVAILABLE');
+      assert.equal(res.verdict, 'LOW');
+      const finding = res.findings.find(f => f.ruleId === 'NEAR_AUTH_MULTIPLE_FULL_ACCESS_KEYS');
+      assert.ok(finding);
+      assert.equal(finding.severity, 'INFO');
+    });
+
+    it('NR-004: flags unrestricted FunctionCall with unlimited allowance on user account as MEDIUM', async () => {
+      const mockFetch = async (url, opts) => {
+        const body = JSON.parse(opts.body);
+        if (body.params?.request_type === 'view_account') {
+          return {
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({
+              jsonrpc: '2.0',
+              id: body.id,
+              result: {
+                amount: '10000000000000000000000000',
+                block_height: 100,
+                block_hash: 'Hash100',
+                code_hash: EMPTY_CODE_HASH,
+                storage_usage: 182
+              }
+            })
+          };
+        }
+        if (body.params?.request_type === 'view_access_key_list') {
+          return {
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({
+              jsonrpc: '2.0',
+              id: body.id,
+              result: {
+                keys: [
+                  {
+                    public_key: 'ed25519:unrestrictedKey',
+                    access_key: {
+                      permission: {
+                        FunctionCall: {
+                          allowance: null,
+                          receiver_id: 'unknown-dapp.near',
+                          method_names: []
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            })
+          };
+        }
+      };
+
+      const res = await analyzeNearSecurity('user-with-keys.near', { fetchFn: mockFetch });
+      assert.equal(res.status, 'AVAILABLE');
+      assert.equal(res.verdict, 'MEDIUM');
+      assert.ok(res.findings.some(f => f.ruleId === 'NEAR_PERM_UNRESTRICTED_FUNCTION_CALL'));
+    });
+
+    it('NR-005: flags storage pressure when liquid balance is very low relative to storage stake', async () => {
+      const mockFetch = async (url, opts) => {
+        const body = JSON.parse(opts.body);
+        if (body.params?.request_type === 'view_account') {
+          return {
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({
+              jsonrpc: '2.0',
+              id: body.id,
+              result: {
+                amount: '10000000000000000', // tiny amount (0.00000001 NEAR)
+                block_height: 100,
+                block_hash: 'Hash100',
+                code_hash: EMPTY_CODE_HASH,
+                storage_usage: 500000 // 500KB requires ~5 NEAR
+              }
+            })
+          };
+        }
+        if (body.params?.request_type === 'view_access_key_list') {
+          return {
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify({
+              jsonrpc: '2.0',
+              id: body.id,
+              result: { keys: [] }
+            })
+          };
+        }
+      };
+
+      const res = await analyzeNearSecurity('strained.near', { fetchFn: mockFetch });
+      assert.ok(res.findings.some(f => f.ruleId === 'NEAR_STORAGE_PRESSURE_INDICATOR'));
+      const storageFinding = res.findings.find(f => f.ruleId === 'NEAR_STORAGE_PRESSURE_INDICATOR');
+      assert.equal(storageFinding.category, 'STORAGE');
+      assert.equal(storageFinding.severity, 'LOW');
     });
   });
 

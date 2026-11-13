@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, writeFile, cp } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const distDir = new URL('../dist/', import.meta.url);
@@ -8,6 +8,8 @@ const srcTokenSecurityFile = new URL('../src/token-security.mjs', import.meta.ur
 const srcAddressSecurityFile = new URL('../src/address-security.mjs', import.meta.url);
 const srcWalletScannerFile = new URL('../src/wallet-token-scanner.mjs', import.meta.url);
 const srcNearSecurityFile = new URL('../src/near-security.mjs', import.meta.url);
+const srcNearDir = new URL('../src/near/', import.meta.url);
+const destNearDir = new URL('../dist/near/', import.meta.url);
 const destPluginMjs = new URL('../dist/plugin.mjs', import.meta.url);
 const destIndexMjs = new URL('../dist/index.mjs', import.meta.url);
 const destIndexJs = new URL('../dist/index.js', import.meta.url);
@@ -58,14 +60,17 @@ await writeFile(destTokenSecurityMjs, tokenSecurityContent, 'utf8');
 await writeFile(destAddressSecurityMjs, addressSecurityContent, 'utf8');
 await writeFile(destWalletScannerMjs, walletScannerContent, 'utf8');
 await writeFile(destNearSecurityMjs, nearSecurityContent, 'utf8');
+await cp(srcNearDir, destNearDir, { recursive: true });
 
-// 3. Generate CommonJS bundles (index.cjs, plugin.cjs, calldata-inspector.cjs, token-security.cjs, address-security.cjs)
+// 3. Generate CommonJS bundles (index.cjs, plugin.cjs, calldata-inspector.cjs, token-security.cjs, address-security.cjs, near-security.cjs)
 function toCommonJS(esmCode) {
   let cjs = esmCode
     .replace(/^import\s+.*?\s+from\s+['"]\.\/calldata-inspector\.mjs['"];?/gm, "const { inspectCalldata } = require('./calldata-inspector.cjs');")
     .replace(/^import\s+.*?\s+from\s+['"]\.\/token-security\.mjs['"];?/gm, "const { checkTokenSecurity } = require('./token-security.cjs');")
     .replace(/^import\s+.*?\s+from\s+['"]\.\/address-security\.mjs['"];?/gm, "const { checkAddressSecurity } = require('./address-security.cjs');")
     .replace(/^import\s+.*?\s+from\s+['"]\.\/wallet-token-scanner\.mjs['"];?/gm, "const { scanBaseWalletTokens } = require('./wallet-token-scanner.cjs');")
+    .replace(/^import\s*\{[\s\S]*?\}\s*from\s*['"]\.\/near-security\.mjs['"];?/gm, "const { analyzeNearSecurity, NEAR_AGENT_TOOL_NAME, NEAR_AGENT_TOOL_DESCRIPTION, NEAR_AGENT_INPUT_SCHEMA, payGuardNearSecurityTool } = require('./near-security.cjs');")
+    .replace(/^export\s*\{[\s\S]*?\};?/gm, '')
     .replace(/^export\s+async\s+function\s+([a-zA-Z0-9_$]+)/gm, 'async function $1')
     .replace(/^export\s+function\s+([a-zA-Z0-9_$]+)/gm, 'function $1')
     .replace(/^export\s+const\s+([a-zA-Z0-9_$]+)/gm, 'const $1')
@@ -144,13 +149,61 @@ function toAddressSecurityCJS(esmCode) {
 }
 
 function toNearSecurityCJS(esmCode) {
-  let cjs = esmCode
-    .replace(/^export\s+async\s+function\s+([a-zA-Z0-9_$]+)/gm, 'async function $1')
-    .replace(/^export\s+function\s+([a-zA-Z0-9_$]+)/gm, 'function $1')
-    .replace(/^export\s+const\s+([a-zA-Z0-9_$]+)/gm, 'const $1')
-    .replace(/^export\s+default\s+([a-zA-Z0-9_$]+);?/gm, '');
-  cjs += `\nmodule.exports = { parseNearAccountId, callNearRpc, analyzeNearAccountNameHeuristics, formatYoctoNear, analyzeNearSecurity, payGuardNearSecurityTool, DEFAULT_NEAR_RPC_ENDPOINTS, DEFAULT_RPC_TIMEOUT_MS, MAX_RPC_RESPONSE_BYTES, EMPTY_CODE_HASH, NEAR_CANONICAL_ACCOUNTS, NEAR_OFFICIAL_DOMAINS, SUSPICIOUS_NEAR_KEYWORDS, KNOWN_TRUSTED_CONTRACT_HASHES, NEAR_AGENT_TOOL_NAME, NEAR_AGENT_TOOL_DESCRIPTION, NEAR_AGENT_INPUT_SCHEMA, default: analyzeNearSecurity };\n`;
-  return cjs;
+  return `/**
+ * PayGuard NEAR Security CommonJS Bridge
+ */
+let nearModule = null;
+async function getNearModule() {
+  if (!nearModule) {
+    nearModule = await import('./near/index.mjs');
+  }
+  return nearModule;
+}
+
+const payGuardNearSecurityTool = Object.freeze({
+  id: "payguard_near_security_intelligence",
+  name: "payguard_near_security_intelligence",
+  title: "payguard_near_security_intelligence",
+  description: "Investigate NEAR accounts and smart contracts using FastNear RPC. Evaluates account existence, code hash, access keys, and impersonation risks. Read-only and non-custodial.",
+  inputSchema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["accountId"],
+    properties: {
+      accountId: {
+        type: "string",
+        description: "NEAR account identifier (e.g. 'alice.near', 'wrap.near', or 64-char implicit address)"
+      }
+    }
+  },
+  handler: async (input, options) => {
+    const mod = await getNearModule();
+    return mod.runNearSecurityAgent(input, options);
+  },
+  execute: async (input, options) => {
+    const mod = await getNearModule();
+    return mod.runNearSecurityAgent(input, options);
+  },
+  run: async (input, options) => {
+    const mod = await getNearModule();
+    return mod.runNearSecurityAgent(input, options);
+  }
+});
+
+async function analyzeNearSecurity(input, options) {
+  const mod = await getNearModule();
+  return mod.runNearSecurityAgent(input, options);
+}
+
+module.exports = {
+  payGuardNearSecurityTool,
+  analyzeNearSecurity,
+  NEAR_AGENT_TOOL_NAME: "payguard_near_security_intelligence",
+  NEAR_AGENT_TOOL_DESCRIPTION: "Investigate NEAR accounts and smart contracts using FastNear RPC. Evaluates account existence, code hash, access keys, and impersonation risks. Read-only and non-custodial.",
+  NEAR_AGENT_INPUT_SCHEMA: payGuardNearSecurityTool.inputSchema,
+  default: analyzeNearSecurity
+};
+`;
 }
 
 const cjsContent = toCommonJS(srcContent);

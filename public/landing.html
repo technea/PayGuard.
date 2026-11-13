@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -3310,7 +3310,7 @@ header.sec-header.scrolled {
       <div class="dune-ribbon-item"><i class="fa-solid fa-certificate cyan-val"></i> <span>REGISTRY:</span> <strong>17 Curated Base Domains</strong></div>
       <div class="dune-ribbon-item"><i class="fa-solid fa-coins emerald-val"></i> <span>TOKEN AUDIT:</span> <strong>GoPlus API on Base (8453)</strong></div>
       <div class="dune-ribbon-item"><i class="fa-solid fa-lock cyan-val"></i> <span>CUSTODY:</span> <strong>0 Private Keys (Read-Only Advisory)</strong></div>
-      <div class="dune-ribbon-item"><i class="fa-solid fa-robot emerald-val"></i> <span>AI FLEET:</span> <strong>7 Native MCP Tools</strong></div>
+      <div class="dune-ribbon-item"><i class="fa-solid fa-robot emerald-val"></i> <span>AI FLEET:</span> <strong>8 Native MCP Tools</strong></div>
     </div>
   </aside>
 
@@ -3455,6 +3455,9 @@ header.sec-header.scrolled {
             </button>
             <button class="inv-tab-btn" id="tabBtnWallet" onclick="switchInvestigationPillar('wallet')">
               <i class="fa-solid fa-wallet"></i> Transaction &amp; Wallet
+            </button>
+            <button class="inv-tab-btn" id="tabBtnNear" onclick="switchInvestigationPillar('near')">
+              <i class="fa-solid fa-atom"></i> NEAR Account
             </button>
           </div>
 
@@ -4592,6 +4595,141 @@ header.sec-header.scrolled {
           }
         }
       }
+,
+      near: {
+        scenarios: [
+          { id: 1, label: "wrap.near (Canonical)", icon: "fa-circle-check", iconColor: "var(--emerald)", targetVal: "wrap.near" },
+          { id: 2, label: "aurora (Bridge)", icon: "fa-circle-check", iconColor: "var(--emerald)", targetVal: "aurora" },
+          { id: 3, label: "wràp.near (Homoglyph)", icon: "fa-mask", iconColor: "var(--rose)", targetVal: "wràp.near" },
+          { id: 4, label: "Unknown Account (404)", icon: "fa-question", iconColor: "var(--amber)", targetVal: "nonexistent-account-xyz-404.near" }
+        ],
+        data: {
+          1: {
+            targetType: "NEAR PROTOCOL ACCOUNT",
+            targetText: "wrap.near",
+            network: "NEAR Mainnet",
+            privacy: "Read-only finalized RPC query (FastNear)",
+            latency: "SAMPLE DATA",
+            topology: [
+              { name: "FastNear RPC", pip: "pip-green", status: "Connected (Finalized)" },
+              { name: "Account Resolution", pip: "pip-green", status: "EXISTS (wrap.near)" },
+              { name: "Code Hash Match", pip: "pip-green", status: "MATCHED (wrap.near bytecode)" },
+              { name: "Key Access Permissions", pip: "pip-green", status: "0 FullAccess Keys" }
+            ],
+            layers: [
+              { idx: "N01", name: "Account ID Validation", desc: "Protocol Rules", pill: "PASS", pillCls: "pass", latency: "DEMO", tele: "Valid named account syntax &bull; wrap.near" },
+              { idx: "N02", name: "State Finality via FastNear", desc: "Block Finality", pill: "FINAL", pillCls: "pass", latency: "DEMO", tele: "Finalized block height & hash confirmed" },
+              { idx: "N03", name: "Contract Bytecode Hash", desc: "Registry Match", pill: "CANONICAL", pillCls: "pass", latency: "DEMO", tele: "Matched canonical wrap.near contract registry" },
+              { idx: "N04", name: "FullAccess Key Permission", desc: "Immutability Audit", pill: "0 KEYS", pillCls: "pass", latency: "DEMO", tele: "0 FullAccess keys detected (direct DeployContract locked)" },
+              { idx: "N05", name: "Unicode Deception Lexer", desc: "Homoglyph Audit", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "Standard ASCII &bull; 0 Cyrillic or lookalike chars" },
+              { idx: "N06", name: "Canonical Impersonation Guard", desc: "Brand Mimicry", pill: "GENUINE", pillCls: "pass", latency: "DEMO", tele: "Authentic canonical wrap.near account" },
+              { idx: "N07", name: "FunctionCall Access Keys", desc: "Scoped Keys", pill: "PERMITTED", pillCls: "pass", latency: "DEMO", tele: "Scoped function-call allowances only" },
+              { idx: "N08", name: "Evidence Schema Generator", desc: "Read-Only Advisory", pill: "STRUCTURED", pillCls: "pass", latency: "DEMO", tele: "Deterministic evidence & coverage matrix" }
+            ],
+            verdictCls: "verdict-pass",
+            verdictIcon: "fa-atom",
+            verdictCategory: "LOW",
+            verdictHeadline: "CANONICAL NEAR CONTRACT VERIFIED",
+            verdictScore: "RISK: LOW",
+            verdictSummary: "wrap.near is verified in the canonical NEAR contract registry. Zero FullAccess keys detected.",
+            guidanceCls: "guidance-pass",
+            guidanceText: "wrap.near matches known official contract code hashes. PayGuard operates strictly in advisory read-only mode."
+          },
+          2: {
+            targetType: "NEAR PROTOCOL ACCOUNT",
+            targetText: "aurora",
+            network: "NEAR Mainnet",
+            privacy: "Read-only finalized RPC query (FastNear)",
+            latency: "SAMPLE DATA",
+            topology: [
+              { name: "FastNear RPC", pip: "pip-green", status: "Connected (Finalized)" },
+              { name: "Account Resolution", pip: "pip-green", status: "EXISTS (aurora)" },
+              { name: "Code Hash Match", pip: "pip-green", status: "MATCHED (aurora engine bytecode)" },
+              { name: "Key Access Permissions", pip: "pip-green", status: "Audited" }
+            ],
+            layers: [
+              { idx: "N01", name: "Account ID Validation", desc: "Protocol Rules", pill: "PASS", pillCls: "pass", latency: "DEMO", tele: "Valid named account syntax &bull; aurora" },
+              { idx: "N02", name: "State Finality via FastNear", desc: "Block Finality", pill: "FINAL", pillCls: "pass", latency: "DEMO", tele: "Finalized block state verified" },
+              { idx: "N03", name: "Contract Bytecode Hash", desc: "Registry Match", pill: "CANONICAL", pillCls: "pass", latency: "DEMO", tele: "Matched canonical aurora EVM engine registry" },
+              { idx: "N04", name: "FullAccess Key Permission", desc: "Immutability Audit", pill: "AUDITED", pillCls: "pass", latency: "DEMO", tele: "Access keys verified" },
+              { idx: "N05", name: "Unicode Deception Lexer", desc: "Homoglyph Audit", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "Standard ASCII &bull; 0 homoglyphs" },
+              { idx: "N06", name: "Canonical Impersonation Guard", desc: "Brand Mimicry", pill: "GENUINE", pillCls: "pass", latency: "DEMO", tele: "Authentic canonical Aurora bridge/engine" },
+              { idx: "N07", name: "FunctionCall Access Keys", desc: "Scoped Keys", pill: "PERMITTED", pillCls: "pass", latency: "DEMO", tele: "FunctionCall allowances validated" },
+              { idx: "N08", name: "Evidence Schema Generator", desc: "Read-Only Advisory", pill: "STRUCTURED", pillCls: "pass", latency: "DEMO", tele: "Deterministic evidence & coverage matrix" }
+            ],
+            verdictCls: "verdict-pass",
+            verdictIcon: "fa-atom",
+            verdictCategory: "LOW",
+            verdictHeadline: "CANONICAL AURORA ENGINE VERIFIED",
+            verdictScore: "RISK: LOW",
+            verdictSummary: "aurora is verified in the canonical NEAR contract registry as the official EVM engine.",
+            guidanceCls: "guidance-pass",
+            guidanceText: "Verified official NEAR ecosystem account."
+          },
+          3: {
+            targetType: "NEAR PROTOCOL ACCOUNT",
+            targetText: "wràp.near",
+            network: "NEAR Mainnet",
+            privacy: "Read-only finalized RPC query (FastNear)",
+            latency: "SAMPLE DATA",
+            topology: [
+              { name: "FastNear RPC", pip: "pip-rose", status: "Flagged" },
+              { name: "Unicode Deception Engine", pip: "pip-rose", status: "LOOKALIKE DETECTED" },
+              { name: "Impersonation Risk", pip: "pip-rose", status: "HIGH RISK" },
+              { name: "Canonical Registry", pip: "pip-amber", status: "Target: wrap.near" }
+            ],
+            layers: [
+              { idx: "N01", name: "Account ID Validation", desc: "Protocol Rules", pill: "ATTENTION", pillCls: "warn", latency: "DEMO", tele: "Non-standard character set detected" },
+              { idx: "N02", name: "State Finality via FastNear", desc: "Block Finality", pill: "CHECKED", pillCls: "pass", latency: "DEMO", tele: "Finalized state queried" },
+              { idx: "N03", name: "Contract Bytecode Hash", desc: "Registry Match", pill: "UNINDEXED", pillCls: "threat", latency: "DEMO", tele: "No canonical registry match" },
+              { idx: "N04", name: "FullAccess Key Permission", desc: "Immutability Audit", pill: "CHECKED", pillCls: "pass", latency: "DEMO", tele: "Access keys audited" },
+              { idx: "N05", name: "Unicode Deception Lexer", desc: "Homoglyph Audit", pill: "DECEPTION", pillCls: "threat", latency: "DEMO", tele: "Cyrillic/accented 'à' mimics Latin 'a' in wrap.near" },
+              { idx: "N06", name: "Canonical Impersonation Guard", desc: "Brand Mimicry", pill: "SPOOF", pillCls: "threat", latency: "DEMO", tele: "Account attempts to impersonate canonical wrap.near" },
+              { idx: "N07", name: "FunctionCall Access Keys", desc: "Scoped Keys", pill: "CHECKED", pillCls: "pass", latency: "DEMO", tele: "Key inspect complete" },
+              { idx: "N08", name: "Evidence Schema Generator", desc: "Read-Only Advisory", pill: "STRUCTURED", pillCls: "pass", latency: "DEMO", tele: "Deterministic evidence & coverage matrix" }
+            ],
+            verdictCls: "verdict-threat",
+            verdictIcon: "fa-shield-xmark",
+            verdictCategory: "HIGH",
+            verdictHeadline: "IMPERSONATION ATTACK DETECTED",
+            verdictScore: "RISK: HIGH",
+            verdictSummary: "Deceptive homoglyph characters detected mimicking canonical account wrap.near.",
+            guidanceCls: "guidance-threat",
+            guidanceText: "DO NOT INTERACT. This account uses visual homoglyphs to deceive users into sending funds."
+          },
+          4: {
+            targetType: "NEAR PROTOCOL ACCOUNT",
+            targetText: "nonexistent-account-xyz-404.near",
+            network: "NEAR Mainnet",
+            privacy: "Read-only finalized RPC query (FastNear)",
+            latency: "SAMPLE DATA",
+            topology: [
+              { name: "FastNear RPC", pip: "pip-amber", status: "NOT FOUND" },
+              { name: "Finalized State Query", pip: "pip-amber", status: "UNKNOWN_ACCOUNT" },
+              { name: "Access Keys", pip: "pip-gray", status: "N/A" },
+              { name: "Contract Bytecode", pip: "pip-gray", status: "N/A" }
+            ],
+            layers: [
+              { idx: "N01", name: "Account ID Validation", desc: "Protocol Rules", pill: "PASS", pillCls: "pass", latency: "DEMO", tele: "Account format syntax valid" },
+              { idx: "N02", name: "State Finality via FastNear", desc: "Block Finality", pill: "NOT FOUND", pillCls: "warn", latency: "DEMO", tele: "FastNear returned UNKNOWN_ACCOUNT" },
+              { idx: "N03", name: "Contract Bytecode Hash", desc: "Registry Match", pill: "N/A", pillCls: "unverified", latency: "—", tele: "Account does not exist on chain" },
+              { idx: "N04", name: "FullAccess Key Permission", desc: "Immutability Audit", pill: "N/A", pillCls: "unverified", latency: "—", tele: "No keys registered" },
+              { idx: "N05", name: "Unicode Deception Lexer", desc: "Homoglyph Audit", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "Standard ASCII" },
+              { idx: "N06", name: "Canonical Impersonation Guard", desc: "Brand Mimicry", pill: "CLEAN", pillCls: "pass", latency: "DEMO", tele: "No canonical spoof target" },
+              { idx: "N07", name: "FunctionCall Access Keys", desc: "Scoped Keys", pill: "N/A", pillCls: "unverified", latency: "—", tele: "No keys registered" },
+              { idx: "N08", name: "Evidence Schema Generator", desc: "Read-Only Advisory", pill: "UNVERIFIED", pillCls: "warn", latency: "DEMO", tele: "Status: NOT_FOUND" }
+            ],
+            verdictCls: "verdict-warn",
+            verdictIcon: "fa-question",
+            verdictCategory: "UNVERIFIED",
+            verdictHeadline: "ACCOUNT NOT FOUND ON CHAIN",
+            verdictScore: "STATUS: UNREGISTERED",
+            verdictSummary: "The account does not exist on NEAR Mainnet finalized state.",
+            guidanceCls: "guidance-warn",
+            guidanceText: "Sending funds to an unregistered account will create it if funded sufficiently, but ensure you own or intended to fund this specific address."
+          }
+        }
+      }
     };
 
     function switchInvestigationPillar(pillarKey) {
@@ -4602,7 +4740,7 @@ header.sec-header.scrolled {
         button.classList.remove('active');
         button.setAttribute('aria-pressed', 'false');
       });
-      const activeButton = document.getElementById(pillarKey === 'url' ? 'tabBtnUrl' : pillarKey === 'token' ? 'tabBtnToken' : 'tabBtnWallet');
+      const activeButton = document.getElementById(pillarKey === 'url' ? 'tabBtnUrl' : pillarKey === 'token' ? 'tabBtnToken' : pillarKey === 'near' ? 'tabBtnNear' : 'tabBtnWallet');
       if (activeButton) {
         activeButton.classList.add('active');
         activeButton.setAttribute('aria-pressed', 'true');
@@ -5068,6 +5206,49 @@ header.sec-header.scrolled {
       });
     }
 
+    function mapNearResultToCockpit(data, accountId, elapsedMs) {
+      const verdict = (data.verdict || data.assessment && data.assessment.verdict || 'UNVERIFIED').toUpperCase();
+      const findings = Array.isArray(data.findings) ? data.findings
+        : (data.assessment && Array.isArray(data.assessment.findings) ? data.assessment.findings : []);
+      const account = data.account || (data.assessment && data.assessment.account) || {};
+      const isHigh = verdict === 'HIGH' || verdict === 'INVALID';
+      const isMedium = verdict === 'MEDIUM';
+      const verdictCls = isHigh ? 'verdict-threat' : isMedium ? 'verdict-warn' : verdict === 'LOW' ? 'verdict-pass' : 'verdict-warn';
+      const findingsSummary = findings.length === 0 ? 'No adverse findings.' : findings.map(function(f) { return (f.type || f.title || 'Finding') + ': ' + (f.severity || ''); }).join(' · ');
+      const layers = [
+        makeLayer('N01', 'Account ID validation', verdict === 'INVALID' ? 'INVALID FORMAT' : 'VALID', verdict === 'INVALID' ? 'threat' : 'pass', 'NEAR account ID format verified against protocol naming rules.'),
+        makeLayer('N02', 'Account existence (FastNear RPC)', account.status || 'UNKNOWN', account.status === 'EXISTS' ? 'pass' : account.status === 'NOT_FOUND' ? 'warn' : 'unverified', 'Finalized state query via FastNear RPC with dRPC fallback.'),
+        makeLayer('N03', 'Full-access key count', account.fullAccessKeyCount !== undefined ? String(account.fullAccessKeyCount) : 'NOT CHECKED', account.fullAccessKeyCount > 2 ? 'warn' : 'pass', 'Number of full-access keys returned by view_access_key_list.'),
+        makeLayer('N04', 'Contract deployed', account.codeHash && account.codeHash !== '11111111111111111111111111111111' ? 'YES' : (account.codeHash ? 'NO (EOA)' : 'NOT CHECKED'), 'pass', 'Whether the account has contract bytecode deployed (code hash != empty).'),
+        makeLayer('N05', 'Canonical contract match', findings.some(function(f) { return f.type === 'NEAR_FACT_CANONICAL_CONTRACT_MATCH'; }) ? 'MATCH' : 'NOT CHECKED', 'pass', 'Code hash compared against curated canonical NEAR contract registry.'),
+        makeLayer('N06', 'Homoglyph impersonation', findings.some(function(f) { return f.type === 'NEAR_IMPERSONATION_HOMOGLYPH_DECEPTION'; }) ? 'DETECTED' : 'NOT DETECTED', findings.some(function(f) { return f.type === 'NEAR_IMPERSONATION_HOMOGLYPH_DECEPTION'; }) ? 'threat' : 'pass', 'Checks for lookalike Unicode characters in account name.'),
+        makeLayer('N07', 'Canonical name impersonation', findings.some(function(f) { return f.type === 'NEAR_IMPERSONATION_CANONICAL_NAME'; }) ? 'DETECTED' : 'NOT DETECTED', findings.some(function(f) { return f.type === 'NEAR_IMPERSONATION_CANONICAL_NAME'; }) ? 'threat' : 'pass', 'Detects fake accounts mimicking canonical NEAR protocol accounts.'),
+        makeLayer('N08', 'Block reference evidence', account.blockHeight ? 'BLOCK ' + account.blockHeight : 'NOT AVAILABLE', account.blockHeight ? 'pass' : 'unverified', 'Block height and hash returned as evidence of finalized state.')
+      ];
+      return liveResultItem({
+        targetType: 'NEAR PROTOCOL ACCOUNT',
+        targetText: accountId,
+        latency: elapsedMs,
+        network: 'NEAR Mainnet',
+        privacy: 'Read-only finalized RPC query',
+        topology: [
+          { name: 'FastNear RPC', pip: account.status === 'EXISTS' ? 'pip-green' : 'pip-amber', status: account.status || 'QUERIED' },
+          { name: 'Access key analysis', pip: account.fullAccessKeyCount > 2 ? 'pip-amber' : 'pip-green', status: account.fullAccessKeyCount !== undefined ? account.fullAccessKeyCount + ' full-access keys' : 'N/A' },
+          { name: 'Impersonation engine', pip: isHigh ? 'pip-rose' : 'pip-green', status: findings.length + ' finding(s)' },
+          { name: 'Canonical registry', pip: 'pip-green', status: 'Checked' }
+        ],
+        layers: layers,
+        verdictCls: verdictCls,
+        verdictIcon: isHigh ? 'fa-shield-xmark' : isMedium ? 'fa-triangle-exclamation' : 'fa-atom',
+        verdictCategory: verdict,
+        verdictHeadline: isHigh ? 'HIGH-RISK NEAR ACCOUNT' : isMedium ? 'NEAR ACCOUNT — REVIEW' : verdict === 'LOW' ? 'NEAR ACCOUNT — LOW RISK' : 'NEAR ACCOUNT — UNVERIFIED',
+        verdictScore: 'VERDICT: ' + verdict,
+        verdictSummary: data.summary || data.assessment && data.assessment.summary || (findings.length + ' finding(s): ' + findingsSummary),
+        guidanceCls: verdictCls,
+        guidanceText: data.recommendation || data.assessment && data.assessment.recommendation || 'Always verify NEAR accounts independently before transferring funds. PayGuard is a read-only advisory tool.'
+      });
+    }
+
     function renderLiveUnavailable(target, message) {
       const layers = [
         makeLayer('L01', 'Input parsing', 'NOT VERIFIED', 'warn', 'The request did not return a usable result.'),
@@ -5133,7 +5314,10 @@ header.sec-header.scrolled {
 
       let path;
       let payload;
-      if (currentPillar === 'url') {
+      if (currentPillar === 'near') {
+        path = '/api/near-security';
+        payload = { accountId: inputVal };
+      } else if (currentPillar === 'url') {
         path = '/api/analyze-url';
         payload = { url: inputVal };
       } else if (currentPillar === 'token') {
@@ -5171,6 +5355,7 @@ header.sec-header.scrolled {
         if (path === '/api/analyze-url') result = mapUrlResultToCockpit(data, inputVal, elapsedMs);
         else if (path === '/api/token-security') result = mapTokenResultToCockpit(data, inputVal, elapsedMs);
         else if (path === '/api/inspect-calldata') result = mapCalldataResultToCockpit(data, inputVal, payload.to, elapsedMs);
+        else if (path === '/api/near-security') result = mapNearResultToCockpit(data, inputVal, elapsedMs);
         else if (data.status === 'SUCCESS') result = mapWalletResultToCockpit(data, inputVal, elapsedMs);
         else throw new Error(data.error || 'Wallet token discovery did not complete.');
         renderInvestigationView(result);
