@@ -1,3 +1,5 @@
+try { process.loadEnvFile(); } catch {}
+
 import http from "node:http";
 import { readFileSync, existsSync } from "node:fs";
 import {
@@ -7,7 +9,8 @@ import {
   payGuardInspectCalldata,
   payGuardCheckTokenSecurity,
   payGuardCheckAddressSecurity,
-  payGuardScanWalletTokens
+  payGuardScanWalletTokens,
+  payGuardAnalyzeNearSecurity
 } from "./src/plugin.mjs";
 import { BAZAAR_DISCOVERY_METADATA, build402Challenge, verifyPaymentProof } from "./paybox.mjs";
 
@@ -129,6 +132,7 @@ function routeLabel(path) {
   if (path === "/api/token-security") return "token_security";
   if (path === "/api/address-security") return "address_security";
   if (path === "/api/scan-wallet-tokens") return "scan_wallet_tokens";
+  if (path === "/api/near-security") return "near_security";
   if (path === "/api/capabilities") return "capabilities";
   if (path === "/whitepaper" || path === "/faq" || path === "/docs" || path.startsWith("/docs/")) return "docs";
   if (path === "/health") return "health";
@@ -266,6 +270,11 @@ const routes = new Map([
   ["/api/scan-wallet-tokens", async input => {
     const result = await payGuardScanWalletTokens(input);
     recordVerdict("scan_wallet_tokens", result.status === "SUCCESS" ? "PASS" : "UNVERIFIED");
+    return result;
+  }],
+  ["/api/near-security", async input => {
+    const result = await payGuardAnalyzeNearSecurity(input);
+    recordVerdict("near_security", result.verdict);
     return result;
   }]
 ]);

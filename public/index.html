@@ -1835,6 +1835,72 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
       }
     }
 
+/* ── Dashboard Navbar Alignment Fix ─────────────────────── */
+header {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 1rem;
+  min-height: 60px;
+}
+header .brand {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+header .header-pills {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+header .header-pills > * {
+  flex-shrink: 0;
+}
+header .nav-actions,
+header > div:last-child {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+header .live-status,
+header .pill-secondary {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+@media (max-width: 1024px) {
+  header .pill-secondary { display: none !important; }
+}
+@media (max-width: 768px) {
+  header .header-pills > .live-status { display: none !important; }
+  header { gap: 0.5rem; padding: 0.6rem 1rem; }
+}
+/* Top nav links in dashboard if present */
+.top-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  list-style: none;
+}
+.top-nav-links a {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+.top-nav-links a:hover { color: var(--cyan); }
+
 </style>
 </head>
 <body>
@@ -1864,7 +1930,7 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
         <div class="pulse-dot"></div>
         <span id="service-status-text"><i class="fa-solid fa-circle-check" style="margin-right: 0.25rem;"></i> Active • Read-Only Mode</span>
       </div>
-      <div class="pill-secondary"><i class="fa-solid fa-shield-halved" style="color: var(--cyan); margin-right: 0.35rem;"></i> 7 MCP Tools Active</div>
+      <div class="pill-secondary"><i class="fa-solid fa-shield-halved" style="color: var(--cyan); margin-right: 0.35rem;"></i> 8 MCP Tools Active</div>
       <span id="wallet-network-badge"><i class="fa-solid fa-circle-nodes"></i> Base Mainnet</span>
       <button id="wallet-connect-btn" onclick="walletConnect()">
         <i class="fa-solid fa-wallet"></i> <span id="wallet-btn-label">Connect Wallet</span>
@@ -1898,6 +1964,9 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
       </button>
       <button class="tab-btn" onclick="switchTab('threat-report')">
         <i class="fa-solid fa-file-shield"></i> Threat Reports
+      </button>
+      <button class="tab-btn" onclick="switchTab('near-security')">
+        <i class="fa-solid fa-atom"></i> NEAR Security
       </button>
       <button class="tab-btn" onclick="switchTab('system-health')">
         <i class="fa-solid fa-heart-pulse"></i> System Health
@@ -1958,7 +2027,7 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; font-size: 0.8rem;">
               <span class="pill-secondary" style="color: var(--emerald); border-color: rgba(16, 185, 129, 0.3);"><i class="fa-solid fa-check"></i> 100% Free & Non-Custodial</span>
               <span class="pill-secondary" style="color: var(--cyan); border-color: rgba(0, 240, 255, 0.3);"><i class="fa-solid fa-shield-virus"></i> Zero-SSRF In-Memory URL Parsing</span>
-              <span class="pill-secondary" style="color: var(--violet); border-color: rgba(129, 140, 248, 0.3);"><i class="fa-solid fa-robot"></i> 7 Native MCP Tools</span>
+              <span class="pill-secondary" style="color: var(--violet); border-color: rgba(129, 140, 248, 0.3);"><i class="fa-solid fa-robot"></i> 8 Native MCP Tools</span>
             </div>
           </div>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -2423,8 +2492,26 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
           </div>
         </div>
 
+        <!-- Mode B: Connected wallet quick-scan (shown only when wallet is connected) -->
+        <div id="wallet-mode-b-panel" style="display:none; margin-bottom:1.25rem; padding:1rem 1.25rem; background:rgba(16,185,129,0.07); border:1px solid rgba(16,185,129,0.25); border-radius:0.75rem;">
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.75rem;">
+            <div>
+              <div style="font-weight:600; color:var(--emerald); font-size:0.9rem; margin-bottom:0.2rem;">
+                <i class="fa-solid fa-wallet" style="margin-right:0.4rem;"></i>Mode B — Scan My Connected Wallet
+              </div>
+              <div id="wallet-mode-b-address" style="font-size:0.8rem; color:var(--text-muted); font-family:monospace;"></div>
+            </div>
+            <button class="btn" id="btn-scan-my-wallet" onclick="scanMyWallet()" style="background:rgba(16,185,129,0.15); border-color:rgba(16,185,129,0.4); color:var(--emerald); flex-shrink:0;">
+              <i class="fa-solid fa-radar"></i> Scan My Wallet Holdings
+            </button>
+          </div>
+          <div style="font-size:0.78rem; color:var(--text-dim); margin-top:0.6rem;">
+            <i class="fa-solid fa-shield" style="color:var(--emerald); margin-right:0.3rem;"></i>Read-only inspection only. PayGuard never requests signatures, approvals, or private keys.
+          </div>
+        </div>
+
         <div class="preset-bar">
-          <span class="preset-label"><i class="fa-solid fa-flask" style="color: var(--cyan); margin-right: 0.25rem;"></i> Sample Wallets:</span>
+          <span class="preset-label"><i class="fa-solid fa-flask" style="color: var(--cyan); margin-right: 0.25rem;"></i> Mode A — Sample Wallets:</span>
           <button class="preset-chip" onclick="setWalletScannerPreset('0x20556F0cfA3f93F0206faeb5452d2745e1423469')"><i class="fa-solid fa-wallet" style="color: var(--emerald);"></i> PayGuard Active Merchant Wallet</button>
           <button class="preset-chip" onclick="setWalletScannerPreset('0x4200000000000000000000000000000000000006')"><i class="fa-solid fa-landmark" style="color: var(--cyan);"></i> Base Canonical WETH Contract</button>
           <button class="preset-chip" onclick="setWalletScannerPreset('0x0000000000000000000000000000000000000000')"><i class="fa-solid fa-ban" style="color: var(--rose);"></i> Zero / Burn Address</button>
@@ -2464,6 +2551,43 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
             </div>
             <div id="wallet-scanner-badge" class="verdict-risk-tag low">
               <i class="fa-solid fa-shield"></i> AUDIT COMPLETE
+            </div>
+          </div>
+
+          <!-- Audit Metadata Bar -->
+          <div id="wallet-scanner-meta-bar" style="margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: 0.5rem; display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; font-size: 0.8rem;">
+            <div><span style="color: var(--text-dim);">Wallet:</span> <span id="meta-wallet-address" style="color: #ffffff; font-family: var(--font-mono); font-weight: 600;">-</span></div>
+            <div><span style="color: var(--text-dim);">Network:</span> <span id="meta-wallet-network" style="color: var(--cyan); font-weight: 600;">Base Mainnet (8453)</span></div>
+            <div><span style="color: var(--text-dim);">Data Provider:</span> <span id="meta-wallet-provider" style="color: var(--emerald); font-weight: 600;">Alchemy Base API + GoPlus</span></div>
+            <div><span style="color: var(--text-dim);">Scan Status:</span> <span id="meta-wallet-status" class="pill-secondary" style="font-size: 0.7rem;">COMPLETE</span></div>
+            <div><span style="color: var(--text-dim);">Timestamp:</span> <span id="meta-wallet-timestamp" style="color: var(--text-dim);">-</span></div>
+          </div>
+
+          <!-- Native Base ETH Portfolio Card -->
+          <div id="wallet-native-eth-card" style="margin-top: 1rem; padding: 1.25rem; border-radius: 0.75rem; border: 1px solid rgba(56, 189, 248, 0.35); background: linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(2, 6, 23, 0.4) 100%);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+              <div style="display: flex; align-items: center; gap: 0.85rem;">
+                <div style="width: 2.75rem; height: 2.75rem; border-radius: 50%; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; color: var(--cyan); font-size: 1.35rem;">
+                  <i class="fa-brands fa-ethereum"></i>
+                </div>
+                <div>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-weight: 800; font-size: 1.15rem; color: #ffffff;">Native Base ETH</span>
+                    <span class="pill-secondary" style="font-size: 0.7rem; color: var(--cyan); border-color: rgba(56, 189, 248, 0.3);">Native Asset</span>
+                  </div>
+                  <div style="font-size: 0.78rem; color: var(--text-dim); margin-top: 0.2rem;">
+                    Base Mainnet Gas Token • Indexed via <span id="eth-provider-name">Alchemy</span>
+                  </div>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div id="eth-balance-formatted" style="font-size: 1.35rem; font-weight: 800; color: var(--cyan); font-family: var(--font-mono);">
+                  0.000000 ETH
+                </div>
+                <div id="eth-balance-wei" style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">
+                  0 wei
+                </div>
+              </div>
             </div>
           </div>
 
@@ -2530,6 +2654,81 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
       </div>
     </section>
 
+    <!-- TAB: NEAR PROTOCOL SECURITY INTELLIGENCE -->
+    <section id="tab-near-security" class="tab-content">
+      <div class="glass-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title"><i class="fa-solid fa-atom" style="color: var(--cyan);"></i> NEAR Protocol Security Intelligence</div>
+            <div class="card-subtitle">Account existence, access-key analysis, contract code-hash auditing, and impersonation detection on NEAR Mainnet via FastNear RPC.</div>
+          </div>
+        </div>
+
+        <div class="action-guidance-card" style="margin-bottom:1.25rem">
+          <i class="fa-solid fa-shield-halved action-guidance-icon"></i>
+          <div>
+            <div class="action-guidance-title">Read-Only NEAR Protocol Agent (Phase 1)</div>
+            <div class="action-guidance-text">Validates NEAR account IDs (named, implicit ED25519, ETH-implicit), retrieves finalized state via FastNear RPC with dRPC fallback, analyzes access keys, detects homoglyph impersonation, and compares contract code hashes against a canonical registry. Zero private-key access &mdash; purely advisory.</div>
+          </div>
+        </div>
+
+        <div class="preset-bar">
+          <span class="preset-label"><i class="fa-solid fa-flask" style="color: var(--cyan); margin-right: 0.25rem;"></i> Sample Accounts:</span>
+          <button class="preset-chip" onclick="setNearPreset('wrap.near')"><i class="fa-solid fa-circle-check" style="color: var(--emerald);"></i> wrap.near (Canonical)</button>
+          <button class="preset-chip" onclick="setNearPreset('aurora')"><i class="fa-solid fa-circle-check" style="color: var(--emerald);"></i> aurora (Bridge)</button>
+          <button class="preset-chip" onclick="setNearPreset('v2.ref-finance.near')"><i class="fa-solid fa-circle-check" style="color: var(--emerald);"></i> v2.ref-finance.near</button>
+          <button class="preset-chip" onclick="setNearPreset('wràp.near')"><i class="fa-solid fa-mask" style="color: var(--rose);"></i> wràp.near (Homoglyph)</button>
+          <button class="preset-chip" onclick="setNearPreset('nonexistent-account-xyz-404.near')"><i class="fa-solid fa-question" style="color: var(--amber);"></i> Unknown Account</button>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1.25rem">
+          <label class="form-label" for="near-account-id"><span><i class="fa-solid fa-atom" style="color: var(--cyan); margin-right: 0.35rem;"></i> NEAR Account ID to Inspect</span></label>
+          <input type="text" id="near-account-id" class="input-box" placeholder="alice.near, implicit64hexaccount, 0xEthImplicit..." value="wrap.near" autocomplete="off" spellcheck="false">
+        </div>
+
+        <div style="margin-bottom:1.5rem">
+          <button class="btn" id="btn-near-scan" onclick="runNearSecurity()">
+            <i class="fa-solid fa-atom"></i> Run NEAR Security Analysis
+          </button>
+        </div>
+
+        <div id="near-verdict-container" style="display:none">
+          <div id="near-verdict-hero" class="verdict-hero PASS">
+            <div style="display:flex;align-items:center;gap:1.25rem">
+              <div class="verdict-icon-box" id="near-icon-box"><i class="fa-solid fa-circle-check"></i></div>
+              <div>
+                <div class="verdict-title" id="near-verdict-title">NEAR Account Verified</div>
+                <div class="verdict-plain-summary" id="near-verdict-summary">Account exists and no security flags detected.</div>
+              </div>
+            </div>
+            <div id="near-risk-badge" class="verdict-risk-tag low"><i class="fa-solid fa-shield"></i> LOW Risk</div>
+          </div>
+
+          <div class="action-guidance-card" id="near-guidance-box" style="margin-top:1rem">
+            <i class="fa-solid fa-circle-info action-guidance-icon"></i>
+            <div>
+              <div class="action-guidance-title">NEAR Security Assessment</div>
+              <div class="action-guidance-text" id="near-action-text">Review the findings below before interacting with this account.</div>
+            </div>
+          </div>
+
+          <div class="checks-section-heading" style="margin-top:1.5rem">
+            <i class="fa-solid fa-list-check" style="color:var(--cyan)"></i> Security Findings &amp; Evidence
+          </div>
+          <div id="near-findings-grid" class="check-grid"></div>
+
+          <div id="near-metadata-box" style="margin-top:1.25rem;display:none">
+            <div class="checks-section-heading"><i class="fa-solid fa-database" style="color:var(--violet)"></i> Account Metadata</div>
+            <div id="near-metadata-content" class="code-preview" style="font-size:0.8rem;max-height:220px;overflow:auto;white-space:pre"></div>
+          </div>
+
+          <div id="near-coverage-box" style="margin-top:1rem">
+            <div class="checks-section-heading"><i class="fa-solid fa-clipboard-check" style="color:var(--text-dim)"></i> Coverage Matrix</div>
+            <div id="near-coverage-content" style="font-size:0.8rem;color:var(--text-muted)"></div>
+          </div>
+        </div>
+      </div>
+    </section>
     <!-- TAB 8: SYSTEM HEALTH & TELEMETRY -->
     <section id="tab-system-health" class="tab-content">
       <div class="glass-card">
@@ -3570,28 +3769,121 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
       runWalletTokenScan();
     }
 
-    async function runWalletTokenScan() {
+    // Mode B: Scan the currently connected wallet's holdings.
+    // Only accessible after explicit wallet connection; never called automatically.
+    async function scanMyWallet() {
+      if (!_walletConnected || !_walletAddress) {
+        walletStatus('No wallet connected', 'Connect your wallet using the Connect Wallet button in the header first.', 'error');
+        return;
+      }
+
+      // FIX 2: Re-verify chain ID and enforce Base Mainnet (0x2105)
+      if (_walletProvider) {
+        try {
+          const currentChain = await _walletProvider.request({ method: 'eth_chainId' });
+          _walletChainId = String(currentChain).toLowerCase();
+          updateWalletNetworkBadge(_walletChainId);
+        } catch {}
+      }
+
+      if (_walletChainId && _walletChainId !== BASE_CHAIN_ID) {
+        walletStatus('Base Mainnet required', 'Mode B scans your holdings on Base Mainnet. Click “⚠ Switch to Base” in the header to switch to Base (0x2105) before scanning.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-scan-my-wallet');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Scanning…'; }
+      // FIX 1: Explicitly populate the public address input only when user clicks Mode B
+      const input = document.getElementById('scanner-wallet-address');
+      if (input) input.value = _walletAddress;
+      try {
+        await runWalletTokenScan({ isModeB: true, expectedWallet: _walletAddress });
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-radar"></i> Scan My Wallet Holdings'; }
+      }
+    }
+
+    // Show or hide the Mode B panel and update address label.
+    function updateWalletModeBPanel() {
+      const panel = document.getElementById('wallet-mode-b-panel');
+      const addrLabel = document.getElementById('wallet-mode-b-address');
+      if (!panel) return;
+      if (_walletConnected && _walletAddress) {
+        panel.style.display = 'block';
+        if (addrLabel) addrLabel.textContent = _walletAddress;
+      } else {
+        panel.style.display = 'none';
+        if (addrLabel) addrLabel.textContent = '';
+      }
+    }
+
+    async function runWalletTokenScan(options = {}) {
+      const isModeB = Boolean(options.isModeB);
+      const expectedWallet = isModeB ? (options.expectedWallet || _walletAddress) : null;
+
       const walletAddress = document.getElementById('scanner-wallet-address').value.trim();
       const customRaw = document.getElementById('scanner-custom-tokens').value.trim();
       const customTokenAddresses = customRaw ? customRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
 
+      if (!walletAddress) {
+        alert('Enter a valid Base wallet address to scan.');
+        return;
+      }
+
+      // Abort prior in-flight scan
+      if (_activeScanAbortController) {
+        try { _activeScanAbortController.abort(); } catch {}
+      }
+      _activeScanAbortController = new AbortController();
+      const currentRequestId = ++_walletScanRequestId;
+
       const btn = document.getElementById('btn-scan-wallet');
-      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Auditing Wallet Holdings...';
-      btn.disabled = true;
+      if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Auditing Wallet Holdings...';
+        btn.disabled = true;
+      }
 
       try {
         const res = await fetch('/api/scan-wallet-tokens', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ walletAddress, customTokenAddresses })
+          body: JSON.stringify({ walletAddress, customTokenAddresses }),
+          signal: _activeScanAbortController.signal
         });
         const result = await res.json();
+
+        // FIX 3 & Race Condition Guard: ensure response matches active request ID
+        if (currentRequestId !== _walletScanRequestId) {
+          console.warn('Discarding stale wallet scan response (request ID superseded).');
+          return;
+        }
+
+        // If this was a Mode B scan, verify the wallet is still connected and account has not changed
+        if (isModeB) {
+          if (!_walletConnected || !_walletAddress || _walletAddress.toLowerCase() !== (expectedWallet || '').toLowerCase()) {
+            console.warn('Discarding Mode B scan result: wallet disconnected or account changed during in-flight scan.');
+            return;
+          }
+          if (_walletChainId && _walletChainId !== BASE_CHAIN_ID) {
+            console.warn('Discarding Mode B scan result: network changed away from Base during in-flight scan.');
+            walletStatus('Scan cancelled · wrong network', 'Network was switched away from Base during scan.', 'error');
+            return;
+          }
+        }
+
         renderWalletScanResult(result);
       } catch (err) {
-        alert('Wallet scan failed: ' + err.message);
+        if (err && err.name === 'AbortError') {
+          return; // Intentionally aborted
+        }
+        if (currentRequestId === _walletScanRequestId) {
+          alert('Wallet scan failed: ' + err.message);
+        }
       } finally {
-        btn.innerHTML = '<i class="fa-solid fa-radar"></i> Scan Wallet Token Portfolio';
-        btn.disabled = false;
+        if (btn) {
+          btn.innerHTML = '<i class="fa-solid fa-radar"></i> Scan Wallet Token Portfolio';
+          btn.disabled = false;
+        }
         updateTelemetry();
       }
     }
@@ -3628,6 +3920,31 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
       document.getElementById('stat-tokens-suspicious').textContent = suspicious;
       document.getElementById('stat-tokens-clean').textContent = clean;
 
+      // Populate audit metadata bar
+      const metaAddr = document.getElementById('meta-wallet-address');
+      if (metaAddr) metaAddr.textContent = data.walletAddress || '-';
+      const metaNet = document.getElementById('meta-wallet-network');
+      if (metaNet) metaNet.textContent = data.networkName || 'Base Mainnet (8453)';
+      const metaProv = document.getElementById('meta-wallet-provider');
+      if (metaProv) metaProv.textContent = data.dataProvider || 'Alchemy Base API + GoPlus';
+      const metaStat = document.getElementById('meta-wallet-status');
+      if (metaStat) {
+        metaStat.textContent = data.scanCompletionStatus || 'COMPLETE';
+        metaStat.style.color = (data.scanCompletionStatus === 'PARTIAL') ? 'var(--amber)' : 'var(--emerald)';
+      }
+      const metaTime = document.getElementById('meta-wallet-timestamp');
+      if (metaTime) metaTime.textContent = new Date(data.timestamp || Date.now()).toLocaleTimeString();
+
+      // Populate native ETH card
+      const ethFormatted = document.getElementById('eth-balance-formatted');
+      const ethWei = document.getElementById('eth-balance-wei');
+      const ethProv = document.getElementById('eth-provider-name');
+      if (data.nativeEth) {
+        if (ethFormatted) ethFormatted.textContent = (data.nativeEth.balanceEth || '0') + ' ETH';
+        if (ethWei) ethWei.textContent = (data.nativeEth.balanceWei || '0') + ' wei';
+        if (ethProv) ethProv.textContent = data.nativeEth.provider || 'Alchemy Base Mainnet';
+      }
+
       hero.className = 'verdict-hero';
 
       if (highRisk > 0) {
@@ -3653,7 +3970,19 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
         badge.innerHTML = '<i class="fa-solid fa-check"></i> NO KNOWN THREATS';
       }
 
-      list.innerHTML = (data.tokens || []).map(t => {
+      const tokenItems = data.tokens || [];
+      if (tokenItems.length === 0) {
+        list.innerHTML = `
+          <div class="glass-card" style="padding: 2rem; text-align: center; color: var(--text-dim); border: 1px dashed var(--border-subtle);">
+            <i class="fa-solid fa-wallet" style="font-size: 2rem; margin-bottom: 0.75rem; color: var(--cyan); opacity: 0.7;"></i>
+            <div style="font-size: 1rem; font-weight: 600; color: #ffffff;">No ERC-20 Token Holdings Found</div>
+            <div style="font-size: 0.8rem; margin-top: 0.35rem; color: var(--text-dim);">This wallet currently holds no non-zero ERC-20 token balances on Base Mainnet. Native ETH balance is displayed above.</div>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = tokenItems.map(t => {
         let cardBorder = 'var(--border-subtle)';
         let statusBadgeClass = 'low';
         let statusIcon = 'fa-solid fa-circle-check';
@@ -3672,17 +4001,7 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
           statusIcon = 'fa-solid fa-circle-question';
         }
 
-        // Format balance human-readably
-        let balanceDisplay = t.balance;
-        try {
-          if (t.balance && t.decimals !== undefined) {
-            const b = BigInt(t.balance);
-            const dec = BigInt(10 ** Math.min(t.decimals, 18));
-            const whole = b / dec;
-            const frac = (b % dec).toString().padStart(Math.min(t.decimals, 18), '0').slice(0, 4);
-            balanceDisplay = whole.toString() + (frac !== '0000' ? '.' + frac : '');
-          }
-        } catch {}
+        const balanceDisplay = t.formattedBalance || t.balance;
 
         return `
           <div class="glass-card" style="padding: 1.25rem; border: 1px solid ${cardBorder};">
@@ -3748,10 +4067,28 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
     const BASE_CHAIN_ID = '0x2105'; // Base Mainnet, 8453 decimal
     let _walletConnected = false;
     let _walletAddress = null;
+    let _walletChainId = null;
     let _walletProvider = null;
     let _walletProviderLabel = 'Injected wallet';
+    let _walletScanRequestId = 0;
+    let _activeScanAbortController = null;
     const _announcedWalletProviders = new Map();
     const _boundWalletProviders = new WeakSet();
+
+    function clearWalletScanResults() {
+      const container = document.getElementById('wallet-scanner-results');
+      if (container) container.style.display = 'none';
+      const list = document.getElementById('wallet-tokens-list');
+      if (list) list.innerHTML = '';
+      const total = document.getElementById('stat-tokens-total');
+      if (total) total.textContent = '0';
+      const highRisk = document.getElementById('stat-tokens-high-risk');
+      if (highRisk) highRisk.textContent = '0';
+      const suspicious = document.getElementById('stat-tokens-suspicious');
+      if (suspicious) suspicious.textContent = '0';
+      const clean = document.getElementById('stat-tokens-clean');
+      if (clean) clean.textContent = '0';
+    }
 
     window.addEventListener('eip6963:announceProvider', (event) => {
       const detail = event && event.detail;
@@ -3859,8 +4196,9 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
           params: [{ chainId: BASE_CHAIN_ID }]
         });
         const chainId = await _walletProvider.request({ method: 'eth_chainId' });
-        updateWalletNetworkBadge(chainId);
-        if (chainId.toLowerCase() === BASE_CHAIN_ID) {
+        _walletChainId = String(chainId).toLowerCase();
+        updateWalletNetworkBadge(_walletChainId);
+        if (_walletChainId === BASE_CHAIN_ID) {
           walletStatus('Base Mainnet connected', 'Wallet is on Base. PayGuard remains advisory and never signs transactions for you.', 'success');
         }
       } catch (error) {
@@ -3877,7 +4215,8 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
               }]
             });
             const chainId = await _walletProvider.request({ method: 'eth_chainId' });
-            updateWalletNetworkBadge(chainId);
+            _walletChainId = String(chainId).toLowerCase();
+            updateWalletNetworkBadge(_walletChainId);
             return;
           } catch (addError) {
             const issue = walletErrorMessage(addError);
@@ -3899,10 +4238,21 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
           walletStatus('Wallet disconnected', 'No account is currently shared with PayGuard.');
           return;
         }
+        // FIX 4: Respect explicit disconnect.
+        // If the user has explicitly disconnected or has no active authorized session,
+        // do NOT auto-reconnect on external accountsChanged.
+        // A new connection must require an explicit user action.
+        if (!_walletConnected) {
+          return;
+        }
         walletOnConnected(accounts[0], provider);
       });
       provider.on('chainChanged', (chainId) => {
-        updateWalletNetworkBadge(String(chainId));
+        _walletChainId = String(chainId).toLowerCase();
+        updateWalletNetworkBadge(_walletChainId);
+        if (_walletConnected && _walletChainId !== BASE_CHAIN_ID) {
+          walletStatus('Wallet on wrong network', 'Your wallet is connected to a network other than Base Mainnet (0x2105). Switch to Base to scan holdings.', 'error');
+        }
       });
       provider.on('disconnect', () => {
         walletDisconnect();
@@ -3957,9 +4307,23 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
         walletStatus('Invalid wallet account', 'The selected provider returned an invalid EVM account address.', 'error');
         return;
       }
+
+      const previousAddress = _walletAddress;
+      const isNewAccount = !previousAddress || previousAddress.toLowerCase() !== address.toLowerCase();
+
       _walletConnected = true;
       _walletAddress = address;
       if (provider) _walletProvider = provider;
+
+      // FIX 3: Clear stale scan results immediately if the connected account changed
+      if (isNewAccount && previousAddress !== null) {
+        _walletScanRequestId++;
+        if (_activeScanAbortController) {
+          try { _activeScanAbortController.abort(); } catch {}
+          _activeScanAbortController = null;
+        }
+        clearWalletScanResults();
+      }
 
       const btn = document.getElementById('wallet-connect-btn');
       const label = document.getElementById('wallet-btn-label');
@@ -3972,23 +4336,33 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
 
       try {
         const chainId = await _walletProvider.request({ method: 'eth_chainId' });
-        updateWalletNetworkBadge(String(chainId));
-        if (String(chainId).toLowerCase() !== BASE_CHAIN_ID) {
+        _walletChainId = String(chainId).toLowerCase();
+        updateWalletNetworkBadge(_walletChainId);
+        if (_walletChainId !== BASE_CHAIN_ID) {
           walletStatus('Wallet connected · wrong network', 'Your account is connected, but this dashboard targets Base Mainnet. Select “Switch to Base” in the header when you are ready.', 'error');
         } else {
           walletStatus(_walletProviderLabel + ' connected', 'Base Mainnet detected. PayGuard is read-only and will never sign a transaction for you.', 'success');
         }
       } catch (error) {
+        _walletChainId = null;
         walletStatus('Wallet connected · network unknown', 'Account access succeeded, but the provider could not confirm the active chain. Treat network-specific results as unavailable.', 'error');
       }
 
-      const scannerInput = document.getElementById('scanner-wallet-address');
-      if (scannerInput) scannerInput.value = address;
+      // FIX 1: Do NOT overwrite scanner-wallet-address here.
+      // Mode A input is preserved. Mode B populates it only when "Scan My Wallet Holdings" is clicked.
+      updateWalletModeBPanel();
     }
 
     function walletDisconnect() {
+      _walletScanRequestId++;
+      if (_activeScanAbortController) {
+        try { _activeScanAbortController.abort(); } catch {}
+        _activeScanAbortController = null;
+      }
+      clearWalletScanResults();
       _walletConnected = false;
       _walletAddress = null;
+      _walletChainId = null;
       const btn = document.getElementById('wallet-connect-btn');
       const label = document.getElementById('wallet-btn-label');
       const networkBadge = document.getElementById('wallet-network-badge');
@@ -4002,6 +4376,7 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
         networkBadge.removeAttribute('role');
         networkBadge.removeAttribute('tabindex');
       }
+      updateWalletModeBPanel();
     }
 
     const walletNetworkBadge = document.getElementById('wallet-network-badge');
@@ -4025,6 +4400,126 @@ main, .tab-content, .glass-card { width:100%; max-width:100%; min-width:0; }
       }
     }, 250);
 
+
+    // ── NEAR Protocol Security Intelligence ──────────────────────
+    function setNearPreset(accountId) {
+      document.getElementById('near-account-id').value = accountId;
+      runNearSecurity();
+    }
+
+    async function runNearSecurity() {
+      const accountId = (document.getElementById('near-account-id').value || '').trim();
+      if (!accountId) { alert('Enter a NEAR account ID.'); return; }
+      const btn = document.getElementById('btn-near-scan');
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Analyzing NEAR Account...';
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/near-security', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ accountId })
+        });
+        const data = await res.json();
+        renderNearResult(data);
+        window.dispatchEvent(new CustomEvent('payguard:near-result', { detail: { accountId, result: data } }));
+      } catch (err) {
+        alert('NEAR security scan failed: ' + err.message);
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-atom"></i> Run NEAR Security Analysis';
+        btn.disabled = false;
+        updateTelemetry();
+      }
+    }
+
+    function renderNearResult(data) {
+      const container = document.getElementById('near-verdict-container');
+      const hero = document.getElementById('near-verdict-hero');
+      const iconBox = document.getElementById('near-icon-box');
+      const title = document.getElementById('near-verdict-title');
+      const summary = document.getElementById('near-verdict-summary');
+      const riskBadge = document.getElementById('near-risk-badge');
+      const guidance = document.getElementById('near-action-text');
+      const findingsGrid = document.getElementById('near-findings-grid');
+      const metaBox = document.getElementById('near-metadata-box');
+      const metaContent = document.getElementById('near-metadata-content');
+      const coverageContent = document.getElementById('near-coverage-content');
+      container.style.display = 'block';
+
+      const verdict = (data.verdict || data.assessment?.verdict || 'UNVERIFIED').toUpperCase();
+      const findings = Array.isArray(data.findings) ? data.findings
+        : Array.isArray(data.assessment?.findings) ? data.assessment.findings : [];
+      hero.className = 'verdict-hero';
+
+      const verdictMap = {
+        LOW: { cls:'PASS', icon:'fa-shield', badgeCls:'low', badgeLabel:'LOW Risk', titleTxt:'NEAR Account — Low Risk', guidance:'No significant security flags detected. Always verify independently before sending funds.' },
+        MEDIUM: { cls:'REVIEW', icon:'fa-triangle-exclamation', badgeCls:'medium', badgeLabel:'MEDIUM Risk', titleTxt:'NEAR Account — Elevated Risk', guidance:'Moderate risk signals detected. Review the findings carefully before interacting.' },
+        HIGH: { cls:'BLOCK', icon:'fa-shield-xmark', badgeCls:'high', badgeLabel:'HIGH Risk', titleTxt:'NEAR Account — HIGH Risk', guidance:'High-risk indicators found. Exercise extreme caution.' },
+        UNVERIFIED: { cls:'UNVERIFIED', icon:'fa-triangle-exclamation', badgeCls:'medium', badgeLabel:'UNVERIFIED', titleTxt:'NEAR Account — Unverified', guidance:'The account could not be fully verified. Provider may be unavailable or account does not exist.' },
+        INVALID: { cls:'BLOCK', icon:'fa-ban', badgeCls:'high', badgeLabel:'INVALID', titleTxt:'Invalid NEAR Account ID', guidance:'The supplied account ID violates NEAR protocol naming rules.' }
+      };
+      const vm = verdictMap[verdict] || verdictMap['UNVERIFIED'];
+      hero.classList.add(vm.cls);
+      iconBox.innerHTML = '<i class="fa-solid ' + vm.icon + '"></i>';
+      title.textContent = data.assessment?.accountId ? vm.titleTxt + ' — ' + data.assessment.accountId : vm.titleTxt;
+      riskBadge.className = 'verdict-risk-tag ' + vm.badgeCls;
+      riskBadge.innerHTML = '<i class="fa-solid fa-shield"></i> ' + vm.badgeLabel;
+      summary.textContent = data.summary || data.assessment?.summary || 'NEAR Protocol security assessment complete.';
+      guidance.textContent = data.recommendation || data.assessment?.recommendation || vm.guidance;
+
+      // Findings
+      findingsGrid.innerHTML = findings.length === 0
+        ? '<div style="color:var(--text-muted);font-size:0.9rem;padding:0.75rem 0"><i class="fa-solid fa-circle-check" style="color:var(--emerald);margin-right:0.5rem"></i>No adverse findings detected.</div>'
+        : findings.map(f => {
+          const sev = (f.severity || '').toLowerCase();
+          const cls = sev === 'critical' || sev === 'high' ? 'fail' : sev === 'medium' ? 'warn' : 'pass';
+          const icon = cls === 'fail' ? 'fa-circle-xmark' : cls === 'warn' ? 'fa-triangle-exclamation' : 'fa-circle-check';
+          const label = cls === 'fail' ? (sev === 'critical' ? 'CRITICAL' : 'HIGH') : cls === 'warn' ? 'MEDIUM' : 'INFO';
+          const title = f.name || f.title || (f.code ? f.code.replace(/_/g, ' ') : 'Security Indicator');
+          return `
+            <div class="check-card ${cls}">
+              <div class="check-card-header">
+                <div class="check-title-group"><i class="fa-solid fa-atom" style="color:var(--cyan);font-size:0.95rem"></i><span class="check-friendly-name">${title}</span></div>
+                <span class="check-badge"><i class="fa-solid ${icon}"></i> ${label}</span>
+              </div>
+              <div class="check-explain">${f.message || f.detail || ''}</div>
+              <div class="check-tech-id">Category: ${f.category || 'NEAR Protocol'}</div>
+            </div>
+          `;
+        }).join('');
+
+      // Metadata
+      const account = data.account || data.assessment?.account;
+      if (account) {
+        const meta = {
+          accountId: data.assessment?.accountId || '',
+          status: account.status,
+          balance: account.balanceNear || account.balance,
+          storageBytes: account.storageBytes,
+          codeHash: account.codeHash,
+          blockHeight: account.blockHeight,
+          blockHash: account.blockHash,
+          fullAccessKeys: account.fullAccessKeyCount,
+          functionCallKeys: account.functionCallKeyCount
+        };
+        Object.keys(meta).forEach(k => { if (meta[k] === undefined || meta[k] === null) delete meta[k]; });
+        metaContent.textContent = JSON.stringify(meta, null, 2);
+        metaBox.style.display = 'block';
+      } else {
+        metaBox.style.display = 'none';
+      }
+
+      // Coverage matrix
+      const coverage = data.coverage || data.assessment?.coverage || {};
+      const covEntries = Object.entries(coverage);
+      coverageContent.innerHTML = covEntries.length === 0
+        ? '<span style="color:var(--text-dim)">No coverage matrix available.</span>'
+        : covEntries.map(([k, v]) => {
+          const done = v === true || v === 'done' || v === 'available';
+          const ic = done ? 'fa-circle-check' : 'fa-circle-xmark';
+          const col = done ? 'var(--emerald)' : 'var(--text-dim)';
+          return `<span style="display:inline-flex;align-items:center;gap:0.3rem;margin-right:1rem;margin-bottom:0.35rem"><i class="fa-solid ${ic}" style="color:${col}"></i> ${k}</span>`;
+        }).join('');
+    }
 
     // Progressive dashboard entrance motion. Core UI remains usable if GSAP is unavailable.
     window.addEventListener('load', function () {

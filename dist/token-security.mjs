@@ -125,6 +125,24 @@ export function evaluateTokenSecurityData(rawToken, chainId, contractAddress) {
   if (rawToken.is_proxy === "1" || rawToken.is_proxy === 1) {
     addFinding("UPGRADEABLE_PROXY", "info", "Contract is an upgradeable proxy; underlying logic could be changed by owner.");
   }
+  if (rawToken.is_blacklisted === "1" || rawToken.is_blacklisted === 1) {
+    addFinding("BLACKLIST_PERMISSION", "high", "Contract owner has permissions to blacklist addresses and freeze tokens.");
+  }
+  if (rawToken.is_whitelisted === "1" || rawToken.is_whitelisted === 1) {
+    addFinding("WHITELIST_RESTRICTION", "high", "Only whitelisted accounts can trade or transfer this token.");
+  }
+  if (rawToken.can_take_back_ownership === "1" || rawToken.can_take_back_ownership === 1 || rawToken.hidden_owner === "1" || rawToken.hidden_owner === 1) {
+    addFinding("HIDDEN_OWNER_TAKEOVER", "high", "Contract owner can reclaim renounced ownership or hidden owner detected.");
+  }
+  if (rawToken.is_airdrop_scam === "1" || rawToken.is_airdrop_scam === 1) {
+    addFinding("AIRDROP_SCAM_TOKEN", "critical", "Token identified by GoPlus security intelligence as an airdrop scam.");
+  }
+  if (rawToken.is_anti_whale === "1" || rawToken.is_anti_whale === 1) {
+    addFinding("ANTI_WHALE_RESTRICTION", "info", "Anti-whale mechanism limits maximum transaction or holding amount.");
+  }
+  if (rawToken.is_in_dex === "0" || rawToken.is_in_dex === 0) {
+    addFinding("NO_DEX_LIQUIDITY", "medium", "Token does not appear to have active liquidity on recognized decentralized exchanges.");
+  }
 
   // 4. Source Verification & Trust Indicators
   if (rawToken.is_open_source === "0" || rawToken.is_open_source === 0) {

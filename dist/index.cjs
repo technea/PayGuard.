@@ -5,7 +5,8 @@
 const { inspectCalldata } = require('./calldata-inspector.cjs');
 const { checkTokenSecurity } = require('./token-security.cjs');
 const { checkAddressSecurity } = require('./address-security.cjs');
-import { scanBaseWalletTokens } from "./wallet-token-scanner.mjs";
+const { scanBaseWalletTokens, getWalletTokenBalance, getWalletPortfolio, verifyWalletScan } = require('./wallet-token-scanner.cjs');
+const { analyzeNearSecurity, NEAR_AGENT_TOOL_NAME, NEAR_AGENT_TOOL_DESCRIPTION, NEAR_AGENT_INPUT_SCHEMA, payGuardNearSecurityTool } = require('./near-security.cjs');
 /**
  * PayGuard: policy-based x402 payment-intent checker.
  *
@@ -1257,6 +1258,43 @@ async function payGuardScanWalletTokens(input, options = {}) {
   }, options);
 }
 
+async function payGuardScanWalletHoldings(input, options = {}) {
+  return payGuardScanWalletTokens(input, options);
+}
+
+async function payGuardGetTokenBalance(input, options = {}) {
+  if (!isRecord(input)) {
+    return { status: "ERROR", error: "Input must be a valid JSON object containing walletAddress." };
+  }
+  return getWalletTokenBalance({
+    walletAddress: typeof input.walletAddress === "string" ? input.walletAddress : "",
+    tokenAddress: typeof input.tokenAddress === "string" ? input.tokenAddress : undefined
+  }, options);
+}
+
+async function payGuardGetWalletPortfolio(input, options = {}) {
+  if (!isRecord(input)) {
+    return { status: "ERROR", error: "Input must be a valid JSON object containing walletAddress." };
+  }
+  return getWalletPortfolio({
+    walletAddress: typeof input.walletAddress === "string" ? input.walletAddress : ""
+  }, options);
+}
+
+async function payGuardVerifyWalletScan(input, options = {}) {
+  if (!isRecord(input)) {
+    return { status: "ERROR", error: "Input must be a valid JSON object containing walletAddress." };
+  }
+  return verifyWalletScan({
+    walletAddress: typeof input.walletAddress === "string" ? input.walletAddress : "",
+    scanResult: input.scanResult
+  }, options);
+}
+
+async function payGuardAnalyzeNearSecurity(input, options = {}) {
+  return analyzeNearSecurity(input, options);
+}
+
 const payGuardWalletScannerTool = Object.freeze({
   id: WALLET_SCANNER_NAME,
   name: WALLET_SCANNER_NAME,
@@ -1271,7 +1309,143 @@ const payGuardWalletScannerTool = Object.freeze({
   run: payGuardScanWalletTokens
 });
 
-const tools = Object.freeze([payGuardTool, payGuardUrlSentinelTool, payGuardThreatReportTool, payGuardCalldataInspectorTool, payGuardTokenSecurityTool, payGuardAddressSecurityTool, payGuardWalletScannerTool]);
+const payGuardScanWalletHoldingsTool = Object.freeze({
+  id: "scan_wallet_holdings",
+  name: "scan_wallet_holdings",
+  title: "scan_wallet_holdings",
+  description: "Discover and scan all ERC-20 token holdings and native ETH in a Base Mainnet wallet for honeypots, malicious taxes, impersonation of official Base assets, and suspicious airdrops.",
+  inputSchema: WALLET_SCANNER_SCHEMA,
+  input_schema: WALLET_SCANNER_SCHEMA,
+  outputSchema: { type: "object" },
+  output_schema: { type: "object" },
+  handler: payGuardScanWalletHoldings,
+  execute: payGuardScanWalletHoldings,
+  run: payGuardScanWalletHoldings
+});
+
+const payGuardGetTokenBalanceTool = Object.freeze({
+  id: "get_token_balance",
+  name: "get_token_balance",
+  title: "get_token_balance",
+  description: "Retrieve native ETH balance or specific ERC-20 token balance and metadata for a Base Mainnet wallet address.",
+  inputSchema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["walletAddress"],
+    properties: {
+      walletAddress: {
+        type: "string",
+        pattern: "^0x[0-9a-fA-F]{40}$",
+        description: "Base wallet address (20-byte hexadecimal string prefixed with 0x)."
+      },
+      tokenAddress: {
+        type: "string",
+        pattern: "^0x[0-9a-fA-F]{40}$",
+        description: "Optional ERC-20 token contract address. Omit or set to ETH for native Base ETH."
+      }
+    }
+  },
+  input_schema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["walletAddress"],
+    properties: {
+      walletAddress: { type: "string", pattern: "^0x[0-9a-fA-F]{40}$" },
+      tokenAddress: { type: "string", pattern: "^0x[0-9a-fA-F]{40}$" }
+    }
+  },
+  outputSchema: { type: "object" },
+  output_schema: { type: "object" },
+  handler: payGuardGetTokenBalance,
+  execute: payGuardGetTokenBalance,
+  run: payGuardGetTokenBalance
+});
+
+const payGuardGetWalletPortfolioTool = Object.freeze({
+  id: "get_wallet_portfolio",
+  name: "get_wallet_portfolio",
+  title: "get_wallet_portfolio",
+  description: "Retrieve complete Base Mainnet wallet portfolio including native ETH balance and all discovered ERC-20 token balances with symbols and metadata.",
+  inputSchema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["walletAddress"],
+    properties: {
+      walletAddress: {
+        type: "string",
+        pattern: "^0x[0-9a-fA-F]{40}$",
+        description: "Base wallet address to query portfolio for."
+      }
+    }
+  },
+  input_schema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["walletAddress"],
+    properties: {
+      walletAddress: { type: "string", pattern: "^0x[0-9a-fA-F]{40}$" }
+    }
+  },
+  outputSchema: { type: "object" },
+  output_schema: { type: "object" },
+  handler: payGuardGetWalletPortfolio,
+  execute: payGuardGetWalletPortfolio,
+  run: payGuardGetWalletPortfolio
+});
+
+const payGuardVerifyWalletScanTool = Object.freeze({
+  id: "verify_wallet_scan",
+  name: "verify_wallet_scan",
+  title: "verify_wallet_scan",
+  description: "Verify the integrity and safety status of a Base wallet token scan, confirming absence of high-risk drainers or suspicious assets.",
+  inputSchema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["walletAddress"],
+    properties: {
+      walletAddress: {
+        type: "string",
+        pattern: "^0x[0-9a-fA-F]{40}$",
+        description: "Base wallet address to verify."
+      },
+      scanResult: {
+        type: "object",
+        description: "Optional previous scan result to verify integrity for."
+      }
+    }
+  },
+  input_schema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["walletAddress"],
+    properties: {
+      walletAddress: { type: "string", pattern: "^0x[0-9a-fA-F]{40}$" },
+      scanResult: { type: "object" }
+    }
+  },
+  outputSchema: { type: "object" },
+  output_schema: { type: "object" },
+  handler: payGuardVerifyWalletScan,
+  execute: payGuardVerifyWalletScan,
+  run: payGuardVerifyWalletScan
+});
+
+
+
+const tools = Object.freeze([
+  payGuardTool,
+  payGuardUrlSentinelTool,
+  payGuardThreatReportTool,
+  payGuardCalldataInspectorTool,
+  payGuardTokenSecurityTool,
+  payGuardAddressSecurityTool,
+  payGuardWalletScannerTool,
+  payGuardNearSecurityTool,
+  payGuardScanWalletHoldingsTool,
+  payGuardGetTokenBalanceTool,
+  payGuardGetWalletPortfolioTool,
+  payGuardVerifyWalletScanTool
+]);
 
 const plugin = Object.freeze({
   id: "payguard",
@@ -1279,7 +1453,7 @@ const plugin = Object.freeze({
   version: "0.1.0",
   category: "merchant-tools",
   protocol: "mcp",
-  description: "URL phishing and impersonation analysis, privacy-conscious threat-report drafts, and read-only x402 payment-intent policy checks. Never opens URLs or executes payments.",
+  description: "URL phishing and impersonation analysis, privacy-conscious threat-report drafts, NEAR Protocol intelligence, and read-only x402 payment-intent policy checks. Never opens URLs or executes payments.",
   tools,
   invokeTool(name, input) {
     if (name === TOOL_NAME) return evaluatePaymentIntent(input);
@@ -1288,7 +1462,11 @@ const plugin = Object.freeze({
     if (name === CALLDATA_INSPECTOR_NAME) return payGuardInspectCalldata(input);
     if (name === TOKEN_SECURITY_NAME) return payGuardCheckTokenSecurity(input);
     if (name === ADDRESS_SECURITY_NAME) return payGuardCheckAddressSecurity(input);
-    if (name === WALLET_SCANNER_NAME) return payGuardScanWalletTokens(input);
+    if (name === WALLET_SCANNER_NAME || name === "scan_wallet_holdings" || name === "payguard_scan_wallet_holdings") return payGuardScanWalletTokens(input);
+    if (name === "get_token_balance" || name === "payguard_get_token_balance") return payGuardGetTokenBalance(input);
+    if (name === "get_wallet_portfolio" || name === "payguard_get_wallet_portfolio") return payGuardGetWalletPortfolio(input);
+    if (name === "verify_wallet_scan" || name === "payguard_verify_wallet_scan") return payGuardVerifyWalletScan(input);
+    if (name === NEAR_AGENT_TOOL_NAME) return payGuardAnalyzeNearSecurity(input);
     throw new Error(`Unknown tool: ${String(name)}`);
   },
   execute(name, input) {
@@ -1470,6 +1648,12 @@ const cjsExport = Object.assign({}, plugin, {
   payGuardCalldataInspectorTool: payGuardCalldataInspectorTool,
   payGuardTokenSecurityTool: payGuardTokenSecurityTool,
   payGuardAddressSecurityTool: payGuardAddressSecurityTool,
+  payGuardWalletScannerTool: payGuardWalletScannerTool,
+  payGuardNearSecurityTool: payGuardNearSecurityTool,
+  payGuardScanWalletHoldingsTool: payGuardScanWalletHoldingsTool,
+  payGuardGetTokenBalanceTool: payGuardGetTokenBalanceTool,
+  payGuardGetWalletPortfolioTool: payGuardGetWalletPortfolioTool,
+  payGuardVerifyWalletScanTool: payGuardVerifyWalletScanTool,
   evaluatePaymentIntent: evaluatePaymentIntent,
   createPayGuardX402Hook: createPayGuardX402Hook,
   registerPayGuardX402: registerPayGuardX402,
@@ -1478,6 +1662,12 @@ const cjsExport = Object.assign({}, plugin, {
   payGuardInspectCalldata: payGuardInspectCalldata,
   payGuardCheckTokenSecurity: payGuardCheckTokenSecurity,
   payGuardCheckAddressSecurity: payGuardCheckAddressSecurity,
+  payGuardScanWalletTokens: payGuardScanWalletTokens,
+  payGuardScanWalletHoldings: payGuardScanWalletHoldings,
+  payGuardGetTokenBalance: payGuardGetTokenBalance,
+  payGuardGetWalletPortfolio: payGuardGetWalletPortfolio,
+  payGuardVerifyWalletScan: payGuardVerifyWalletScan,
+  payGuardAnalyzeNearSecurity: payGuardAnalyzeNearSecurity,
   startMcpServer: startMcpServer
 });
 module.exports = cjsExport;
