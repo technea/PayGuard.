@@ -1,3 +1,5 @@
+try { process.loadEnvFile(); } catch {}
+
 import http from "node:http";
 import { readFileSync, existsSync } from "node:fs";
 import {

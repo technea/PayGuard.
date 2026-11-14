@@ -68,7 +68,8 @@ function toCommonJS(esmCode) {
     .replace(/^import\s+.*?\s+from\s+['"]\.\/calldata-inspector\.mjs['"];?/gm, "const { inspectCalldata } = require('./calldata-inspector.cjs');")
     .replace(/^import\s+.*?\s+from\s+['"]\.\/token-security\.mjs['"];?/gm, "const { checkTokenSecurity } = require('./token-security.cjs');")
     .replace(/^import\s+.*?\s+from\s+['"]\.\/address-security\.mjs['"];?/gm, "const { checkAddressSecurity } = require('./address-security.cjs');")
-    .replace(/^import\s+.*?\s+from\s+['"]\.\/wallet-token-scanner\.mjs['"];?/gm, "const { scanBaseWalletTokens } = require('./wallet-token-scanner.cjs');")
+    .replace(/^import\s*\{[\s\S]*?\}\s*from\s*['"]\.\/wallet-token-scanner\.mjs['"];?/gm, "const { scanBaseWalletTokens, getWalletTokenBalance, getWalletPortfolio, verifyWalletScan } = require('./wallet-token-scanner.cjs');")
+    .replace(/^import\s+.*?\s+from\s+['"]\.\/wallet-token-scanner\.mjs['"];?/gm, "const { scanBaseWalletTokens, getWalletTokenBalance, getWalletPortfolio, verifyWalletScan } = require('./wallet-token-scanner.cjs');")
     .replace(/^import\s*\{[\s\S]*?\}\s*from\s*['"]\.\/near-security\.mjs['"];?/gm, "const { analyzeNearSecurity, NEAR_AGENT_TOOL_NAME, NEAR_AGENT_TOOL_DESCRIPTION, NEAR_AGENT_INPUT_SCHEMA, payGuardNearSecurityTool } = require('./near-security.cjs');")
     .replace(/^export\s*\{[\s\S]*?\};?/gm, '')
     .replace(/^export\s+async\s+function\s+([a-zA-Z0-9_$]+)/gm, 'async function $1')
@@ -90,6 +91,10 @@ const cjsExport = Object.assign({}, plugin, {
   payGuardAddressSecurityTool: payGuardAddressSecurityTool,
   payGuardWalletScannerTool: payGuardWalletScannerTool,
   payGuardNearSecurityTool: payGuardNearSecurityTool,
+  payGuardScanWalletHoldingsTool: payGuardScanWalletHoldingsTool,
+  payGuardGetTokenBalanceTool: payGuardGetTokenBalanceTool,
+  payGuardGetWalletPortfolioTool: payGuardGetWalletPortfolioTool,
+  payGuardVerifyWalletScanTool: payGuardVerifyWalletScanTool,
   evaluatePaymentIntent: evaluatePaymentIntent,
   createPayGuardX402Hook: createPayGuardX402Hook,
   registerPayGuardX402: registerPayGuardX402,
@@ -99,6 +104,10 @@ const cjsExport = Object.assign({}, plugin, {
   payGuardCheckTokenSecurity: payGuardCheckTokenSecurity,
   payGuardCheckAddressSecurity: payGuardCheckAddressSecurity,
   payGuardScanWalletTokens: payGuardScanWalletTokens,
+  payGuardScanWalletHoldings: payGuardScanWalletHoldings,
+  payGuardGetTokenBalance: payGuardGetTokenBalance,
+  payGuardGetWalletPortfolio: payGuardGetWalletPortfolio,
+  payGuardVerifyWalletScan: payGuardVerifyWalletScan,
   payGuardAnalyzeNearSecurity: payGuardAnalyzeNearSecurity,
   startMcpServer: startMcpServer
 });
@@ -134,7 +143,7 @@ function toWalletScannerCJS(esmCode) {
     .replace(/^export\s+function\s+([a-zA-Z0-9_$]+)/gm, 'function $1')
     .replace(/^export\s+const\s+([a-zA-Z0-9_$]+)/gm, 'const $1')
     .replace(/^export\s+default\s+([a-zA-Z0-9_$]+);?/gm, '');
-  cjs += `\nmodule.exports = { BASE_CHAIN_ID, BASE_RPC_URL, BLOCKSCOUT_BASE_API, OFFICIAL_BASE_TOKENS, checkTokenImpersonation, getErc20Balance, getErc20Metadata, fetchBlockscoutTokens, evaluateWalletToken, scanBaseWalletTokens, default: scanBaseWalletTokens };\n`;
+  cjs += `\nmodule.exports = { BASE_CHAIN_ID, BASE_RPC_URL, BLOCKSCOUT_BASE_API, ALCHEMY_BASE_RPC, OFFICIAL_BASE_TOKENS, checkTokenImpersonation, formatTokenUnits, fetchNativeEthBalance, fetchAlchemyTokenBalances, fetchTokenMetadata, getErc20Balance, getErc20Metadata, fetchBlockscoutTokens, evaluateWalletToken, scanBaseWalletTokens, getWalletTokenBalance, getWalletPortfolio, verifyWalletScan, default: scanBaseWalletTokens };\n`;
   return cjs;
 }
 
@@ -239,6 +248,10 @@ export declare const payGuardTokenSecurityTool: any;
 export declare const payGuardAddressSecurityTool: any;
 export declare const payGuardWalletScannerTool: any;
 export declare const payGuardNearSecurityTool: any;
+export declare const payGuardScanWalletHoldingsTool: any;
+export declare const payGuardGetTokenBalanceTool: any;
+export declare const payGuardGetWalletPortfolioTool: any;
+export declare const payGuardVerifyWalletScanTool: any;
 export declare function evaluatePaymentIntent(input: any): any;
 export declare function createPayGuardX402Hook(options: { intent: Record<string, unknown>; onDecision?: (result: any, context: any) => void | Promise<void> }): (context: { paymentRequired?: any; selectedRequirements?: any }) => Promise<void | { abort: true; reason: string }>;
 export declare function registerPayGuardX402(client: { onBeforePaymentCreation(hook: (context: any) => Promise<any>): any }, options: { intent: Record<string, unknown>; onDecision?: (result: any, context: any) => void | Promise<void> }): any;
@@ -248,6 +261,10 @@ export declare function payGuardInspectCalldata(input: any): Promise<any>;
 export declare function payGuardCheckTokenSecurity(input: any, options?: any): Promise<any>;
 export declare function payGuardCheckAddressSecurity(input: any, options?: any): Promise<any>;
 export declare function payGuardScanWalletTokens(input: any, options?: any): Promise<any>;
+export declare function payGuardScanWalletHoldings(input: any, options?: any): Promise<any>;
+export declare function payGuardGetTokenBalance(input: any, options?: any): Promise<any>;
+export declare function payGuardGetWalletPortfolio(input: any, options?: any): Promise<any>;
+export declare function payGuardVerifyWalletScan(input: any, options?: any): Promise<any>;
 export declare function payGuardAnalyzeNearSecurity(input: any, options?: any): Promise<any>;
 export declare function startMcpServer(targetPlugin?: any): void;
 `;

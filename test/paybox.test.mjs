@@ -197,6 +197,6 @@ test("PayBox manifest and tool registration are intact", () => {
   assert.equal(payboxIntegration.manifest.id, "payguard");
   assert.ok(payboxIntegration.manifest.protocols.includes("x402"));
   assert.ok(payboxIntegration.manifest.protocols.includes("mcp"));
-  assert.equal(payboxIntegration.plugin.tools.length, 8);
+  assert.equal(payboxIntegration.plugin.tools.length, 12);
 });
 

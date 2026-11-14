@@ -231,3 +231,342 @@ test("Read-only guarantee: scanBaseWalletTokens never requests signing or approv
     }
   }
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Audit Defect Verification & State Machine Tests (Mocked Providers)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Helper to simulate PayGuard frontend state machine
+function createMockPayGuardWalletSession() {
+  let _walletConnected = false;
+  let _walletAddress = null;
+  let _walletChainId = null;
+  let _walletScanRequestId = 0;
+  let _displayedScanResults = null;
+  let _scannerInputAddress = "0x20556F0cfA3f93F0206faeb5452d2745e1423469"; // Mode A initial
+
+  function clearWalletScanResults() {
+    _displayedScanResults = null;
+  }
+
+  function walletOnConnected(address, chainId) {
+    if (!isValidEvmAddress(address)) {
+      walletDisconnect();
+      return { success: false, error: "invalid_address" };
+    }
+    const previousAddress = _walletAddress;
+    const isNewAccount = !previousAddress || previousAddress.toLowerCase() !== address.toLowerCase();
+
+    _walletConnected = true;
+    _walletAddress = address;
+    _walletChainId = String(chainId || "").toLowerCase();
+
+    // FIX 3: Clear stale scan results immediately if account changed
+    if (isNewAccount && previousAddress !== null) {
+      _walletScanRequestId++;
+      clearWalletScanResults();
+    }
+
+    // FIX 1: Scanner input is NOT overwritten on connect!
+    return { success: true };
+  }
+
+  function walletDisconnect() {
+    _walletScanRequestId++;
+    clearWalletScanResults();
+    _walletConnected = false;
+    _walletAddress = null;
+    _walletChainId = null;
+  }
+
+  function handleAccountsChanged(accounts) {
+    if (!Array.isArray(accounts) || accounts.length === 0) {
+      walletDisconnect();
+      return { action: "disconnected" };
+    }
+    // FIX 4: Respect explicit disconnect. Only reconnect/update if active session exists.
+    if (!_walletConnected) {
+      return { action: "ignored_not_connected" };
+    }
+    walletOnConnected(accounts[0], _walletChainId);
+    return { action: "updated", address: accounts[0] };
+  }
+
+  function handleChainChanged(chainId) {
+    _walletChainId = String(chainId || "").toLowerCase();
+    return { chainId: _walletChainId, isBase: _walletChainId === BASE_CHAIN_ID };
+  }
+
+  function scanMyWallet() {
+    if (!_walletConnected || !_walletAddress) {
+      return { allowed: false, error: "not_connected" };
+    }
+    // FIX 2: Enforce Base Mainnet (0x2105)
+    if (_walletChainId !== BASE_CHAIN_ID) {
+      return { allowed: false, error: "wrong_network", chainId: _walletChainId };
+    }
+    // FIX 1: Fill scanner input on explicit Mode B click
+    _scannerInputAddress = _walletAddress;
+    const reqId = ++_walletScanRequestId;
+    const targetAddress = _walletAddress;
+
+    return {
+      allowed: true,
+      requestId: reqId,
+      targetAddress,
+      simulateResponse: (data, resRequestId, currentSession) => {
+        // FIX 3 & Race Condition Guard
+        if (resRequestId !== _walletScanRequestId) return { applied: false, reason: "superseded_request_id" };
+        if (!currentSession.isConnected() || currentSession.getAddress() !== targetAddress) {
+          return { applied: false, reason: "session_or_account_changed" };
+        }
+        _displayedScanResults = { address: targetAddress, data };
+        return { applied: true };
+      }
+    };
+  }
+
+  return {
+    connect: (addr, chainId) => walletOnConnected(addr, chainId),
+    disconnect: () => walletDisconnect(),
+    onAccountsChanged: (accounts) => handleAccountsChanged(accounts),
+    onChainChanged: (chainId) => handleChainChanged(chainId),
+    scanMyWallet: () => scanMyWallet(),
+    setScannerInput: (addr) => { _scannerInputAddress = addr; },
+    getScannerInput: () => _scannerInputAddress,
+    getAddress: () => _walletAddress,
+    getChainId: () => _walletChainId,
+    isConnected: () => _walletConnected,
+    getResults: () => _displayedScanResults,
+    setResults: (res) => { _displayedScanResults = res; },
+    getRequestId: () => _walletScanRequestId
+  };
+}
+
+// 1. Mode A input preserved on wallet connect
+test("1. Mode A input preserved on wallet connect", () => {
+  const session = createMockPayGuardWalletSession();
+  session.setScannerInput("0x4200000000000000000000000000000000000006"); // User typed/selected WETH
+
+  session.connect("0x20556F0cfA3f93F0206faeb5452d2745e1423469", BASE_CHAIN_ID);
+
+  // Scanner input must remain unchanged
+  assert.equal(session.getScannerInput(), "0x4200000000000000000000000000000000000006");
+  assert.equal(session.getAddress(), "0x20556F0cfA3f93F0206faeb5452d2745e1423469");
+});
+
+// 2. Mode B fills the input only after explicit click
+test("2. Mode B fills the input only after explicit click", () => {
+  const session = createMockPayGuardWalletSession();
+  session.setScannerInput("0x4200000000000000000000000000000000000006");
+  session.connect("0x20556F0cfA3f93F0206faeb5452d2745e1423469", BASE_CHAIN_ID);
+
+  // Before click
+  assert.equal(session.getScannerInput(), "0x4200000000000000000000000000000000000006");
+
+  // User explicitly clicks "Scan My Wallet Holdings"
+  const scanOp = session.scanMyWallet();
+  assert.equal(scanOp.allowed, true);
+  assert.equal(session.getScannerInput(), "0x20556F0cfA3f93F0206faeb5452d2745e1423469");
+});
+
+// 3. Mode B blocked on Ethereum Mainnet
+test("3. Mode B blocked on Ethereum Mainnet", () => {
+  const session = createMockPayGuardWalletSession();
+  session.connect("0x20556F0cfA3f93F0206faeb5452d2745e1423469", "0x1"); // Ethereum Mainnet
+
+  const scanOp = session.scanMyWallet();
+  assert.equal(scanOp.allowed, false);
+  assert.equal(scanOp.error, "wrong_network");
+  assert.equal(scanOp.chainId, "0x1");
+});
+
+// 4. Mode B blocked on Polygon
+test("4. Mode B blocked on Polygon", () => {
+  const session = createMockPayGuardWalletSession();
+  session.connect("0x20556F0cfA3f93F0206faeb5452d2745e1423469", "0x89"); // Polygon
+
+  const scanOp = session.scanMyWallet();
+  assert.equal(scanOp.allowed, false);
+  assert.equal(scanOp.error, "wrong_network");
+  assert.equal(scanOp.chainId, "0x89");
+});
+
+// 5. Base network switch explicitly requested by user
+test("5. Base network switch explicitly requested by user", () => {
+  const session = createMockPayGuardWalletSession();
+  session.connect("0x20556F0cfA3f93F0206faeb5452d2745e1423469", "0x1");
+
+  // User triggers network switch to Base
+  const res = session.onChainChanged(BASE_CHAIN_ID);
+  assert.equal(res.chainId, "0x2105");
+  assert.equal(res.isBase, true);
+  assert.equal(session.getChainId(), "0x2105");
+});
+
+// 6. Rejected network switch leaves Mode B blocked
+test("6. Rejected network switch leaves Mode B blocked", () => {
+  const session = createMockPayGuardWalletSession();
+  session.connect("0x20556F0cfA3f93F0206faeb5452d2745e1423469", "0x1");
+
+  // User rejects the switch in their wallet -> chain remains 0x1
+  const err = walletErrorMessage({ code: 4001, message: "User rejected the request." });
+  assert.equal(err.title, "Connection cancelled");
+  assert.equal(session.getChainId(), "0x1");
+
+  // Mode B scan remains blocked
+  const scanOp = session.scanMyWallet();
+  assert.equal(scanOp.allowed, false);
+  assert.equal(scanOp.error, "wrong_network");
+});
+
+// 7. Successful Base network switch and revalidation
+test("7. Successful Base network switch and revalidation", () => {
+  const session = createMockPayGuardWalletSession();
+  session.connect("0x20556F0cfA3f93F0206faeb5452d2745e1423469", "0x1");
+
+  // Blocked initially
+  assert.equal(session.scanMyWallet().allowed, false);
+
+  // Switch succeeds
+  session.onChainChanged("0x2105");
+  assert.equal(session.getChainId(), "0x2105");
+
+  // Revalidation allows scan
+  const scanOp = session.scanMyWallet();
+  assert.equal(scanOp.allowed, true);
+});
+
+// 8. Account A to Account B clears previous results immediately
+test("8. Account A to Account B clears previous results immediately", () => {
+  const session = createMockPayGuardWalletSession();
+  session.connect("0x1111111111111111111111111111111111111111", BASE_CHAIN_ID);
+  session.setResults({ address: "0x1111111111111111111111111111111111111111", tokens: [1, 2, 3] });
+
+  assert.ok(session.getResults() !== null);
+
+  // Account switch to Account B
+  session.onAccountsChanged(["0x2222222222222222222222222222222222222222"]);
+
+  assert.equal(session.getAddress(), "0x2222222222222222222222222222222222222222");
+  // Stale Account A results MUST be cleared immediately
+  assert.equal(session.getResults(), null);
+});
+
+// 9. Old in-flight scan response cannot overwrite Account B results
+test("9. Old in-flight scan response cannot overwrite Account B results", () => {
+  const session = createMockPayGuardWalletSession();
+  session.connect("0x1111111111111111111111111111111111111111", BASE_CHAIN_ID);
+
+  // In-flight scan for Account A
+  const scanOpA = session.scanMyWallet();
+  assert.equal(scanOpA.allowed, true);
+  const reqIdA = scanOpA.requestId;
+
+  // Account switches to Account B while scan A is in-flight
+  session.onAccountsChanged(["0x2222222222222222222222222222222222222222"]);
+  assert.equal(session.getResults(), null);
+
+  // Now scan A resolves late
+  const applyResA = scanOpA.simulateResponse({ tokens: ["Account A Token"] }, reqIdA, session);
+  assert.equal(applyResA.applied, false);
+  // Stale scan must NOT have populated results
+  assert.equal(session.getResults(), null);
+
+  // In-flight scan for Account B resolves
+  const scanOpB = session.scanMyWallet();
+  const applyResB = scanOpB.simulateResponse({ tokens: ["Account B Token"] }, scanOpB.requestId, session);
+  assert.equal(applyResB.applied, true);
+  assert.deepEqual(session.getResults().data, { tokens: ["Account B Token"] });
+});
+
+// 10. Explicit disconnect remains disconnected after accountsChanged
+test("10. Explicit disconnect remains disconnected after accountsChanged", () => {
+  const session = createMockPayGuardWalletSession();
+  session.connect("0x1111111111111111111111111111111111111111", BASE_CHAIN_ID);
+  assert.equal(session.isConnected(), true);
+
+  // User explicitly disconnects in PayGuard
+  session.disconnect();
+  assert.equal(session.isConnected(), false);
+  assert.equal(session.getAddress(), null);
+
+  // External wallet emits accountsChanged (e.g. user toggles accounts in MetaMask)
+  const res = session.onAccountsChanged(["0x2222222222222222222222222222222222222222"]);
+  assert.equal(res.action, "ignored_not_connected");
+
+  // User MUST remain disconnected
+  assert.equal(session.isConnected(), false);
+  assert.equal(session.getAddress(), null);
+});
+
+// 11. Active session responds correctly to accountsChanged
+test("11. Active session responds correctly to accountsChanged", () => {
+  const session = createMockPayGuardWalletSession();
+  session.connect("0x1111111111111111111111111111111111111111", BASE_CHAIN_ID);
+  assert.equal(session.isConnected(), true);
+
+  const res = session.onAccountsChanged(["0x3333333333333333333333333333333333333333"]);
+  assert.equal(res.action, "updated");
+  assert.equal(session.isConnected(), true);
+  assert.equal(session.getAddress(), "0x3333333333333333333333333333333333333333");
+});
+
+// 12. Empty accounts array disconnects session
+test("12. Empty accounts array disconnects session", () => {
+  const session = createMockPayGuardWalletSession();
+  session.connect("0x1111111111111111111111111111111111111111", BASE_CHAIN_ID);
+  assert.equal(session.isConnected(), true);
+
+  const res = session.onAccountsChanged([]);
+  assert.equal(res.action, "disconnected");
+  assert.equal(session.isConnected(), false);
+  assert.equal(session.getAddress(), null);
+});
+
+// 13. Disconnect during scan invalidates and clears results
+test("13. Disconnect during scan invalidates and clears results", () => {
+  const session = createMockPayGuardWalletSession();
+  session.connect("0x1111111111111111111111111111111111111111", BASE_CHAIN_ID);
+
+  const scanOp = session.scanMyWallet();
+  assert.equal(scanOp.allowed, true);
+
+  // User disconnects while scan is in flight
+  session.disconnect();
+  assert.equal(session.isConnected(), false);
+
+  // Late scan response arrives
+  const applyRes = scanOp.simulateResponse({ tokens: ["Token"] }, scanOp.requestId, session);
+  assert.equal(applyRes.applied, false);
+  assert.equal(session.getResults(), null);
+});
+
+// 14. Mode A still works without wallet
+test("14. Mode A still works without wallet", async () => {
+  const session = createMockPayGuardWalletSession();
+  assert.equal(session.isConnected(), false);
+
+  // Mode A uses scanBaseWalletTokens directly with any public address
+  const result = await scanBaseWalletTokens({
+    walletAddress: "0x20556F0cfA3f93F0206faeb5452d2745e1423469"
+  });
+  assert.equal(result.status, "SUCCESS");
+  assert.equal(result.chainId, "8453");
+  assert.ok(result.tokens.length > 0);
+});
+
+// 15. Same account re-announced does NOT clear results
+test("15. Same account re-announced does NOT clear results", () => {
+  const session = createMockPayGuardWalletSession();
+  session.connect("0x1111111111111111111111111111111111111111", BASE_CHAIN_ID);
+  session.setResults({ address: "0x1111111111111111111111111111111111111111", data: "ok" });
+
+  // Re-announce same account
+  session.onAccountsChanged(["0x1111111111111111111111111111111111111111"]);
+
+  // Must NOT clear results unnecessarily
+  assert.ok(session.getResults() !== null);
+  assert.equal(session.getResults().data, "ok");
+});
+

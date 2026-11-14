@@ -78,7 +78,7 @@ test('malformed amount and recipient return BLOCK', () => {
   assert.equal(evaluatePaymentIntent(badRecipient).status, 'BLOCK');
 });
 test('plugin descriptor dispatches only the declared tool', () => {
-  assert.equal(plugin.tools.length, 8);
+  assert.equal(plugin.tools.length, 12);
   assert.equal(plugin.invokeTool('payguard_check_payment_intent', goodInput()).status, 'PASS');
   assert.throws(() => plugin.invokeTool('pay', {}), /Unknown tool/);
 });
@@ -154,7 +154,7 @@ test('Threat report redacts sensitive query values and is explicitly not submitt
   assert.ok(report.subject.url.includes('%5BREDACTED%5D') || report.subject.url.includes('%5BVALUE%20REDACTED%5D'));
 });
 test('plugin exposes the URL Sentinel and report tools', async () => {
-  assert.equal(plugin.tools.length, 8);
+  assert.equal(plugin.tools.length, 12);
   const result = await plugin.invokeTool('payguard_analyze_url', { url: 'https://paybox-login.attacker.example' });
   assert.equal(result.verdict, 'SUSPICIOUS');
   const report = await plugin.invokeTool('payguard_prepare_threat_report', { url: 'https://bad.example' });
@@ -339,7 +339,7 @@ test('Bundled distribution artifacts export valid PayBox plugin contract and too
     assert.equal(mod.default.id, 'payguard');
     assert.equal(mod.default.name, 'PayGuard');
     assert.equal(mod.default.protocol, 'mcp');
-    assert.equal(mod.default.tools.length, 8);
+    assert.equal(mod.default.tools.length, 12);
     for (const tool of mod.default.tools) {
       assert.ok(tool.name);
       assert.ok(tool.description);
@@ -406,13 +406,17 @@ test('MCP stdio tool discovery discovers tools without running them', async () =
   const toolsMsg = responses.find(r => r.id === 2);
 
   assert.equal(initMsg?.result?.serverInfo?.name, 'PayGuard');
-  assert.equal(toolsMsg?.result?.tools?.length, 8);
+  assert.equal(toolsMsg?.result?.tools?.length, 12);
   const names = toolsMsg.result.tools.map(t => t.name);
   assert.ok(names.includes('payguard_check_payment_intent'));
   assert.ok(names.includes('payguard_analyze_url'));
   assert.ok(names.includes('payguard_prepare_threat_report'));
   assert.ok(names.includes('payguard_check_token_security'));
   assert.ok(names.includes('payguard_check_address_security'));
+  assert.ok(names.includes('scan_wallet_holdings'));
+  assert.ok(names.includes('get_token_balance'));
+  assert.ok(names.includes('get_wallet_portfolio'));
+  assert.ok(names.includes('verify_wallet_scan'));
   assert.ok(names.includes('payguard_scan_wallet_tokens'));
   assert.ok(names.includes('payguard_near_security_intelligence'));
 

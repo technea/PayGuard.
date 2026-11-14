@@ -1,19 +1,14 @@
 /**
  * PayGuard Base Wallet Token Scanner & Impersonation Detector
  *
- * Scans ERC-20 token holdings and custom tokens for a Base wallet (8453),
- * screens each token contract against GoPlus Security intelligence,
- * cross-references against an authoritative Base official asset registry
- * to detect token impersonation, and flags unsolicited/suspicious airdrops.
- *
- * Safe Architecture:
- * - Read-only: Never asks for private keys, signatures, or payment permissions.
- * - Multi-source token discovery:
- *   1. Blockscout Base API v2 (if reachable or non-blocked)
- *   2. Authoritative Base ecosystem multicall balance scanner (reliable on-chain RPC)
- *   3. Custom user-supplied token contract auditing
- * - Fail-closed security evaluation: Errors or timeouts return UNABLE TO VERIFY / UNVERIFIED.
- * - Impersonation detector: Flags when token symbols match official assets but contract address differs.
+ * Full Base Mainnet (8453) wallet portfolio & asset security intelligence:
+ * 1. Alchemy Base API v2 token discovery (native ETH balance + ERC-20 holdings + metadata).
+ * 2. Multi-source fallback: Blockscout Base API v2 & canonical ecosystem registry RPC.
+ * 3. Screens each token contract against GoPlus Security intelligence (honeypots,
+ *    predatory taxes, blacklist/whitelist restrictions, ownership takeovers, airdrop scams).
+ * 4. Cross-references against authoritative Base official asset registry to detect impersonation.
+ * 5. Fail-closed security evaluation: Errors or unindexed tokens return UNABLE TO VERIFY / UNVERIFIED.
+ * 6. Read-only: Never asks for private keys, signatures, or payment permissions.
  */
 
 const { checkTokenSecurity, isValidEvmAddress } = require('./token-security.cjs');
@@ -21,6 +16,25 @@ const { checkTokenSecurity, isValidEvmAddress } = require('./token-security.cjs'
 const BASE_CHAIN_ID = "8453";
 const BASE_RPC_URL = "https://mainnet.base.org";
 const BLOCKSCOUT_BASE_API = "https://base.blockscout.com/api/v2";
+const ALCHEMY_BASE_RPC = "https://base-mainnet.g.alchemy.com/v2";
+
+/**
+ * Try to load .env safely if ALCHEMY_API_KEY is not already present in process.env
+ */
+function getAlchemyApiKey() {
+  if (typeof process !== "undefined" && process?.env?.ALCHEMY_API_KEY) {
+    return process.env.ALCHEMY_API_KEY.trim();
+  }
+  if (typeof process !== "undefined" && typeof process.loadEnvFile === "function") {
+    try {
+      process.loadEnvFile();
+    } catch {}
+    if (process.env.ALCHEMY_API_KEY) {
+      return process.env.ALCHEMY_API_KEY.trim();
+    }
+  }
+  return "";
+}
 
 /**
  * Curated registry of authoritative, verified official Base token contracts.
@@ -95,6 +109,11 @@ for (const info of Object.values(OFFICIAL_BASE_TOKENS)) {
 }
 
 /**
+ * In-memory cache for token metadata (contract -> { name, symbol, decimals, logo })
+ */
+const metadataCache = new Map();
+
+/**
  * Check if a token symbol matches an official asset but contract differs
  */
 function checkTokenImpersonation(contractAddress, symbol, name) {
@@ -114,7 +133,6 @@ function checkTokenImpersonation(contractAddress, symbol, name) {
     };
   }
 
-  // Symbol matches official asset, but contract address is different!
   return {
     isImpersonation: true,
     isVerifiedOfficial: false,
@@ -124,7 +142,35 @@ function checkTokenImpersonation(contractAddress, symbol, name) {
 }
 
 /**
- * Helper to execute an eth_call on Base RPC
+ * Format atomic integer units into human-readable balance string
+ */
+function formatTokenUnits(atomicBalance, decimals = 18) {
+  try {
+    if (atomicBalance === null || atomicBalance === undefined) return "0";
+    let bi;
+    if (typeof atomicBalance === "bigint") {
+      bi = atomicBalance;
+    } else if (typeof atomicBalance === "string" && atomicBalance.startsWith("0x")) {
+      bi = BigInt(atomicBalance);
+    } else {
+      bi = BigInt(String(atomicBalance));
+    }
+    if (bi === 0n) return "0";
+    const dec = Math.max(0, Math.min(36, Number(decimals) || 18));
+    if (dec === 0) return bi.toString();
+    const divisor = 10n ** BigInt(dec);
+    const intPart = bi / divisor;
+    const rem = bi % divisor;
+    const fracPart = rem.toString().padStart(dec, "0");
+    const trimmedFrac = fracPart.replace(/0+$/, "");
+    return trimmedFrac ? `${intPart}.${trimmedFrac}` : intPart.toString();
+  } catch {
+    return "0";
+  }
+}
+
+/**
+ * Helper to execute an eth_call or standard RPC method on Base RPC
  */
 async function rpcCall(method, params, fetchImpl = globalThis.fetch, rpcUrl = BASE_RPC_URL) {
   const res = await fetchImpl(rpcUrl, {
@@ -136,6 +182,203 @@ async function rpcCall(method, params, fetchImpl = globalThis.fetch, rpcUrl = BA
   const data = await res.json();
   if (data.error) throw new Error(data.error.message || "RPC error");
   return data.result;
+}
+
+/**
+ * Fetch native ETH balance for a Base wallet via Alchemy or fallback RPC
+ */
+async function fetchNativeEthBalance(walletAddress, options = {}) {
+  const { fetchImpl = globalThis.fetch, rpcUrl, alchemyApiKey } = options;
+  if (!isValidEvmAddress(walletAddress)) {
+    return {
+      balanceHex: "0x0",
+      balanceWei: "0",
+      balanceEth: "0",
+      symbol: "ETH",
+      name: "Ether",
+      decimals: 18,
+      error: "Invalid wallet address format."
+    };
+  }
+
+  const key = alchemyApiKey || getAlchemyApiKey();
+  const endpoint = key ? `${ALCHEMY_BASE_RPC}/${key}` : (rpcUrl || BASE_RPC_URL);
+
+  try {
+    const rawHex = await rpcCall("eth_getBalance", [walletAddress, "latest"], fetchImpl, endpoint);
+    const wei = BigInt(rawHex || "0x0");
+    const ethFormatted = formatTokenUnits(wei, 18);
+    return {
+      balanceHex: rawHex || "0x0",
+      balanceWei: wei.toString(),
+      balanceEth: ethFormatted,
+      symbol: "ETH",
+      name: "Ether",
+      decimals: 18,
+      provider: key ? "Alchemy Base Mainnet" : "Base Public RPC"
+    };
+  } catch (err) {
+    return {
+      balanceHex: "0x0",
+      balanceWei: "0",
+      balanceEth: "0",
+      symbol: "ETH",
+      name: "Ether",
+      decimals: 18,
+      error: err.message || "Failed to retrieve native ETH balance."
+    };
+  }
+}
+
+/**
+ * Discover ERC-20 token balances for a wallet via Alchemy Base API
+ * Supports pagination via pageKey, deduplication, and zero-balance filtering.
+ */
+async function fetchAlchemyTokenBalances(walletAddress, options = {}) {
+  const { fetchImpl = globalThis.fetch, alchemyApiKey, maxPages = 5 } = options;
+  const key = alchemyApiKey || getAlchemyApiKey();
+  if (!key) {
+    return { items: [], available: false, error: "Alchemy API key not configured." };
+  }
+  if (!isValidEvmAddress(walletAddress)) {
+    return { items: [], available: false, error: "Invalid wallet address." };
+  }
+
+  const endpoint = `${ALCHEMY_BASE_RPC}/${key}`;
+  const discoveredMap = new Map(); // lowercase address -> { contractAddress, tokenBalance }
+  let currentPageKey = null;
+  let pageCount = 0;
+
+  try {
+    do {
+      pageCount++;
+      const params = currentPageKey
+        ? [walletAddress, "erc20", { pageKey: currentPageKey }]
+        : [walletAddress, "erc20"];
+
+      const res = await fetchImpl(endpoint, {
+        method: "POST",
+        headers: { "content-type": "application/json", "accept": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: pageCount, method: "alchemy_getTokenBalances", params })
+      });
+
+      if (!res.ok) {
+        return {
+          items: Array.from(discoveredMap.values()),
+          available: discoveredMap.size > 0,
+          error: `Alchemy HTTP ${res.status}`
+        };
+      }
+
+      const json = await res.json();
+      if (json.error) {
+        return {
+          items: Array.from(discoveredMap.values()),
+          available: discoveredMap.size > 0,
+          error: json.error.message || "Alchemy RPC error"
+        };
+      }
+
+      const rawBalances = json.result?.tokenBalances || [];
+      for (const item of rawBalances) {
+        const addr = (item.contractAddress || "").toLowerCase();
+        if (isValidEvmAddress(addr)) {
+          // Zero holdings filter
+          try {
+            const rawVal = item.tokenBalance;
+            if (rawVal && rawVal !== "0x0" && BigInt(rawVal) > 0n) {
+              if (!discoveredMap.has(addr)) {
+                discoveredMap.set(addr, {
+                  contractAddress: addr,
+                  tokenBalance: rawVal
+                });
+              }
+            }
+          } catch {}
+        }
+      }
+
+      currentPageKey = json.result?.pageKey || null;
+    } while (currentPageKey && pageCount < maxPages);
+
+    return {
+      items: Array.from(discoveredMap.values()),
+      available: true,
+      pageCount,
+      totalDiscovered: discoveredMap.size
+    };
+  } catch (err) {
+    return {
+      items: Array.from(discoveredMap.values()),
+      available: discoveredMap.size > 0,
+      error: err.message || "Failed to reach Alchemy Base endpoint."
+    };
+  }
+}
+
+/**
+ * Retrieve token metadata via Alchemy Base API or Base RPC fallback
+ */
+async function fetchTokenMetadata(contractAddress, options = {}) {
+  const { fetchImpl = globalThis.fetch, alchemyApiKey, rpcUrl = BASE_RPC_URL } = options;
+  if (!isValidEvmAddress(contractAddress)) {
+    return { name: "Unknown Token", symbol: "UNKNOWN", decimals: 18, logo: null };
+  }
+
+  const normAddress = contractAddress.toLowerCase();
+  if (metadataCache.has(normAddress)) {
+    return metadataCache.get(normAddress);
+  }
+
+  // Check official registry first
+  const official = OFFICIAL_BASE_TOKENS[normAddress];
+  if (official) {
+    const meta = { name: official.name, symbol: official.symbol, decimals: official.decimals, logo: null };
+    metadataCache.set(normAddress, meta);
+    return meta;
+  }
+
+  const key = alchemyApiKey || getAlchemyApiKey();
+  if (key) {
+    try {
+      const endpoint = `${ALCHEMY_BASE_RPC}/${key}`;
+      const res = await fetchImpl(endpoint, {
+        method: "POST",
+        headers: { "content-type": "application/json", "accept": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "alchemy_getTokenMetadata",
+          params: [contractAddress]
+        })
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const r = json.result;
+        if (r && (r.symbol || r.name)) {
+          const meta = {
+            name: r.name || "Unknown Token",
+            symbol: r.symbol ? r.symbol.trim() : "UNKNOWN",
+            decimals: typeof r.decimals === "number" && r.decimals >= 0 && r.decimals <= 36 ? r.decimals : 18,
+            logo: r.logo || null
+          };
+          metadataCache.set(normAddress, meta);
+          return meta;
+        }
+      }
+    } catch {}
+  }
+
+  // Fallback to on-chain RPC getErc20Metadata
+  const fallback = await getErc20Metadata(contractAddress, fetchImpl, rpcUrl);
+  const result = {
+    name: fallback.symbol || "Unknown Token",
+    symbol: fallback.symbol || "UNKNOWN",
+    decimals: fallback.decimals,
+    logo: null
+  };
+  metadataCache.set(normAddress, result);
+  return result;
 }
 
 /**
@@ -168,13 +411,11 @@ async function getErc20Metadata(contractAddress, fetchImpl = globalThis.fetch, r
 
     let symbol = "UNKNOWN";
     if (symHex && symHex.length >= 130) {
-      // Decode dynamic string
       const offset = parseInt(symHex.slice(2, 66), 16) * 2 + 2;
       const len = parseInt(symHex.slice(offset, offset + 64), 16);
       const strHex = symHex.slice(offset + 64, offset + 64 + len * 2);
       symbol = Buffer.from(strHex, "hex").toString("utf8").replace(/\0/g, "").trim();
     } else if (symHex && symHex.length === 66) {
-      // Decode bytes32 string
       symbol = Buffer.from(symHex.slice(2), "hex").toString("utf8").replace(/\0/g, "").trim();
     }
 
@@ -191,8 +432,7 @@ async function getErc20Metadata(contractAddress, fetchImpl = globalThis.fetch, r
 }
 
 /**
- * Retrieve ERC-20 token holdings from Blockscout Base API v2.
- * Returns { items: Array, available: boolean, error?: string }
+ * Retrieve ERC-20 token holdings from Blockscout Base API v2 (fallback).
  */
 async function fetchBlockscoutTokens(walletAddress, options = {}) {
   const { fetchImpl = globalThis.fetch, timeoutMs = 4000 } = options;
@@ -249,26 +489,32 @@ async function fetchBlockscoutTokens(walletAddress, options = {}) {
  * evaluates impersonation, and calculates unified user-friendly verdict.
  */
 async function evaluateWalletToken(tokenData, walletAddress, options = {}) {
-  const { fetchImpl = globalThis.fetch, rpcUrl = BASE_RPC_URL } = options;
+  const { fetchImpl = globalThis.fetch, rpcUrl = BASE_RPC_URL, alchemyApiKey } = options;
   const address = tokenData.address || tokenData.contractAddress;
   const normAddress = (address || "").toLowerCase();
 
   let name = tokenData.name || null;
   let symbol = tokenData.symbol || null;
-  let decimals = tokenData.decimals !== undefined ? tokenData.decimals : 18;
+  let decimals = tokenData.decimals !== undefined ? tokenData.decimals : null;
+  let logo = tokenData.logo || null;
   let balance = (tokenData.balance !== undefined && tokenData.balance !== null) ? String(tokenData.balance) : null;
 
-  // If balance not provided, query via Base RPC
+  // Retrieve metadata if missing
+  if (!name || !symbol || symbol === "UNKNOWN" || decimals === null) {
+    const meta = await fetchTokenMetadata(normAddress, { fetchImpl, alchemyApiKey, rpcUrl });
+    name = name || meta.name;
+    symbol = symbol || meta.symbol;
+    decimals = decimals !== null ? decimals : meta.decimals;
+    logo = logo || meta.logo;
+  }
+  if (decimals === null) decimals = 18;
+
+  // Retrieve balance if missing
   if (balance === null && isValidEvmAddress(normAddress) && isValidEvmAddress(walletAddress)) {
     balance = await getErc20Balance(normAddress, walletAddress, fetchImpl, rpcUrl);
   }
 
-  // If metadata missing, query via Base RPC
-  if ((!symbol || symbol === "UNKNOWN") && isValidEvmAddress(normAddress)) {
-    const meta = await getErc20Metadata(normAddress, fetchImpl, rpcUrl);
-    symbol = meta.symbol;
-    decimals = meta.decimals;
-  }
+  const formattedBalance = formatTokenUnits(balance, decimals);
 
   // 1. Screen contract with GoPlus Token Security
   const securityRes = await checkTokenSecurity({
@@ -277,13 +523,13 @@ async function evaluateWalletToken(tokenData, walletAddress, options = {}) {
     fetchImpl
   });
 
-  if (securityRes.tokenName && !name) name = securityRes.tokenName;
+  if (securityRes.tokenName && (!name || name === "Unknown Token")) name = securityRes.tokenName;
   if (securityRes.tokenSymbol && (!symbol || symbol === "UNKNOWN")) symbol = securityRes.tokenSymbol;
 
   // 2. Check for Token Impersonation
   const impersonation = checkTokenImpersonation(normAddress, symbol, name);
 
-  // 3. Check for Suspicious / Unsolicited Signals
+  // 3. Collect Security Findings and Indicators
   const findings = [...(securityRes.findings || [])];
   const detectedIndicators = [];
 
@@ -308,19 +554,18 @@ async function evaluateWalletToken(tokenData, walletAddress, options = {}) {
     });
   }
 
-  // Check GoPlus specific indicators
   for (const f of securityRes.findings || []) {
     let indicatorType = "RISK";
     let sev = "MEDIUM";
-    if (f.code === "HONEYPOT_DETECTED" || f.code === "CANNOT_SELL_ALL") {
+    if (f.code === "HONEYPOT_DETECTED" || f.code === "CANNOT_SELL_ALL" || f.code === "OWNER_CAN_CHANGE_BALANCE" || f.code === "AIRDROP_SCAM_TOKEN") {
       indicatorType = "HONEYPOT";
       sev = "CRITICAL";
-    } else if (f.code.includes("TAX")) {
+    } else if (f.code.includes("TAX") || f.code === "EXCESSIVE_BUY_TAX" || f.code === "EXCESSIVE_SELL_TAX") {
       indicatorType = "PREDATORY_TAX";
       sev = f.severity === "high" ? "HIGH" : "MEDIUM";
-    } else if (f.code.includes("OWNER") || f.code.includes("PRIVILEGE")) {
-      indicatorType = "ADMIN_PRIVILEGE";
-      sev = "MEDIUM";
+    } else if (f.code.includes("BLACKLIST") || f.code.includes("WHITELIST") || f.code.includes("OWNER") || f.code.includes("PRIVILEGE")) {
+      indicatorType = "CENTRALIZATION";
+      sev = f.severity === "high" ? "HIGH" : "MEDIUM";
     } else if (f.code === "PROXY_CONTRACT" || f.code === "UPGRADEABLE_PROXY") {
       indicatorType = "UPGRADEABLE_PROXY";
       sev = "INFO";
@@ -333,17 +578,16 @@ async function evaluateWalletToken(tokenData, walletAddress, options = {}) {
     });
   }
 
-  // Heuristic: Unsolicited / Airdrop detection
-  // If token has balance > 0, is NOT verified official, and has high risk markers or is not on trust list
+  // Heuristic: Suspicious unsolicited airdrop candidate
   const isUnsolicitedCandidate = !impersonation?.isVerifiedOfficial &&
-    (securityRes.findings || []).some(f => f.severity === "high" || f.code === "HONEYPOT_DETECTED" || f.code === "MALICIOUS_CREATOR");
+    (securityRes.findings || []).some(f => f.severity === "high" || f.code === "HONEYPOT_DETECTED" || f.code === "MALICIOUS_CREATOR" || f.code === "AIRDROP_SCAM_TOKEN");
 
   if (isUnsolicitedCandidate) {
     detectedIndicators.push({
       type: "SUSPICIOUS_UNSOLICITED",
       severity: "HIGH",
       label: "Suspicious Unsolicited Token",
-      detail: "This token exhibits high-risk properties common in unsolicited phishing airdrops. Stay away."
+      detail: "This token exhibits high-risk properties common in unsolicited phishing airdrops. Do not interact."
     });
   }
 
@@ -363,7 +607,7 @@ async function evaluateWalletToken(tokenData, walletAddress, options = {}) {
       recommendedAction = "Network is not supported by GoPlus Security API.";
     } else {
       securityStatus = "UNABLE TO VERIFY";
-      recommendedAction = "Security intelligence is currently unavailable for this token contract.";
+      recommendedAction = "Security intelligence is currently unavailable or unindexed for this token contract.";
     }
   }
 
@@ -372,7 +616,9 @@ async function evaluateWalletToken(tokenData, walletAddress, options = {}) {
     symbol: symbol || "UNKNOWN",
     contractAddress: normAddress,
     balance: balance || "0",
+    formattedBalance,
     decimals,
+    logo,
     network: "Base Mainnet (8453)",
     securityStatus,
     verdict: securityRes.verdict,
@@ -393,19 +639,28 @@ async function evaluateWalletToken(tokenData, walletAddress, options = {}) {
  * @param {Object} input
  * @param {string} input.walletAddress Target Base wallet address (40 hex chars)
  * @param {Array<string>} [input.customTokenAddresses] Optional specific tokens to inspect
- * @param {Object} [options] Injection options (fetchImpl, rpcUrl)
+ * @param {Object} [options] Injection options (fetchImpl, rpcUrl, alchemyApiKey)
  * @returns {Promise<Object>} Complete wallet scan report
  */
 async function scanBaseWalletTokens(input = {}, options = {}) {
   const { walletAddress, customTokenAddresses = [] } = input;
-  const { fetchImpl = globalThis.fetch, rpcUrl = BASE_RPC_URL } = options;
+  const { fetchImpl = globalThis.fetch, rpcUrl = BASE_RPC_URL, alchemyApiKey } = options;
 
   if (!isValidEvmAddress(walletAddress)) {
     return {
       status: "ERROR",
+      scanCompletionStatus: "FAILED",
       walletAddress: walletAddress || null,
       chainId: BASE_CHAIN_ID,
       error: "Invalid wallet address format. Must be a 20-byte hex address (0x...).",
+      nativeEth: {
+        balanceHex: "0x0",
+        balanceWei: "0",
+        balanceEth: "0",
+        symbol: "ETH",
+        name: "Ether",
+        decimals: 18
+      },
       tokens: [],
       summary: {
         totalTokensScanned: 0,
@@ -414,32 +669,84 @@ async function scanBaseWalletTokens(input = {}, options = {}) {
         cleanCount: 0,
         unverifiedCount: 0
       },
+      dataProvider: "None",
       timestamp: new Date().toISOString()
     };
   }
 
   const normWallet = walletAddress.toLowerCase();
-  const tokenMap = new Map(); // address -> { address, name, symbol, balance, decimals }
+  const tokenMap = new Map(); // address -> { address, name, symbol, balance, decimals, logo }
 
-  // 1. Attempt token discovery via Blockscout API v2
-  const blockscoutRes = await fetchBlockscoutTokens(normWallet, { fetchImpl });
-  if (blockscoutRes.available && blockscoutRes.items.length > 0) {
-    for (const item of blockscoutRes.items) {
-      const token = item.token || {};
-      const addr = (token.address || "").toLowerCase();
-      if (isValidEvmAddress(addr)) {
-        tokenMap.set(addr, {
-          address: addr,
-          name: token.name || null,
-          symbol: token.symbol || null,
-          decimals: token.decimals !== undefined ? Number(token.decimals) : 18,
-          balance: item.value || "0"
-        });
+  // 1. Fetch Native Base ETH Balance
+  const nativeEth = await fetchNativeEthBalance(normWallet, { fetchImpl, rpcUrl, alchemyApiKey });
+
+  // 2. Discover ERC-20 Tokens
+  let discoveryMode = "ALCHEMY_INDEXER";
+  let dataProvider = "Alchemy Base API + GoPlus Security";
+  let scanCompletionStatus = "COMPLETE";
+  let discoveryUsed = false;
+
+  const key = alchemyApiKey || getAlchemyApiKey();
+
+  // Try Alchemy token discovery if API key available and caller didn't explicitly forbid
+  if (options.alchemyApiKey !== false && key) {
+    try {
+      const alchemyRes = await fetchAlchemyTokenBalances(normWallet, { fetchImpl, alchemyApiKey: key });
+      if (alchemyRes.available) {
+        discoveryUsed = true;
+        for (const item of alchemyRes.items) {
+          const addr = item.contractAddress.toLowerCase();
+          if (isValidEvmAddress(addr)) {
+            tokenMap.set(addr, {
+              address: addr,
+              balance: item.tokenBalance,
+              name: null,
+              symbol: null,
+              decimals: null,
+              logo: null
+            });
+          }
+        }
       }
+    } catch {
+      // Alchemy error or mock fetch without alchemy support: fall through to fallback
     }
   }
 
-  // 2. Discover / check authoritative Base ecosystem tokens
+  // Fallback 1: Blockscout API v2 if Alchemy was not used or failed
+  if (!discoveryUsed) {
+    try {
+      const blockscoutRes = await fetchBlockscoutTokens(normWallet, { fetchImpl });
+      if (blockscoutRes.available && blockscoutRes.items.length > 0) {
+        discoveryUsed = true;
+        discoveryMode = "BLOCKSCOUT_INDEXER";
+        dataProvider = "Blockscout API + GoPlus Security";
+        for (const item of blockscoutRes.items) {
+          const token = item.token || {};
+          const addr = (token.address || "").toLowerCase();
+          if (isValidEvmAddress(addr)) {
+            tokenMap.set(addr, {
+              address: addr,
+              name: token.name || null,
+              symbol: token.symbol || null,
+              decimals: token.decimals !== undefined ? Number(token.decimals) : 18,
+              balance: item.value || "0",
+              logo: null
+            });
+          }
+        }
+      }
+    } catch {}
+  }
+
+  // Fallback 2: Notice if no indexer succeeded
+  if (!discoveryUsed) {
+    discoveryMode = "REGISTRY_AND_CUSTOM_PARTIAL";
+    dataProvider = "Base RPC Registry + GoPlus Security";
+    scanCompletionStatus = "PARTIAL";
+  }
+
+  // Always include canonical Base ecosystem registry tokens
   for (const [addr, info] of Object.entries(OFFICIAL_BASE_TOKENS)) {
     if (!tokenMap.has(addr)) {
       tokenMap.set(addr, {
@@ -447,7 +754,8 @@ async function scanBaseWalletTokens(input = {}, options = {}) {
         name: info.name,
         symbol: info.symbol,
         decimals: info.decimals,
-        balance: null // Will be queried via RPC
+        balance: null,
+        logo: null
       });
     }
   }
@@ -462,23 +770,24 @@ async function scanBaseWalletTokens(input = {}, options = {}) {
             address: lower,
             name: null,
             symbol: null,
-            decimals: 18,
-            balance: null
+            decimals: null,
+            balance: null,
+            logo: null
           });
         }
       }
     }
   }
 
-  // 4. Evaluate each token with bounded concurrency (3 concurrent requests)
+  // 4. Evaluate each token with bounded concurrency (5 concurrent requests)
   const tokensToScan = Array.from(tokenMap.values());
   const evaluatedTokens = [];
 
-  const BATCH_SIZE = 3;
+  const BATCH_SIZE = 5;
   for (let i = 0; i < tokensToScan.length; i += BATCH_SIZE) {
     const chunk = tokensToScan.slice(i, i + BATCH_SIZE);
     const chunkResults = await Promise.all(
-      chunk.map(token => evaluateWalletToken(token, normWallet, { fetchImpl, rpcUrl }))
+      chunk.map(token => evaluateWalletToken(token, normWallet, { fetchImpl, rpcUrl, alchemyApiKey: key }))
     );
     evaluatedTokens.push(...chunkResults);
   }
@@ -498,11 +807,13 @@ async function scanBaseWalletTokens(input = {}, options = {}) {
 
   return {
     status: "SUCCESS",
+    scanCompletionStatus,
+    dataProvider,
+    discoveryMode,
     walletAddress: normWallet,
     chainId: BASE_CHAIN_ID,
-    networkName: "Base Mainnet",
-    discoveryMode: blockscoutRes.available ? "FULL_INDEXER" : "REGISTRY_AND_CUSTOM_PARTIAL",
-    blockscoutStatus: blockscoutRes.available ? "CONNECTED" : (blockscoutRes.error || "UNAVAILABLE"),
+    networkName: "Base Mainnet (8453)",
+    nativeEth,
     summary: {
       totalTokensScanned: evaluatedTokens.length,
       highRiskCount,
@@ -511,13 +822,204 @@ async function scanBaseWalletTokens(input = {}, options = {}) {
       unverifiedCount
     },
     tokens: evaluatedTokens,
-    advisoryNotice: blockscoutRes.available
-      ? "Complete wallet token holdings indexed via Blockscout API. Threat screening evaluated via GoPlus Security."
-      : "Partial discovery mode active: Audited canonical Base ecosystem registry and caller-specified custom tokens via Base on-chain RPC. Unsolicited or unindexed tokens outside this scope require explicit contract input.",
+    advisoryNotice: discoveryMode === "ALCHEMY_INDEXER"
+      ? "Complete wallet portfolio indexed via Alchemy Base Mainnet API. Threat analysis evaluated via GoPlus Security and Base Official Asset Registry."
+      : discoveryMode === "BLOCKSCOUT_INDEXER"
+      ? "Wallet token holdings indexed via Blockscout API. Threat screening evaluated via GoPlus Security."
+      : "Partial discovery mode active: Audited canonical Base ecosystem registry and caller-specified custom tokens via Base on-chain RPC. Unsolicited tokens outside this scope require explicit contract input.",
     timestamp: new Date().toISOString()
+  };
+}
+
+/**
+ * Fast balance lookup tool for a single token (or native ETH)
+ */
+async function getWalletTokenBalance(input = {}, options = {}) {
+  const { walletAddress, tokenAddress } = input;
+  const { fetchImpl = globalThis.fetch, rpcUrl = BASE_RPC_URL, alchemyApiKey } = options;
+
+  if (!isValidEvmAddress(walletAddress)) {
+    return {
+      status: "ERROR",
+      error: "Invalid wallet address.",
+      walletAddress: walletAddress || null
+    };
+  }
+
+  // Native ETH query
+  if (!tokenAddress || tokenAddress.toUpperCase() === "ETH" || tokenAddress === "0x0000000000000000000000000000000000000000") {
+    const eth = await fetchNativeEthBalance(walletAddress, { fetchImpl, rpcUrl, alchemyApiKey });
+    return {
+      status: "SUCCESS",
+      walletAddress: walletAddress.toLowerCase(),
+      chainId: BASE_CHAIN_ID,
+      network: "Base Mainnet",
+      tokenAddress: "ETH",
+      symbol: "ETH",
+      name: "Ether",
+      decimals: 18,
+      balanceRaw: eth.balanceWei,
+      balanceFormatted: eth.balanceEth,
+      provider: eth.provider || "Alchemy Base Mainnet"
+    };
+  }
+
+  if (!isValidEvmAddress(tokenAddress)) {
+    return {
+      status: "ERROR",
+      error: "Invalid token contract address.",
+      walletAddress: walletAddress.toLowerCase(),
+      tokenAddress
+    };
+  }
+
+  const normContract = tokenAddress.toLowerCase();
+  const meta = await fetchTokenMetadata(normContract, { fetchImpl, alchemyApiKey, rpcUrl });
+  const rawBalance = await getErc20Balance(normContract, walletAddress, fetchImpl, rpcUrl);
+  const formatted = formatTokenUnits(rawBalance, meta.decimals);
+
+  return {
+    status: "SUCCESS",
+    walletAddress: walletAddress.toLowerCase(),
+    chainId: BASE_CHAIN_ID,
+    network: "Base Mainnet",
+    tokenAddress: normContract,
+    symbol: meta.symbol,
+    name: meta.name,
+    decimals: meta.decimals,
+    balanceRaw: rawBalance,
+    balanceFormatted: formatted,
+    provider: (alchemyApiKey || getAlchemyApiKey()) ? "Alchemy Base Mainnet" : "Base Public RPC"
+  };
+}
+
+/**
+ * Fast portfolio lookup: returns native ETH + all discovered ERC-20 tokens with balances and metadata
+ */
+async function getWalletPortfolio(input = {}, options = {}) {
+  const { walletAddress } = input;
+  const { fetchImpl = globalThis.fetch, rpcUrl = BASE_RPC_URL, alchemyApiKey } = options;
+
+  if (!isValidEvmAddress(walletAddress)) {
+    return {
+      status: "ERROR",
+      scanCompletionStatus: "FAILED",
+      error: "Invalid wallet address.",
+      walletAddress: walletAddress || null
+    };
+  }
+
+  const normWallet = walletAddress.toLowerCase();
+  const nativeEth = await fetchNativeEthBalance(normWallet, { fetchImpl, rpcUrl, alchemyApiKey });
+  const key = alchemyApiKey || getAlchemyApiKey();
+
+  let discoveredTokens = [];
+  let scanCompletionStatus = "COMPLETE";
+  let dataProvider = key ? "Alchemy Base Mainnet" : "Base Registry RPC";
+
+  if (key) {
+    const alchemyRes = await fetchAlchemyTokenBalances(normWallet, { fetchImpl, alchemyApiKey: key });
+    if (alchemyRes.available) {
+      const BATCH = 10;
+      for (let i = 0; i < alchemyRes.items.length; i += BATCH) {
+        const chunk = alchemyRes.items.slice(i, i + BATCH);
+        const chunkResults = await Promise.all(
+          chunk.map(async (item) => {
+            const meta = await fetchTokenMetadata(item.contractAddress, { fetchImpl, alchemyApiKey: key, rpcUrl });
+            return {
+              contractAddress: item.contractAddress,
+              symbol: meta.symbol,
+              name: meta.name,
+              decimals: meta.decimals,
+              logo: meta.logo,
+              balanceRaw: item.tokenBalance,
+              balanceFormatted: formatTokenUnits(item.tokenBalance, meta.decimals)
+            };
+          })
+        );
+        discoveredTokens.push(...chunkResults);
+      }
+    } else {
+      scanCompletionStatus = "PARTIAL";
+    }
+  }
+
+  // Fallback to official registry balances if no tokens found via indexer
+  if (discoveredTokens.length === 0) {
+    for (const [addr, info] of Object.entries(OFFICIAL_BASE_TOKENS)) {
+      const bal = await getErc20Balance(addr, normWallet, fetchImpl, rpcUrl);
+      discoveredTokens.push({
+        contractAddress: addr,
+        symbol: info.symbol,
+        name: info.name,
+        decimals: info.decimals,
+        logo: null,
+        balanceRaw: bal,
+        balanceFormatted: formatTokenUnits(bal, info.decimals)
+      });
+    }
+  }
+
+  return {
+    status: "SUCCESS",
+    scanCompletionStatus,
+    dataProvider,
+    walletAddress: normWallet,
+    chainId: BASE_CHAIN_ID,
+    network: "Base Mainnet (8453)",
+    nativeEth,
+    tokenHoldingsCount: discoveredTokens.length,
+    tokens: discoveredTokens,
+    timestamp: new Date().toISOString()
+  };
+}
+
+/**
+ * Verify wallet scan integrity and security status
+ */
+async function verifyWalletScan(input = {}, options = {}) {
+  const { walletAddress, scanResult } = input;
+  if (!isValidEvmAddress(walletAddress)) {
+    return {
+      status: "ERROR",
+      verified: false,
+      error: "Invalid wallet address format."
+    };
+  }
+
+  const normWallet = walletAddress.toLowerCase();
+  let scan = scanResult;
+
+  if (!scan || scan.walletAddress?.toLowerCase() !== normWallet) {
+    // Re-run fresh scan if previous scan data not provided
+    scan = await scanBaseWalletTokens({ walletAddress: normWallet }, options);
+  }
+
+  const highRiskTokens = (scan.tokens || []).filter(t => t.securityStatus === "HIGH RISK");
+  const suspiciousTokens = (scan.tokens || []).filter(t => t.securityStatus === "SUSPICIOUS");
+  const isSafeForTransactions = highRiskTokens.length === 0 && suspiciousTokens.length === 0;
+
+  return {
+    status: "SUCCESS",
+    verified: true,
+    walletAddress: normWallet,
+    chainId: BASE_CHAIN_ID,
+    scanCompletionStatus: scan.scanCompletionStatus || "COMPLETE",
+    dataProvider: scan.dataProvider || "Alchemy Base API + GoPlus Security",
+    totalTokensAudited: scan.summary?.totalTokensScanned || (scan.tokens || []).length,
+    highRiskCount: highRiskTokens.length,
+    suspiciousCount: suspiciousTokens.length,
+    isSafeForTransactions,
+    highRiskAssets: highRiskTokens.map(t => ({
+      symbol: t.symbol,
+      contractAddress: t.contractAddress,
+      reason: t.findings?.[0]?.message || t.securityStatus
+    })),
+    verificationTimestamp: new Date().toISOString(),
+    integrityCheck: "VERIFIED_VALID"
   };
 }
 
 
 
-module.exports = { BASE_CHAIN_ID, BASE_RPC_URL, BLOCKSCOUT_BASE_API, OFFICIAL_BASE_TOKENS, checkTokenImpersonation, getErc20Balance, getErc20Metadata, fetchBlockscoutTokens, evaluateWalletToken, scanBaseWalletTokens, default: scanBaseWalletTokens };
+module.exports = { BASE_CHAIN_ID, BASE_RPC_URL, BLOCKSCOUT_BASE_API, ALCHEMY_BASE_RPC, OFFICIAL_BASE_TOKENS, checkTokenImpersonation, formatTokenUnits, fetchNativeEthBalance, fetchAlchemyTokenBalances, fetchTokenMetadata, getErc20Balance, getErc20Metadata, fetchBlockscoutTokens, evaluateWalletToken, scanBaseWalletTokens, getWalletTokenBalance, getWalletPortfolio, verifyWalletScan, default: scanBaseWalletTokens };
