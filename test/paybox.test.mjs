@@ -108,6 +108,36 @@ test("Security: invalid payment authorization or requirements mismatch is reject
   assert.ok(noSigRes.reason.includes("signature"));
 });
 
+test("Security: malformed payment fields fail closed without throwing", async () => {
+  const base = {
+    x402Version: 2,
+    accepted: {
+      scheme: "exact",
+      network: X402_CONFIG.network,
+      amount: "1000",
+      asset: X402_CONFIG.asset,
+      payTo: X402_CONFIG.payTo
+    },
+    payload: { signature: "0xvalid" }
+  };
+
+  for (const amount of ["not-a-number", "-1", "1.5", "0x10", "", null, {}]) {
+    const malformed = structuredClone(base);
+    malformed.accepted.amount = amount;
+    const result = await verifyPaymentProof(JSON.stringify(malformed), "https://api.payguard.example/scan");
+    assert.equal(result.valid, false, `amount ${JSON.stringify(amount)} must be rejected`);
+    assert.match(result.reason, /amount/i);
+  }
+
+  for (const field of ["asset", "payTo"]) {
+    const malformed = structuredClone(base);
+    malformed.accepted[field] = { toString: "not-an-address" };
+    const result = await verifyPaymentProof(JSON.stringify(malformed), "https://api.payguard.example/scan");
+    assert.equal(result.valid, false, `${field} with a non-string value must be rejected`);
+    assert.match(result.reason, field === "asset" ? /asset/i : /recipient/i);
+  }
+});
+
 test("Security: Facilitator /verify failure fails closed and live mode never falls back to mock", async () => {
   const validHeader = 'Payment-Signature sig="0x1234567890abcdef1234567890abcdef"';
   

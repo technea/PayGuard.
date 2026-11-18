@@ -149,14 +149,25 @@ export function validatePaymentPayloadAgainstRequirements(paymentPayload, requir
   if (accepted.network !== requirements.network) {
     return { valid: false, reason: `Payment network '${accepted.network}' does not match required '${requirements.network}'.` };
   }
-  if (accepted.asset?.toLowerCase() !== requirements.asset.toLowerCase()) {
-    return { valid: false, reason: `Payment asset does not match required contract address.` };
+  if (typeof accepted.asset !== "string" || accepted.asset.toLowerCase() !== requirements.asset.toLowerCase()) {
+    return { valid: false, reason: "Payment asset does not match required contract address." };
   }
-  if (accepted.payTo?.toLowerCase() !== requirements.payTo.toLowerCase()) {
-    return { valid: false, reason: `Payment recipient does not match server receiving address.` };
+  if (typeof accepted.payTo !== "string" || accepted.payTo.toLowerCase() !== requirements.payTo.toLowerCase()) {
+    return { valid: false, reason: "Payment recipient does not match server receiving address." };
   }
-  if (BigInt(accepted.amount || "0") < BigInt(requirements.amount)) {
-    return { valid: false, reason: `Payment amount ${accepted.amount} is less than required ${requirements.amount}.` };
+
+  // Treat payment fields as untrusted input. BigInt throws on malformed values,
+  // which would otherwise turn a rejected proof into an HTTP 500 response.
+  const amount = accepted.amount;
+  const requiredAmount = requirements.amount;
+  if (typeof amount !== "string" || !/^\d+$/.test(amount)) {
+    return { valid: false, reason: "Payment amount must be a non-negative integer string." };
+  }
+  if (typeof requiredAmount !== "string" || !/^\d+$/.test(requiredAmount)) {
+    return { valid: false, reason: "Server payment amount configuration is invalid." };
+  }
+  if (BigInt(amount) < BigInt(requiredAmount)) {
+    return { valid: false, reason: `Payment amount ${amount} is less than required ${requiredAmount}.` };
   }
   const payload = paymentPayload.payload;
   if (!payload || typeof payload !== "object" || !payload.signature) {
